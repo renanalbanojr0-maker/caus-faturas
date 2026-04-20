@@ -1,6 +1,6 @@
 {
   "name": "caus-faturas",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Sistema de Faturas Caus",
   "main": "main.js",
   "scripts": {
@@ -8,10 +8,11 @@
     "dist": "rd /s /q dist 2>nul & electron-builder --win --x64"
   },
   "dependencies": {
+    "electron-updater": "^6.1.7",
     "express": "^4.18.2",
-    "socket.io": "^4.7.5",
     "mongodb": "^6.0.0",
-    "electron-updater": "^6.1.7"
+    "nfe-danfe-pdf": "^1.0.3",
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "electron": "^30.0.0",

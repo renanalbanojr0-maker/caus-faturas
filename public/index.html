@@ -886,12 +886,17 @@ socket.on("load-data", (payload) => {
 
     if (!serverDados || !serverDados.length) return;
 
+    // Campo com foco ativo — não sobrescreve enquanto usuário está digitando
+    const campoAtivo = document.activeElement;
+
     _ignorarInput = true;
 
     pages.forEach((page, p) => {
         const inputs = inputsEditaveis(page);
         if (serverDados[p]) {
             inputs.forEach((inp, i) => {
+                // Pula o campo que está sendo digitado agora
+                if (inp === campoAtivo) return;
                 if (serverDados[p][i] !== undefined) {
                     inp.value = serverDados[p][i];
                 }
@@ -1020,6 +1025,11 @@ function carregar(){
 
     const atual = localStorage.getItem("faturaAtual");
     if(atual !== null) faturaAtual = parseInt(atual);
+
+    // Vai direto para a primeira fatura em aberto (não finalizada)
+    const primeiraAberta = Array.from({length: pages.length}, (_,i) => i)
+      .find(i => !finalizadas.includes(i));
+    if(primeiraAberta !== undefined) faturaAtual = primeiraAberta;
 
     const dados = localStorage.getItem("faturasDados");
     if(!dados) return;
