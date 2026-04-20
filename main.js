@@ -10,19 +10,26 @@ const { Server } = require('socket.io');
 const { MongoClient } = require('mongodb');
 
 /* ── AUTO-UPDATER ────────────────────────────────────────────── */
-autoUpdater.autoDownload = true;       // baixa automaticamente
-autoUpdater.autoInstallOnAppQuit = true; // instala ao fechar
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = false;
 
 // feedURL vem do package.json (GitHub Releases)
 
-autoUpdater.on('update-available', () => {
-  console.log('[Update] Nova versão disponível — baixando...');
-  if(win) win.webContents.send('update-status', 'downloading');
+autoUpdater.on('update-available', (info) => {
+  console.log('[Update] Nova versão disponível:', info.version);
+  if(win) win.webContents.send('update-disponivel', info.version);
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  const pct = Math.round(progress.percent);
+  console.log('[Update] Baixando:', pct+'%');
+  if(win) win.webContents.send('update-progresso', pct);
 });
 
 autoUpdater.on('update-downloaded', () => {
-  console.log('[Update] Atualização baixada — será instalada ao fechar.');
-  if(win) win.webContents.send('update-status', 'ready');
+  console.log('[Update] Atualização baixada — instalando agora...');
+  if(win) win.webContents.send('update-pronto');
+  setTimeout(() => autoUpdater.quitAndInstall(false, true), 2000);
 });
 
 autoUpdater.on('error', (err) => {

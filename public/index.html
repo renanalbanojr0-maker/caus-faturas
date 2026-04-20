@@ -1756,6 +1756,35 @@ function fazerLogin(){
 /* ── START ───────────────────────────────────────────────────── */
 // Inicialização acontece após login em fazerLogin()
 document.getElementById("loginUser").focus();
+
+/* ── AUTO-UPDATE via IPC ── */
+try{
+  const { ipcRenderer } = require('electron');
+  ipcRenderer.on('update-disponivel', (event, versao) => {
+    const tela = document.getElementById('telaUpdate');
+    if(tela){
+      tela.style.display = 'flex';
+      document.getElementById('updateTitulo').textContent = 'Atualização ' + versao + ' disponível';
+      document.getElementById('updateMsg').textContent = 'Baixando nova versão, aguarde...';
+    }
+  });
+  ipcRenderer.on('update-progresso', (event, pct) => {
+    const b = document.getElementById('updateBarra');
+    const p = document.getElementById('updatePct');
+    if(b) b.style.width = pct + '%';
+    if(p) p.textContent = pct + '%';
+  });
+  ipcRenderer.on('update-pronto', () => {
+    const t = document.getElementById('updateTitulo');
+    const m = document.getElementById('updateMsg');
+    const b = document.getElementById('updateBarra');
+    const p = document.getElementById('updatePct');
+    if(t) t.textContent = '✅ Atualização concluída!';
+    if(m) m.textContent = 'Reiniciando o programa...';
+    if(b) b.style.width = '100%';
+    if(p) p.textContent = '100%';
+  });
+}catch(e){}
 </script>
 
 </div></body>
