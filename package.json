@@ -32,8 +32,10 @@
       "output": "dist"
     },
     "publish": {
-      "provider": "generic",
-      "url": "file://DESKTOP-Q804FKP/CausAtualizacoes"
+      "provider": "github",
+      "owner": "renanalbanojr0-maker",
+      "repo": "caus-faturas",
+      "private": true
     },
     "win": {
       "target": "nsis",

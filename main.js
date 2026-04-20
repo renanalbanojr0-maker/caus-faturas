@@ -13,11 +13,7 @@ const { MongoClient } = require('mongodb');
 autoUpdater.autoDownload = true;       // baixa automaticamente
 autoUpdater.autoInstallOnAppQuit = true; // instala ao fechar
 
-// Define o servidor de update para pasta de rede local
-autoUpdater.setFeedURL({
-  provider: 'generic',
-  url: 'file:////DESKTOP-Q804FKP/CausAtualizacoes'
-});
+// feedURL vem do package.json (GitHub Releases)
 
 autoUpdater.on('update-available', () => {
   console.log('[Update] Nova versão disponível — baixando...');
@@ -391,9 +387,9 @@ async function createWindow() {
 
     // Verifica atualização 5 segundos após abrir
     setTimeout(() => {
-      console.log('[Update] Verificando atualizações em:', autoUpdater.feedURL || 'sem URL');
+      console.log('[Update] Verificando em: http://localhost:3000/updates');
       autoUpdater.checkForUpdates()
-        .then(r => console.log('[Update] Resultado:', JSON.stringify(r)))
+        .then(r => console.log('[Update] Resultado:', JSON.stringify(r?.updateInfo)))
         .catch(e => console.log('[Update] Erro:', e.message));
     }, 5000);
   });
