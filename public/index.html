@@ -1672,9 +1672,14 @@ function recalcularTodos(){
 }
 
 /* ── EVENTOS ─────────────────────────────────────────────────── */
+let _salvarTimer = null;
 document.addEventListener("input", () => {
     recalcularAtual();
-    if (!_ignorarInput) salvar(); // só envia ao socket se foi o usuário quem digitou
+    if (!_ignorarInput){
+        // Debounce — espera 600ms após parar de digitar antes de salvar
+        clearTimeout(_salvarTimer);
+        _salvarTimer = setTimeout(() => salvar(), 600);
+    }
 });
 
 function proximaFatura(){
