@@ -1,0 +1,50 @@
+{
+  "name": "caus-faturas",
+  "version": "1.0.2",
+  "description": "Sistema de Faturas Caus",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "rd /s /q dist 2>nul & electron-builder --win --x64"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.5",
+    "mongodb": "^6.0.0",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.caus.faturas",
+    "productName": "Caus Faturas",
+    "asar": false,
+    "icon": "build/icon.ico",
+    "files": [
+      "main.js",
+      "public/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "file://DESKTOP-Q804FKP/CausAtualizacoes"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
