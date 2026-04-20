@@ -16,11 +16,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --include=dev
         timeout-minutes: 30
+
+      - name: Verify electron-updater
+        run: node -e "require('electron-updater'); console.log('OK')"
 
       - name: Build
         run: npm run dist
@@ -33,5 +35,6 @@ jobs:
           files: |
             dist/*.exe
             dist/*.yml
+            dist/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
