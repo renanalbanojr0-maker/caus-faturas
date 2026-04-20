@@ -656,7 +656,6 @@ input:focus, textarea:focus{
 <button class="btnGreen" onclick="gerarPDF()">Gerar PDF</button>
 <button class="btnBlue" onclick="abrirModalEditar()" id="btnEditar" style="background:#e67e22;">✏️ Editar</button>
 <button class="btnGray" onclick="abrirModalReset()" style="background:#c0392b;">🗑 Zerar Tudo</button>
-<button class="btnGray" id="btnUpdate" onclick="verificarAtualizacao()" style="background:#555;">🔄 Verificar Update</button>
 <div class="status" id="statusFatura"></div>
 <div class="sync-indicator">
   <div class="sync-dot disconnected" id="syncDot"></div>
@@ -1700,32 +1699,6 @@ function gerarPDF(){
 }
 
 /* ── CALCULADORA DE NFs ──────────────────────────────────────── */
-/* ── VERIFICAR ATUALIZAÇÃO ── */
-function verificarAtualizacao(){
-  const btn = document.getElementById('btnUpdate');
-  btn.textContent = '🔄 Verificando...';
-  btn.disabled = true;
-
-  try{
-    const { ipcRenderer } = require('electron');
-    ipcRenderer.send('verificar-update-manual');
-    ipcRenderer.once('update-resultado', (event, msg) => {
-      alert(msg);
-      btn.textContent = '🔄 Verificar Update';
-      btn.disabled = false;
-    });
-    // Timeout de 10 segundos
-    setTimeout(()=>{
-      btn.textContent = '🔄 Verificar Update';
-      btn.disabled = false;
-    }, 10000);
-  }catch(e){
-    alert('Erro: ' + e.message);
-    btn.textContent = '🔄 Verificar Update';
-    btn.disabled = false;
-  }
-}
-
 function abrirCalculadora(){
   // Tenta via Electron IPC primeiro
   if(window.process && window.process.type){
