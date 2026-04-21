@@ -721,15 +721,31 @@ async function atualizarPrecosTiny(){
     try{
       const {pf, pl} = calcRow(r);
 
-      // Busca produto atual no Tiny pelo SKU
+      // 1º — Pesquisa produto no Tiny pelo SKU para obter o ID interno
       btn.textContent = `⏳ Buscando ${r.sku}...`;
-      const respBusca = await proxy("obter_produto", { codigo: r.sku });
+      const respPesq = await proxy("pesquisar_produto", { pesquisa: r.sku });
+      const listaProd = respPesq?.retorno?.produtos;
+
+      if(!listaProd || !listaProd.length){
+        dbg("Produto não encontrado no Tiny: "+r.sku,"err");
+        erros++;
+        continue;
+      }
+
+      // Tenta achar produto com SKU exatamente igual (a pesquisa pode retornar vários)
+      const prodPesq = listaProd.find(p => (p.produto?.codigo || "").trim() === r.sku.trim())?.produto
+                    || listaProd[0].produto;
+
+      const idProduto = prodPesq.id;
+      if(!idProduto){ dbg("ID não encontrado para SKU: "+r.sku,"err"); erros++; continue; }
+
+      // 2º — Obtém detalhes completos do produto pelo ID
+      const respBusca = await proxy("obter_produto", { id: idProduto });
       const prod = respBusca?.retorno?.produto;
 
-      if(!prod){ dbg("Produto não encontrado no Tiny: "+r.sku,"err"); erros++; continue; }
+      if(!prod){ dbg("Falha ao obter detalhes do produto "+r.sku,"err"); erros++; continue; }
 
       const precoAtual = parseFloat(prod.preco || 0);
-      const idProduto = prod.id;
 
       // Salva preço atual para comparação visual
       r.precoTiny = precoAtual;
@@ -1007,6 +1023,11 @@ async function gerarPaginaPrecificacao(){
 
   const precRows=rows.map(r=>{
     const{ipi,frete,pf,pl,pp}=calcRow(r);
+    // Se precoTiny > pl → mostra valor maior no topo, pl tachado abaixo
+    const temRisco = r.precoTiny && pl < r.precoTiny;
+    const celulaPL = temRisco
+      ? { content: fmtR(r.precoTiny) + "\n" + fmtR(pl), _risco: true, _plCalc: pl }
+      : fmtR(pl);
     return[
       r.sku||"—",
       splitDesc(r.desc),
@@ -1015,7 +1036,7 @@ async function gerarPaginaPrecificacao(){
       fmtR(r.pc),
       fmtR(pf),
       fmtR(pp),
-      fmtR(pl),
+      celulaPL,
       String(r.q),
     ];
   });
@@ -1058,6 +1079,24 @@ async function gerarPaginaPrecificacao(){
     alternateRowStyles:{fillColor:[250,250,249]},
     margin:{left:M,right:M},
     rowPageBreak:"avoid",
+    didDrawCell: function(data) {
+      // Quando o PL calculado é MENOR que o preço do Tiny:
+      // - linha 1: preço do Tiny (mantido)
+      // - linha 2: PL calculado (tachado com um risco)
+      if(data.section === "body" && data.column.index === 7 && data.cell.raw && data.cell.raw._risco){
+        const c = data.cell;
+        // Calcula a altura que cada linha ocupa dentro da célula
+        // Texto tem fontSize 8 → ~2.8mm de altura por linha
+        const padTop = c.padding("top");
+        const padBottom = c.padding("bottom");
+        const alturaUtil = c.height - padTop - padBottom;
+        // Linha de baixo fica no centro da metade inferior
+        const yRisco = c.y + padTop + alturaUtil * 0.75;
+        doc.setDrawColor(200,40,40);
+        doc.setLineWidth(0.5);
+        doc.line(c.x + 3, yRisco, c.x + c.width - 3, yRisco);
+      }
+    }
   });
   y=doc.lastAutoTable.finalY+8;
 
