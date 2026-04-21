@@ -1,0 +1,205 @@
+const path    = require('path');
+const fs      = require('fs');
+const os      = require('os');
+const express = require('express');
+const http    = require('http');
+const { Server } = require('socket.io');
+const { MongoClient } = require('mongodb');
+
+const MONGO_URI = 'mongodb+srv://renanalbanojr0_db_user:C6HBx39A4MkRBTfl@cluster0.h4o2rnn.mongodb.net/?appName=Cluster0';
+const PORT = 3000;
+
+/* ── CAMINHOS ── */
+const baseDir    = path.join('/var/www/caus-faturas/dados');
+const saveFile   = path.join(baseDir, 'dados.json');
+const backupDir  = path.join(baseDir, 'FaturasBackup');
+const faturasDir = path.join(baseDir, 'FaturasPDF');
+const precDir    = path.join(baseDir, 'PrecificacaoNFs');
+
+[baseDir, backupDir, faturasDir, precDir].forEach(p => {
+  if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+});
+
+/* ── EXPRESS ── */
+const expressApp = express();
+const server     = http.createServer(expressApp);
+const io         = new Server(server);
+
+expressApp.use(express.static(path.join(__dirname, 'public')));
+expressApp.use(express.json({ limit: '50mb' }));
+
+/* ── MONGODB ── */
+let db = null;
+async function conectarMongo() {
+  try {
+    const client = new MongoClient(MONGO_URI);
+    await client.connect();
+    db = client.db('faturas').collection('dados');
+    console.log('[MongoDB] Conectado!');
+  } catch(e) {
+    console.error('[MongoDB] Erro:', e.message);
+  }
+}
+
+/* ── BACKUP ── */
+function fazerBackup(tipo) {
+  try {
+    if(!fs.existsSync(saveFile)) return;
+    const ts  = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    const dest = path.join(backupDir, `dados_${ts}_${tipo}.json`);
+    fs.copyFileSync(saveFile, dest);
+    const lista = fs.readdirSync(backupDir).filter(f=>f.endsWith('.json')).sort();
+    if(lista.length > 60) lista.slice(0, lista.length-60).forEach(f=>fs.unlinkSync(path.join(backupDir,f)));
+  } catch(e) { console.error('[Backup] Erro:', e.message); }
+}
+
+/* ── CARREGA DADOS ── */
+function carregarDados() {
+  try {
+    if(fs.existsSync(saveFile)){
+      return JSON.parse(fs.readFileSync(saveFile, 'utf8'));
+    }
+  } catch(e) { console.error('[Dados] Erro ao carregar:', e.message); }
+  return null;
+}
+
+/* ── ROTAS ── */
+expressApp.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// Ping para identificação na rede
+expressApp.get('/ping', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.json({ servidor: 'caus-faturas', ok: true });
+});
+
+// Proxy Tiny ERP
+expressApp.post('/tiny-api', async (req, res) => {
+  const { action, token, params } = req.body || {};
+  try {
+    const endpoints = {
+      listar_nf:  'notas.fiscais.pesquisa.php',
+      detalhe_nf: 'nota.fiscal.obter.php',
+      danfe_from_xml: 'nota.fiscal.obter.danfe.php',
+    };
+    const ep = endpoints[action];
+    if(!ep) return res.json({ erro: 'Ação inválida' });
+
+    const https = require('https');
+    const qs = require('querystring');
+    const body = qs.stringify({ token, formato: 'JSON', ...params });
+
+    const options = {
+      hostname: 'api.tiny.com.br',
+      path: `/api2/${ep}`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) }
+    };
+
+    const proxyReq = https.request(options, proxyRes => {
+      let data = '';
+      proxyRes.on('data', d => data += d);
+      proxyRes.on('end', () => {
+        try { res.json(JSON.parse(data)); } catch(e) { res.json({ erro: data }); }
+      });
+    });
+    proxyReq.on('error', e => res.json({ erro: e.message }));
+    proxyReq.write(body);
+    proxyReq.end();
+  } catch(e) { res.json({ erro: e.message }); }
+});
+
+// Histórico de precificação
+expressApp.get('/historico-prec', async (req, res) => {
+  try {
+    if(!db) return res.json({ historico: [] });
+    const doc = await db.findOne({ _id: 'historico_precificacao' });
+    res.json({ historico: doc?.historico || [] });
+  } catch(e) { res.json({ historico: [] }); }
+});
+
+expressApp.post('/historico-prec', async (req, res) => {
+  try {
+    if(!db) return res.json({ ok: false });
+    const { historico } = req.body || {};
+    await db.replaceOne({ _id: 'historico_precificacao' }, { _id: 'historico_precificacao', historico: historico || [] }, { upsert: true });
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
+// Salvar PDF de NFs
+expressApp.post('/salvar-pdf-nf', express.json({ limit: '20mb' }), (req, res) => {
+  try {
+    const { nome, pdf } = req.body || {};
+    if(!nome || !pdf) return res.json({ ok: false, erro: 'Dados incompletos' });
+    const buffer = Buffer.from(pdf, 'base64');
+    fs.writeFileSync(path.join(precDir, nome), buffer);
+    console.log(`[PDF NF] Salvo: ${nome}`);
+    res.json({ ok: true, caminho: precDir });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
+/* ── SOCKET.IO ── */
+io.on('connection', socket => {
+  console.log('[Socket] Cliente conectado:', socket.id);
+
+  // Envia dados atuais ao conectar
+  const dados = carregarDados();
+  if(dados) socket.emit('load-data', dados);
+
+  socket.on('update-data', async payload => {
+    try {
+      // Salva local
+      fs.writeFileSync(saveFile, JSON.stringify(payload), 'utf8');
+      fazerBackup('auto');
+      // Salva MongoDB
+      if(db) await db.replaceOne({ _id: 'principal' }, { _id: 'principal', ...payload }, { upsert: true });
+      // Propaga para todos
+      socket.broadcast.emit('load-data', payload);
+    } catch(e) { console.error('[Update] Erro:', e.message); }
+  });
+
+  socket.on('reset-all', async () => {
+    const vazio = { dados: [], finalizadas: [] };
+    fs.writeFileSync(saveFile, JSON.stringify(vazio), 'utf8');
+    if(db) await db.replaceOne({ _id: 'principal' }, { _id: 'principal', ...vazio }, { upsert: true });
+    io.emit('load-data', vazio);
+  });
+
+  socket.on('salvar-imagem', ({ numero, imgBase64 }) => {
+    try {
+      const hoje = new Date();
+      const dataStr = `${String(hoje.getDate()).padStart(2,'0')}-${String(hoje.getMonth()+1).padStart(2,'0')}-${hoje.getFullYear()}`;
+      const pasta = path.join(faturasDir, dataStr);
+      if(!fs.existsSync(pasta)) fs.mkdirSync(pasta, { recursive: true });
+      fs.writeFileSync(path.join(pasta, `FAT ${numero}.jpg`), Buffer.from(imgBase64, 'base64'));
+      console.log(`[Imagem] Salva: FAT ${numero}.jpg`);
+      socket.emit('imagem-salva', { numero, ok: true });
+      // Propaga para todos os outros clientes salvarem cópia
+      socket.broadcast.emit('salvar-imagem-copia', { numero, imgBase64, dataStr });
+    } catch(e) {
+      socket.emit('imagem-salva', { numero, ok: false, erro: e.message });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('[Socket] Cliente desconectado:', socket.id);
+  });
+});
+
+/* ── INICIA ── */
+conectarMongo().then(() => {
+  // Carrega do MongoDB na inicialização
+  if(db) {
+    db.findOne({ _id: 'principal' }).then(doc => {
+      if(doc) {
+        const { _id, ...payload } = doc;
+        fs.writeFileSync(saveFile, JSON.stringify(payload), 'utf8');
+        console.log('[Dados] Carregados do MongoDB');
+      }
+    }).catch(e => console.error('[Dados] Erro MongoDB:', e.message));
+  }
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`[Servidor] Rodando em http://0.0.0.0:${PORT}`);
+});

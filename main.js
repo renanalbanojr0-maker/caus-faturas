@@ -277,58 +277,7 @@ function sendJSON(res, code, obj) {
 }
 
 /* ── CRIAR JANELA PRINCIPAL ──────────────────────────────────── */
-function detectarEConectarPC1() {
-  const ifaces = os.networkInterfaces();
-  let ipLocal = '127.0.0.1';
-  Object.values(ifaces).flat().forEach(i => {
-    if(i && i.family === 'IPv4' && !i.internal) ipLocal = i.address;
-  });
-  const faixa = ipLocal.split('.').slice(0,3).join('.');
-
-  const ipFile = path.join(os.homedir(), 'Documents', 'Caus Faturas', 'servidor_ip.txt');
-  const ipsParaTestar = [];
-
-  // Testa IP salvo primeiro
-  if(fs.existsSync(ipFile)){
-    const ipSalvo = fs.readFileSync(ipFile, 'utf8').trim();
-    if(ipSalvo && ipSalvo !== ipLocal) ipsParaTestar.push(ipSalvo);
-  }
-
-  // Testa faixa comum
-  for(let i = 1; i <= 20; i++){
-    const ip = `${faixa}.${i}`;
-    if(ip !== ipLocal && !ipsParaTestar.includes(ip)) ipsParaTestar.push(ip);
-  }
-  for(let i = 100; i <= 120; i++){
-    const ip = `${faixa}.${i}`;
-    if(ip !== ipLocal && !ipsParaTestar.includes(ip)) ipsParaTestar.push(ip);
-  }
-
-  let idx = 0;
-  function testarProximo() {
-    if(idx >= ipsParaTestar.length) return; // não encontrou — é o PC1
-    const ip = ipsParaTestar[idx++];
-    const req = http.get(`http://${ip}:3000/ping`, { timeout: 400 }, (res) => {
-      let body = '';
-      res.on('data', d => body += d);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(body);
-          if(json.servidor === 'caus-faturas') {
-            console.log(`[Rede] PC1 encontrado em: ${ip}`);
-            fs.mkdirSync(path.dirname(ipFile), { recursive: true });
-            fs.writeFileSync(ipFile, ip);
-            if(win) win.loadURL(`http://${ip}:3000`);
-            if(winCalc) winCalc.loadURL(`http://${ip}:3000/calculadora-nf.html`);
-          }
-        } catch(e) { testarProximo(); }
-      });
-    });
-    req.on('error', () => testarProximo());
-    req.on('timeout', () => { req.destroy(); testarProximo(); });
-  }
-  testarProximo();
-}
+const VPS_URL = 'http://187.124.93.190:3000';
 
 async function createWindow() {
   // Conecta MongoDB e carrega dados
@@ -521,23 +470,7 @@ async function createWindow() {
       width: 1400, height: 900,
       webPreferences: { nodeIntegration: true, contextIsolation: false }
     });
-    win.loadURL('http://localhost:3000');
-    
-    // Detecta PC1 em segundo plano após janela abrir
-    setTimeout(() => {
-      console.log('[Rede] Iniciando detecção do PC1...');
-      detectarEConectarPC1();
-    }, 3000);
-
-    // Repete a detecção a cada 30 segundos MAS só se ainda não conectou ao PC1
-    setInterval(() => {
-      // Verifica se já está no IP do PC1 — se sim não faz nada
-      if(win && win.webContents){
-        const url = win.webContents.getURL();
-        if(!url.includes('localhost') && !url.includes('127.0.0.1')) return;
-      }
-      detectarEConectarPC1();
-    }, 30000);
+    win.loadURL(VPS_URL);
 
     // Verifica atualização 5 segundos após abrir
     setTimeout(() => {
@@ -624,7 +557,7 @@ Baixando automaticamente...`);
       title: 'Calculadora de NFs',
       webPreferences: { nodeIntegration: false, contextIsolation: true, devTools: true }
     });
-    winCalc.loadURL('http://localhost:3000/calculadora-nf.html');
+    winCalc.loadURL(VPS_URL + '/calculadora-nf.html');
     winCalc.on('closed', () => { winCalc = null; });
   });
 
