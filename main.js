@@ -17,19 +17,42 @@ autoUpdater.autoInstallOnAppQuit = false;
 
 autoUpdater.on('update-available', (info) => {
   console.log('[Update] Nova versão disponível:', info.version);
-  if(win) win.webContents.send('update-disponivel', info.version);
+  // Mostra dialog nativo informando que está baixando
+  if(win){
+    const { dialog } = require('electron');
+    dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Atualização Disponível',
+      message: `Nova versão ${info.version} encontrada!`,
+      detail: 'O download começou automaticamente. O programa será reiniciado quando terminar.',
+      buttons: ['OK'],
+      noLink: true
+    });
+  }
 });
 
 autoUpdater.on('download-progress', (progress) => {
   const pct = Math.round(progress.percent);
   console.log('[Update] Baixando:', pct+'%');
-  if(win) win.webContents.send('update-progresso', pct);
 });
 
 autoUpdater.on('update-downloaded', () => {
-  console.log('[Update] Atualização baixada — instalando agora...');
-  if(win) win.webContents.send('update-pronto');
-  setTimeout(() => autoUpdater.quitAndInstall(false, true), 2000);
+  console.log('[Update] Baixada — instalando...');
+  if(win){
+    const { dialog } = require('electron');
+    dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Atualização Pronta',
+      message: '✅ Download concluído!',
+      detail: 'O programa será reiniciado agora para instalar a atualização.',
+      buttons: ['Reiniciar agora'],
+      noLink: true
+    }).then(() => {
+      autoUpdater.quitAndInstall(false, true);
+    });
+  } else {
+    autoUpdater.quitAndInstall(false, true);
+  }
 });
 
 autoUpdater.on('error', (err) => {
@@ -37,11 +60,57 @@ autoUpdater.on('error', (err) => {
 });
 
 autoUpdater.on('update-not-available', () => {
-  console.log('[Update] Programa já está na versão mais recente.');
+  console.log('[Update] Versão mais recente.');
 });
+
+function mostrarJanelaUpdate(versao){
+  if(winUpdate) return;
+  winUpdate = new BrowserWindow({
+    width:440, height:300,
+    resizable:false, minimizable:false, maximizable:false,
+    closable:false, alwaysOnTop:true, frame:false,
+    backgroundColor:'#181818',
+    webPreferences:{ nodeIntegration:true, contextIsolation:false }
+  });
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#181818;color:#fff;font-family:'Segoe UI',sans-serif;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      height:100vh;gap:16px;padding:32px;text-align:center;}
+    .icon{font-size:48px;}
+    h2{font-size:18px;font-weight:700;}
+    p{font-size:13px;color:#aaa;}
+    .wrap{width:100%;height:8px;background:#333;border-radius:99px;overflow:hidden;}
+    .bar{height:100%;width:0%;background:#c8f060;border-radius:99px;transition:width .3s;}
+    .pct{font-size:13px;color:#c8f060;font-weight:700;}
+    small{color:#555;font-size:11px;}
+  </style></head><body>
+  <div class="icon">🔄</div>
+  <h2 id="t">Atualização ${versao}</h2>
+  <p id="m">Baixando nova versão, aguarde...</p>
+  <div class="wrap"><div class="bar" id="b"></div></div>
+  <div class="pct" id="p">0%</div>
+  <small>O programa será reiniciado automaticamente.</small>
+  <script>
+    const {ipcRenderer}=require('electron');
+    ipcRenderer.on('update-progresso',(e,v)=>{
+      document.getElementById('b').style.width=v+'%';
+      document.getElementById('p').textContent=v+'%';
+    });
+    ipcRenderer.on('update-pronto',()=>{
+      document.getElementById('t').textContent='✅ Concluído!';
+      document.getElementById('m').textContent='Reiniciando...';
+      document.getElementById('b').style.width='100%';
+      document.getElementById('p').textContent='100%';
+    });
+  </script></body></html>`;
+  winUpdate.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(html));
+}
 
 let win;
 let winCalc = null;
+let winUpdate = null;
 let dados = {};
 let db = null; // conexão MongoDB
 let io = null; // Socket.io global para usar no IPC

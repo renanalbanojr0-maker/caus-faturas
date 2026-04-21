@@ -1135,6 +1135,8 @@ async function finalizarFatura(){
     }
 
     finalizadas.push(faturaAtual);
+    // Força salvar imediatamente sem debounce ao finalizar
+    clearTimeout(_salvarTimer);
     salvar();
 
     // Gera imagem e salva no servidor
@@ -1787,5 +1789,18 @@ try{
 }catch(e){}
 </script>
 
+<!-- Modal de atualização — aparece na frente do login -->
+<div id="telaUpdate" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999999;align-items:center;justify-content:center;">
+  <div style="background:#181818;border:1px solid #2e2e2e;border-radius:18px;padding:40px 48px;text-align:center;max-width:420px;width:90%;">
+    <div style="font-size:52px;margin-bottom:16px;">🔄</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;" id="updateTitulo">Atualização Disponível</div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:24px;" id="updateMsg">Baixando nova versão, aguarde...</div>
+    <div style="width:100%;height:8px;background:#222;border-radius:99px;overflow:hidden;margin-bottom:10px;">
+      <div id="updateBarra" style="height:100%;width:0%;background:#c8f060;border-radius:99px;transition:width .3s;"></div>
+    </div>
+    <div style="font-size:14px;color:#c8f060;font-weight:700;" id="updatePct">0%</div>
+    <div style="font-size:12px;color:#555;margin-top:16px;">O programa será reiniciado automaticamente.</div>
+  </div>
+</div>
 </div></body>
 </html>
