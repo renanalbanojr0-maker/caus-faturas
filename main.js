@@ -411,6 +411,8 @@ async function createWindow() {
       // Salva local
       try { fs.writeFileSync(saveFile, JSON.stringify(dados), { encoding: 'utf8' }); }
       catch (err) { console.error('Erro ao salvar dados local:', err); }
+      // Backup a cada alteração (igual ao VPS)
+      fazerBackup('auto');
       // Salva no MongoDB
       salvarNoMongo(dados);
       io.emit('load-data', dados);
