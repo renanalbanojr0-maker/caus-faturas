@@ -1,8 +1,9 @@
-const path    = require('path');
-const fs      = require('fs');
-const os      = require('os');
-const express = require('express');
-const http    = require('http');
+const path       = require('path');
+const fs         = require('fs');
+const os         = require('os');
+const express    = require('express');
+const http       = require('http');
+const compression = require('compression');
 const { Server } = require('socket.io');
 const { MongoClient } = require('mongodb');
 
@@ -22,7 +23,30 @@ const precDir    = path.join(baseDir, 'PrecificacaoNFs');
 
 /* ── EXPRESS ── */
 const expressApp = express();
-const server     = http.createServer(expressApp);
+
+// HTTPS com certificado autoassinado (gerado automaticamente)
+let server;
+const certPath = '/var/www/caus-faturas/ssl/cert.pem';
+const keyPath  = '/var/www/caus-faturas/ssl/key.pem';
+if(fs.existsSync(certPath) && fs.existsSync(keyPath)){
+  const https = require('https');
+  server = https.createServer({
+    cert: fs.readFileSync(certPath),
+    key:  fs.readFileSync(keyPath)
+  }, expressApp);
+  console.log('[SSL] HTTPS ativado!');
+} else {
+  server = http.createServer(expressApp);
+  console.log('[SSL] Certificado não encontrado — usando HTTP');
+}
+
+// Redireciona HTTP para HTTPS se estiver usando HTTPS
+if(fs.existsSync(certPath)){
+  const httpApp = express();
+  httpApp.use((req, res) => res.redirect('https://' + req.headers.host + req.url));
+  http.createServer(httpApp).listen(80, () => console.log('[HTTP] Redirecionando para HTTPS'));
+}
+
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] },
   pingTimeout: 10000,
@@ -30,7 +54,11 @@ const io = new Server(server, {
   transports: ['websocket', 'polling'] // websocket primeiro — mais rápido
 });
 
-expressApp.use(express.static(path.join(__dirname, 'public')));
+expressApp.use(compression()); // gzip em todas as respostas
+expressApp.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1h', // cache de 1 hora nos arquivos estáticos
+  etag: true
+}));
 expressApp.use(express.json({ limit: '50mb' }));
 
 /* ── MONGODB ── */
@@ -96,10 +124,17 @@ function pdfkitToBuffer(doc) {
 /* ── ROTAS ── */
 expressApp.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
+// Headers de segurança globais
+expressApp.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 // Ping para identificação na rede
 expressApp.get('/ping', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.json({ servidor: 'caus-faturas', ok: true });
+  res.json({ servidor: 'caus-faturas', ok: true, version: '1.0' });
 });
 
 // Proxy Tiny ERP + DANFE
@@ -251,6 +286,8 @@ conectarMongo().then(() => {
   }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Servidor] Rodando em http://0.0.0.0:${PORT}`);
+const porta = fs.existsSync(certPath) ? 443 : PORT;
+server.listen(porta, '0.0.0.0', () => {
+  const proto = fs.existsSync(certPath) ? 'https' : 'http';
+  console.log(`[Servidor] Rodando em ${proto}://0.0.0.0:${porta}`);
 });

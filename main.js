@@ -277,7 +277,7 @@ function sendJSON(res, code, obj) {
 }
 
 /* ── CRIAR JANELA PRINCIPAL ──────────────────────────────────── */
-const VPS_URL = 'http://187.124.93.190:3000';
+const VPS_URL = 'https://187.124.93.190';
 
 async function createWindow() {
   // Conecta MongoDB e carrega dados
