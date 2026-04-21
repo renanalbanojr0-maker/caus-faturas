@@ -1194,9 +1194,17 @@ async function gerarESalvarImagem(numero){
         // Converte para base64
         const imgBase64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
 
-        // Envia para o servidor salvar
+        // Envia para o servidor PC1 salvar
         socket.emit('salvar-imagem', { numero, imgBase64 });
         console.log('Imagem enviada para salvar: FAT ' + numero);
+
+        // Se PC2 (hostname != localhost), salva cópia local via IPC
+        if(window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'){
+          try{
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.invoke('salvar-imagem-local', { numero, imgBase64 });
+          }catch(e){ console.log('Cópia local não salva:', e.message); }
+        }
 
     }catch(e){
         console.error('Erro ao gerar imagem:', e);
@@ -1784,6 +1792,15 @@ if(sessionStorage.getItem("logado") === "1"){
 } else {
   document.getElementById("loginUser").focus();
 }
+
+/* ── SALVAR CÓPIA LOCAL DE IMAGEM (recebida de outro PC) ── */
+socket.on('salvar-imagem-copia', ({ numero, imgBase64, dataStr }) => {
+  try{
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.invoke('salvar-imagem-local', { numero, imgBase64 });
+    console.log('[Cópia] Imagem recebida e salva localmente: FAT ' + numero);
+  }catch(e){}
+});
 
 /* ── AUTO-UPDATE via IPC ── */
 try{

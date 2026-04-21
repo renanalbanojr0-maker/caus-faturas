@@ -499,7 +499,10 @@ async function createWindow() {
         const buffer = Buffer.from(imgBase64, 'base64');
         fs.writeFileSync(arquivo, buffer);
         console.log(`[Imagem] Salva: FaturasPDF/${dataStr}/FAT ${numero}.jpg`);
-        socket.emit('imagem-salva', { numero, ok: true });
+        // Envia de volta para quem enviou salvar localmente
+        socket.emit('imagem-salva', { numero, ok: true, imgBase64, dataStr });
+        // Propaga para todos os outros clientes conectados salvarem também
+        socket.broadcast.emit('salvar-imagem-copia', { numero, imgBase64, dataStr });
       } catch(err) {
         console.error('[Imagem] Erro ao salvar:', err.message);
         socket.emit('imagem-salva', { numero, ok: false, erro: err.message });
@@ -538,6 +541,24 @@ async function createWindow() {
 
   /* ── IPC: retorna versão do app ── */
   ipcMain.handle('get-version', () => app.getVersion());
+
+  /* ── IPC: salva cópia local da imagem no PC2 ── */
+  ipcMain.handle('salvar-imagem-local', async (event, { numero, imgBase64 }) => {
+    try {
+      const hoje = new Date();
+      const dataStr = `${String(hoje.getDate()).padStart(2,'0')}-${String(hoje.getMonth()+1).padStart(2,'0')}-${hoje.getFullYear()}`;
+      const pasta = path.join(faturasDir, dataStr);
+      if (!fs.existsSync(pasta)) fs.mkdirSync(pasta, { recursive: true });
+      const arquivo = path.join(pasta, `FAT ${numero}.jpg`);
+      const buffer = Buffer.from(imgBase64, 'base64');
+      fs.writeFileSync(arquivo, buffer);
+      console.log(`[Imagem PC2] Cópia local salva: FAT ${numero}.jpg`);
+      return { ok: true };
+    } catch(err) {
+      console.error('[Imagem PC2] Erro:', err.message);
+      return { ok: false };
+    }
+  });
 
   /* ── IPC: verificar atualização manualmente ── */
   ipcMain.on('verificar-update-manual', async (event) => {
