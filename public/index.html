@@ -1498,7 +1498,22 @@ function destacarCamposVazios(faltando){
     });
     // Foca no primeiro campo vazio
     if(faltando.length && faltando[0].inputs.length){
-        try { faltando[0].inputs[0].focus(); } catch(e){}
+        const alvo = faltando[0].inputs[0];
+        // Após o alert, o Electron perde o "foco real" da janela e o caret
+        // não aparece. Truque: primeiro força o foco na window, depois
+        // faz blur+focus no campo com um pequeno delay
+        setTimeout(() => {
+            try {
+                window.focus();
+                alvo.blur();
+                alvo.focus();
+                // Posiciona o cursor no final do texto (ou início se vazio)
+                if(typeof alvo.setSelectionRange === "function"){
+                    const pos = alvo.value.length;
+                    alvo.setSelectionRange(pos, pos);
+                }
+            } catch(e){}
+        }, 50);
     }
 }
 
