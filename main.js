@@ -198,6 +198,45 @@ function fazerBackup(motivo) {
   }
 }
 
+// Baixa dados atualizados do VPS e faz backup local
+async function backupDoVPS(motivo = 'auto') {
+  try {
+    const http = require('http');
+    const url = require('url');
+    const parsed = url.parse('http://187.124.93.190:3000/dados-atual');
+    const data = await new Promise((resolve, reject) => {
+      const req = http.get({
+        hostname: parsed.hostname,
+        port: parsed.port,
+        path: parsed.path,
+        timeout: 10000
+      }, res => {
+        let body = '';
+        res.on('data', c => body += c);
+        res.on('end', () => resolve(body));
+      });
+      req.on('error', reject);
+      req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+    });
+    // Valida JSON e salva
+    JSON.parse(data); // lança erro se não for JSON válido
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+    const nomeArquivo = `dados_${timestampAgora()}_${motivo}.json`;
+    fs.writeFileSync(path.join(backupDir, nomeArquivo), data, 'utf8');
+    console.log(`[Backup VPS] Criado: ${nomeArquivo}`);
+    // Mantém só os 60 mais recentes
+    const arquivos = fs.readdirSync(backupDir)
+      .filter(f => f.startsWith('dados_') && f.endsWith('.json'))
+      .sort();
+    if (arquivos.length > 60) {
+      arquivos.slice(0, arquivos.length - 60)
+        .forEach(f => fs.unlinkSync(path.join(backupDir, f)));
+    }
+  } catch (err) {
+    console.error('[Backup VPS] Erro:', err.message);
+  }
+}
+
 /* ── CARREGAR DADOS ──────────────────────────────────────────── */
 function carregarDadosLocal() {
   if (fs.existsSync(saveFile)) {
@@ -287,7 +326,9 @@ async function createWindow() {
   await conectarMongo();
   const mongoData = await carregarDoMongo();
   dados = mongoData || carregarDadosLocal();
-  fazerBackup('abertura');
+  // Backup inicial baixando do VPS + a cada 5 minutos
+  backupDoVPS('abertura');
+  setInterval(() => backupDoVPS('auto'), 5 * 60 * 1000);
 
   const expressApp = express();
   const server = http.createServer(expressApp);
@@ -411,8 +452,6 @@ async function createWindow() {
       // Salva local
       try { fs.writeFileSync(saveFile, JSON.stringify(dados), { encoding: 'utf8' }); }
       catch (err) { console.error('Erro ao salvar dados local:', err); }
-      // Backup a cada alteração (igual ao VPS)
-      fazerBackup('auto');
       // Salva no MongoDB
       salvarNoMongo(dados);
       io.emit('load-data', dados);
@@ -574,7 +613,7 @@ Baixando automaticamente...`);
 
 app.whenReady().then(() => createWindow().catch(console.error));
 
-app.on('before-quit', () => fazerBackup('fechamento'));
+app.on('before-quit', () => backupDoVPS('fechamento'));
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

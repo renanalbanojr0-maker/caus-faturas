@@ -120,6 +120,16 @@ expressApp.get('/ping', (req, res) => {
   res.json({ servidor: 'caus-faturas', ok: true, version: '1.0' });
 });
 
+// Retorna dados atuais para backup nos PCs
+expressApp.get('/dados-atual', (req, res) => {
+  try {
+    const dados = (typeof dadosCache !== 'undefined' && dadosCache) || carregarDados() || { dados: [], finalizadas: [] };
+    res.json(dados);
+  } catch(e) {
+    res.status(500).json({ erro: e.message });
+  }
+});
+
 // Proxy Tiny ERP + DANFE
 expressApp.post('/tiny-api', async (req, res) => {
   const { action, token, params } = req.body || {};
