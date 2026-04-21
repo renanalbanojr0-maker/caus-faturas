@@ -861,13 +861,14 @@ try{
   }).catch(()=>{});
 }catch(e){}
 
-// Conecta ao servidor correto baseado no hostname da página
-const _serverHost = window.location.hostname;
-const _serverURL = (_serverHost === 'localhost' || _serverHost === '127.0.0.1')
-  ? undefined  // padrão — conecta ao servidor que serviu a página
-  : `http://${_serverHost}:3000`; // PC2 conecta ao IP do PC1
-const socket = _serverURL ? io(_serverURL) : io();
-console.log('[Socket] Conectando em:', _serverURL || 'localhost');
+// Conecta direto ao VPS
+const VPS_URL = 'http://187.124.93.190:3000';
+const socket = io(VPS_URL, {
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: Infinity,
+  timeout: 5000
+});
 
 socket.on("connect", () => {
     syncDot.className   = "sync-dot connected";
@@ -1702,9 +1703,9 @@ let _salvarTimer = null;
 document.addEventListener("input", () => {
     recalcularAtual();
     if (!_ignorarInput){
-        // Debounce — espera 600ms após parar de digitar antes de salvar
+        // Debounce — espera 300ms após parar de digitar antes de salvar
         clearTimeout(_salvarTimer);
-        _salvarTimer = setTimeout(() => salvar(), 600);
+        _salvarTimer = setTimeout(() => salvar(), 300);
     }
 });
 

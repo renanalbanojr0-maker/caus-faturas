@@ -468,16 +468,19 @@ async function createWindow() {
   server.listen(3000, '0.0.0.0', () => {
     win = new BrowserWindow({
       width: 1400, height: 900,
+      show: false, // não mostra até carregar
       webPreferences: { nodeIntegration: true, contextIsolation: false }
     });
+    // Mostra janela só quando terminar de carregar — sem tela branca
+    win.once('ready-to-show', () => win.show());
     win.loadURL(VPS_URL);
 
-    // Verifica atualização 5 segundos após abrir
+    // Verifica atualização 3 segundos após abrir
     setTimeout(() => {
       autoUpdater.checkForUpdates()
         .then(r => console.log('[Update] Resultado:', JSON.stringify(r?.updateInfo)))
         .catch(e => console.log('[Update] Erro:', e.message));
-    }, 5000);
+    }, 3000);
   });
 
   /* ── IPC: retorna versão do app ── */
