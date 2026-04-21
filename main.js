@@ -527,9 +527,17 @@ async function createWindow() {
     setTimeout(() => {
       console.log('[Rede] Iniciando detecção do PC1...');
       detectarEConectarPC1();
-    }, 3000); // aguarda 3s para página carregar completamente
-    // Repete a detecção a cada 30 segundos caso PC1 ligue depois
-    setInterval(() => detectarEConectarPC1(), 30000);
+    }, 3000);
+
+    // Repete a detecção a cada 30 segundos MAS só se ainda não conectou ao PC1
+    setInterval(() => {
+      // Verifica se já está no IP do PC1 — se sim não faz nada
+      if(win && win.webContents){
+        const url = win.webContents.getURL();
+        if(!url.includes('localhost') && !url.includes('127.0.0.1')) return;
+      }
+      detectarEConectarPC1();
+    }, 30000);
 
     // Verifica atualização 5 segundos após abrir
     setTimeout(() => {
