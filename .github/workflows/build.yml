@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
 
+# Cancela builds antigas se uma nova tag for criada antes da anterior terminar
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -16,9 +21,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
+
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
 
       - name: Install dependencies
-        run: npm install --include=dev
+        run: npm ci --include=dev
         timeout-minutes: 30
 
       - name: Verify electron-updater
