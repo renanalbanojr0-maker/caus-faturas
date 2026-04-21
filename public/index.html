@@ -1096,7 +1096,11 @@ function limparDados(confirmar = true){
 /* ── MOSTRAR ─────────────────────────────────────────────────── */
 function mostrarFatura(){
     pages.forEach((p,i)=>{
-        p.style.display = i===faturaAtual ? "block" : "none";
+        // Lazy loading — só renderiza fatura atual
+        const visivel = i===faturaAtual;
+        p.style.display = visivel ? "block" : "none";
+        // Marca como carregada para otimização futura
+        if(visivel && !p.dataset.loaded) p.dataset.loaded="1";
     });
 
     aplicarBloqueio();
@@ -1800,6 +1804,13 @@ socket.on('salvar-imagem-copia', ({ numero, imgBase64, dataStr }) => {
     console.log('[Cópia] Imagem recebida e salva localmente: FAT ' + numero);
   }catch(e){}
 });
+
+/* ── SERVICE WORKER (cache offline) ── */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js')
+    .then(() => console.log('[SW] Registrado!'))
+    .catch(e => console.log('[SW] Erro:', e));
+}
 
 /* ── AUTO-UPDATE via IPC ── */
 try{

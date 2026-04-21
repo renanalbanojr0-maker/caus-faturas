@@ -38,8 +38,9 @@ const io = new Server(server, {
 
 expressApp.use(compression()); // gzip em todas as respostas
 expressApp.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1h', // cache de 1 hora nos arquivos estáticos
-  etag: true
+  maxAge: '30m', // cache de 30 minutos
+  etag: true,
+  lastModified: true
 }));
 expressApp.use(express.json({ limit: '50mb' }));
 
