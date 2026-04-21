@@ -140,8 +140,10 @@ expressApp.post('/tiny-api', async (req, res) => {
 
     // Proxy para API Tiny
     const endpoints = {
-      listar_nf:  'notas.fiscais.pesquisa.php',
-      detalhe_nf: 'nota.fiscal.obter.php',
+      listar_nf:        'notas.fiscais.pesquisa.php',
+      detalhe_nf:       'nota.fiscal.obter.php',
+      obter_produto:    'produto.obter.php',
+      alterar_produto:  'produto.alterar.php',
     };
     const ep = endpoints[action];
     if(!ep) return res.json({ erro: 'Ação inválida: ' + action });

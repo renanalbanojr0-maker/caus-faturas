@@ -88,6 +88,9 @@ tbody td.desc span{display:block;white-space:nowrap;overflow:hidden;text-overflo
 td input{background:transparent;border:none;font-family:var(--mono);font-size:12px;color:var(--text);text-align:right;width:70px;outline:none;border-bottom:1px solid transparent;padding:2px 4px;}
 td input:focus{border-bottom-color:var(--accent-dim);}
 .val-pf{color:var(--amber);}.val-pl{color:var(--teal);}.val-pp{color:var(--accent);}
+.pl-menor{text-decoration:line-through;opacity:.5;font-size:11px;}
+.pl-atual{color:var(--teal);font-weight:700;}
+.pl-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
 .summary-bar{padding:20px 36px;border-top:1px solid var(--border);background:var(--surface);display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
 .metric{display:flex;flex-direction:column;gap:3px;padding:12px 16px;background:var(--surface2);border-radius:var(--radius);min-width:105px;border:1px solid var(--border);}
 .metric .mlabel{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:var(--mono);}
@@ -496,6 +499,7 @@ function renderMain(nfData,nfMeta){
       <div class="metric m-pp"><div class="mlabel">Total PP</div><div class="mval" id="s-pp">R$ 0,00</div></div>
       <div class="export-group">
         <button class="btn-csv" onclick="exportarCSV()">↓ CSV</button>
+        <button class="btn-csv" id="btn-atualizar-tiny" onclick="atualizarPrecosTiny()" style="color:var(--teal);border-color:var(--teal);">↑ Atualizar Preços no Tiny</button>
         <button class="btn-export" id="btn-pdf" onclick="exportarPDF()">↓ PDF completo</button>
       </div>
     </div>`;
@@ -675,19 +679,95 @@ function calcRow(r){
   return{ipi,frete,pf,pl,pp};
 }
 function fmt(v){return v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function renderPLCell(r, pl){
+  // Verifica se tem preço atual no Tiny para comparar
+  if(r.precoTiny && pl < r.precoTiny){
+    // PL calculado é MENOR — mostra tachado + preço atual maior
+    return `<div class="pl-wrap">
+      <span class="pl-atual val-pl">R$ ${fmt(r.precoTiny)}</span>
+      <span class="pl-menor">R$ ${fmt(pl)}</span>
+    </div>`;
+  }
+  return `<span class="val-pl">R$ ${fmt(pl)}</span>`;
+}
+
 function renderTabela(){
   atualizarBotaoPDF();
   const tbody=document.getElementById("tbody");if(!tbody)return;tbody.innerHTML="";
   if(!rows.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted)">Nenhum item encontrado.</td></tr>`;updateSummary();return;}
   rows.forEach(r=>{
     const{pf,pl,pp}=calcRow(r);const tr=document.createElement("tr");
-    tr.innerHTML=`<td class="sku">${r.sku||"—"}</td><td class="desc"><span title="${r.desc}">${r.desc||"—"}</span></td><td class="num">${fmt(r.pc)}</td><td class="num"><input type="number" value="${r.ipi!==null?r.ipi:""}" placeholder="${getGlobal().gi||"0"}" step="0.01" min="0" oninput="upd(${r.id},'ipi',this.value)"/></td><td class="num"><input type="number" value="${r.frete!==null?r.frete:""}" placeholder="${getGlobal().gf||"0"}" step="0.01" min="0" oninput="upd(${r.id},'frete',this.value)"/></td><td class="num val-pf" id="pf-${r.id}">${fmt(pf)}</td><td class="num val-pl" id="pl-${r.id}">${fmt(pl)}</td><td class="num val-pp" id="pp-${r.id}">${fmt(pp)}</td><td class="num">${r.q}</td>`;
+    tr.innerHTML=`<td class="sku">${r.sku||"—"}</td><td class="desc"><span title="${r.desc}">${r.desc||"—"}</span></td><td class="num">${fmt(r.pc)}</td><td class="num"><input type="number" value="${r.ipi!==null?r.ipi:""}" placeholder="${getGlobal().gi||"0"}" step="0.01" min="0" oninput="upd(${r.id},'ipi',this.value)"/></td><td class="num"><input type="number" value="${r.frete!==null?r.frete:""}" placeholder="${getGlobal().gf||"0"}" step="0.01" min="0" oninput="upd(${r.id},'frete',this.value)"/></td><td class="num val-pf" id="pf-${r.id}">${fmt(pf)}</td><td class="num" id="pl-${r.id}">${renderPLCell(r,pl)}</td><td class="num val-pp" id="pp-${r.id}">${fmt(pp)}</td><td class="num">${r.q}</td>`;
     tbody.appendChild(tr);
   });updateSummary();
 }
 function upd(id,field,val){const r=rows.find(r=>r.id===id);if(!r)return;r[field]=val===""?null:parseFloat(val);const{pf,pl,pp}=calcRow(r);["pf","pl","pp"].forEach(k=>{const e=document.getElementById(k+"-"+id);if(e)e.textContent=fmt({pf,pl,pp}[k]);});updateSummary();}
 function recalc(){renderTabela();}
 function updateSummary(){let tPc=0,tPf=0,tPl=0,tPp=0;rows.forEach(r=>{const{pf,pl,pp}=calcRow(r);tPc+=r.pc*r.q;tPf+=pf*r.q;tPl+=pl*r.q;tPp+=pp*r.q;});[["s-pc",tPc],["s-pf",tPf],["s-pl",tPl],["s-pp",tPp]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent="R$ "+fmt(v);});}
+
+/* ── ATUALIZAR PREÇOS NO TINY ── */
+async function atualizarPrecosTiny(){
+  if(!rows.length){ toast("Nenhum produto para atualizar","err"); return; }
+  const btn = document.getElementById("btn-atualizar-tiny");
+  btn.disabled = true;
+  btn.textContent = "⏳ Buscando preços...";
+
+  let atualizados = 0;
+  let ignorados = 0;
+  let erros = 0;
+
+  for(const r of rows){
+    if(!r.sku){ erros++; continue; }
+    try{
+      const {pf, pl} = calcRow(r);
+
+      // Busca produto atual no Tiny pelo SKU
+      btn.textContent = `⏳ Buscando ${r.sku}...`;
+      const respBusca = await proxy("obter_produto", { codigo: r.sku });
+      const prod = respBusca?.retorno?.produto;
+
+      if(!prod){ dbg("Produto não encontrado no Tiny: "+r.sku,"err"); erros++; continue; }
+
+      const precoAtual = parseFloat(prod.preco || 0);
+      const idProduto = prod.id;
+
+      // Salva preço atual para comparação visual
+      r.precoTiny = precoAtual;
+
+      // Monta payload de atualização
+      const payload = {
+        id: idProduto,
+        preco_custo: pf.toFixed(2), // sempre atualiza PF como custo
+      };
+
+      // PL só atualiza se for MAIOR que o atual
+      if(pl > precoAtual){
+        payload.preco = pl.toFixed(2);
+        atualizados++;
+        dbg(`✓ ${r.sku}: PF=${fmt(pf)} | PL ${fmt(precoAtual)}→${fmt(pl)}`, "ok");
+      } else {
+        ignorados++;
+        dbg(`↔ ${r.sku}: PF=${fmt(pf)} | PL mantido (${fmt(precoAtual)} > ${fmt(pl)})`);
+      }
+
+      // Envia atualização para o Tiny
+      btn.textContent = `⏳ Atualizando ${r.sku}...`;
+      await proxy("alterar_produto", payload);
+
+    }catch(e){
+      dbg("Erro ao atualizar "+r.sku+": "+e.message,"err");
+      erros++;
+    }
+  }
+
+  // Redesenha tabela com indicadores visuais
+  renderTabela();
+
+  btn.disabled = false;
+  btn.textContent = "↑ Atualizar Preços no Tiny";
+
+  toast(`✓ ${atualizados} atualizados | ${ignorados} mantidos | ${erros} erros`, atualizados > 0 ? "ok" : "err");
+}
 
 /* ── CSV ── */
 function exportarCSV(){

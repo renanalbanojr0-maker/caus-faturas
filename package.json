@@ -1,6 +1,6 @@
 {
   "name": "caus-faturas",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Sistema de Faturas Caus",
   "main": "main.js",
   "scripts": {
