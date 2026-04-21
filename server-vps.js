@@ -23,7 +23,12 @@ const precDir    = path.join(baseDir, 'PrecificacaoNFs');
 /* ── EXPRESS ── */
 const expressApp = express();
 const server     = http.createServer(expressApp);
-const io         = new Server(server);
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+  pingTimeout: 10000,
+  pingInterval: 5000,
+  transports: ['websocket', 'polling'] // websocket primeiro — mais rápido
+});
 
 expressApp.use(express.static(path.join(__dirname, 'public')));
 expressApp.use(express.json({ limit: '50mb' }));
@@ -63,6 +68,31 @@ function carregarDados() {
   return null;
 }
 
+/* ── DANFE ── */
+let gerarPDF = null;
+(async () => {
+  try {
+    const lib = await import('nfe-danfe-pdf');
+    gerarPDF = lib.gerarPDF || lib.default?.gerarPDF;
+    console.log('✓ Biblioteca DANFE carregada');
+  } catch(e) {
+    console.warn('⚠ nfe-danfe-pdf não instalado. Rode: npm install nfe-danfe-pdf');
+  }
+})();
+
+function pdfkitToBuffer(doc) {
+  const { PassThrough } = require('stream');
+  return new Promise((resolve, reject) => {
+    const pass = new PassThrough();
+    const chunks = [];
+    pass.on('data', c => chunks.push(c));
+    pass.on('end', () => resolve(Buffer.concat(chunks)));
+    pass.on('error', reject);
+    doc.on('error', e => { if(chunks.length > 0) resolve(Buffer.concat(chunks)); else reject(e); });
+    doc.pipe(pass);
+  });
+}
+
 /* ── ROTAS ── */
 expressApp.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
@@ -72,29 +102,41 @@ expressApp.get('/ping', (req, res) => {
   res.json({ servidor: 'caus-faturas', ok: true });
 });
 
-// Proxy Tiny ERP
+// Proxy Tiny ERP + DANFE
 expressApp.post('/tiny-api', async (req, res) => {
   const { action, token, params } = req.body || {};
   try {
+    // Gera DANFE a partir de XML
+    if(action === 'danfe_from_xml') {
+      if(!gerarPDF) return res.json({ erro: 'nfe-danfe-pdf não instalado no servidor' });
+      const xml = (params?.xml || '').trim();
+      if(!xml) return res.json({ erro: 'XML não enviado' });
+      let xmlFinal = xml;
+      if(xml.includes('<NFe') && !xml.includes('<nfeProc')) {
+        xmlFinal = `<nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">${xml}</nfeProc>`;
+      }
+      const doc = await gerarPDF(xmlFinal, { cancelada: false });
+      const buf = await pdfkitToBuffer(doc);
+      return res.json({ pdf: buf.toString('base64') });
+    }
+
+    // Proxy para API Tiny
     const endpoints = {
       listar_nf:  'notas.fiscais.pesquisa.php',
       detalhe_nf: 'nota.fiscal.obter.php',
-      danfe_from_xml: 'nota.fiscal.obter.danfe.php',
     };
     const ep = endpoints[action];
-    if(!ep) return res.json({ erro: 'Ação inválida' });
+    if(!ep) return res.json({ erro: 'Ação inválida: ' + action });
 
     const https = require('https');
     const qs = require('querystring');
     const body = qs.stringify({ token, formato: 'JSON', ...params });
-
     const options = {
       hostname: 'api.tiny.com.br',
       path: `/api2/${ep}`,
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) }
     };
-
     const proxyReq = https.request(options, proxyRes => {
       let data = '';
       proxyRes.on('data', d => data += d);
@@ -139,30 +181,39 @@ expressApp.post('/salvar-pdf-nf', express.json({ limit: '20mb' }), (req, res) =>
 });
 
 /* ── SOCKET.IO ── */
+// Cache em memória — resposta instantânea sem ler disco
+let dadosCache = null;
+
 io.on('connection', socket => {
   console.log('[Socket] Cliente conectado:', socket.id);
 
-  // Envia dados atuais ao conectar
-  const dados = carregarDados();
+  // Envia dados do cache (instantâneo) ou do disco
+  const dados = dadosCache || carregarDados();
   if(dados) socket.emit('load-data', dados);
 
   socket.on('update-data', async payload => {
     try {
-      // Salva local
-      fs.writeFileSync(saveFile, JSON.stringify(payload), 'utf8');
-      fazerBackup('auto');
-      // Salva MongoDB
-      if(db) await db.replaceOne({ _id: 'principal' }, { _id: 'principal', ...payload }, { upsert: true });
-      // Propaga para todos
+      dadosCache = payload; // atualiza cache imediatamente
+      // Propaga para todos instantaneamente
       socket.broadcast.emit('load-data', payload);
+      // Salva em disco e MongoDB em segundo plano
+      setImmediate(async () => {
+        try {
+          fs.writeFileSync(saveFile, JSON.stringify(payload), 'utf8');
+          fazerBackup('auto');
+          if(db) await db.replaceOne({ _id: 'principal' }, { _id: 'principal', ...payload }, { upsert: true });
+        } catch(e) { console.error('[Save] Erro:', e.message); }
+      });
     } catch(e) { console.error('[Update] Erro:', e.message); }
   });
 
   socket.on('reset-all', async () => {
     const vazio = { dados: [], finalizadas: [] };
+    dadosCache = vazio; // limpa cache em memória
     fs.writeFileSync(saveFile, JSON.stringify(vazio), 'utf8');
     if(db) await db.replaceOne({ _id: 'principal' }, { _id: 'principal', ...vazio }, { upsert: true });
-    io.emit('load-data', vazio);
+    io.emit('load-data', vazio); // propaga para todos
+    io.emit('reset-all'); // força limpeza local em todos os clientes
   });
 
   socket.on('salvar-imagem', ({ numero, imgBase64 }) => {

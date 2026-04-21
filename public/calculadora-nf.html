@@ -771,8 +771,9 @@ async function exportarPDF(){
     const nomeArq=`${nfNum} - ${fornecedor}.pdf`;
     const b64 = btoa(String.fromCharCode(...new Uint8Array(finalBytes)));
 
-    // Se acessa por localhost = app Electron, se acessa por IP = browser externo
-    const isElectron = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Detecta Electron pelo process.type
+    let isElectron = false;
+    try { isElectron = !!(window.process && window.process.type); } catch(e) {}
 
     // Envia para o servidor salvar (funciona tanto no Electron quanto no browser)
     try{

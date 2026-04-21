@@ -1199,13 +1199,11 @@ async function gerarESalvarImagem(numero){
         socket.emit('salvar-imagem', { numero, imgBase64 });
         console.log('Imagem enviada para salvar: FAT ' + numero);
 
-        // Se PC2 (hostname != localhost), salva cópia local via IPC
-        if(window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'){
-          try{
-            const { ipcRenderer } = require('electron');
-            ipcRenderer.invoke('salvar-imagem-local', { numero, imgBase64 });
-          }catch(e){ console.log('Cópia local não salva:', e.message); }
-        }
+        // Salva cópia local via IPC (funciona em qualquer PC com Electron)
+        try{
+          const { ipcRenderer } = require('electron');
+          ipcRenderer.invoke('salvar-imagem-local', { numero, imgBase64 });
+        }catch(e){ console.log('Cópia local não salva:', e.message); }
 
     }catch(e){
         console.error('Erro ao gerar imagem:', e);
