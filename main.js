@@ -519,6 +519,8 @@ async function createWindow() {
     
     // Detecta PC1 em segundo plano após janela abrir
     setTimeout(() => detectarEConectarPC1(), 1000);
+    // Repete a detecção a cada 30 segundos caso PC1 ligue depois
+    setInterval(() => detectarEConectarPC1(), 30000);
 
     // Verifica atualização 5 segundos após abrir
     setTimeout(() => {
