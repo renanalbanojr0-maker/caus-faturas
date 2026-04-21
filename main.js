@@ -507,8 +507,11 @@ async function createWindow() {
     });
   });
 
-  // Rota ping para identificação na rede
-  expressApp.get('/ping', (req, res) => res.json({ servidor: 'caus-faturas', ok: true }));
+  // Rota ping para identificação na rede (com CORS para PC2 detectar)
+  expressApp.get('/ping', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.json({ servidor: 'caus-faturas', ok: true });
+  });
 
   server.listen(3000, '0.0.0.0', () => {
     win = new BrowserWindow({
@@ -518,7 +521,10 @@ async function createWindow() {
     win.loadURL('http://localhost:3000');
     
     // Detecta PC1 em segundo plano após janela abrir
-    setTimeout(() => detectarEConectarPC1(), 1000);
+    setTimeout(() => {
+      console.log('[Rede] Iniciando detecção do PC1...');
+      detectarEConectarPC1();
+    }, 3000); // aguarda 3s para página carregar completamente
     // Repete a detecção a cada 30 segundos caso PC1 ligue depois
     setInterval(() => detectarEConectarPC1(), 30000);
 
