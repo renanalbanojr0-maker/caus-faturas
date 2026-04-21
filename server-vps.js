@@ -24,28 +24,10 @@ const precDir    = path.join(baseDir, 'PrecificacaoNFs');
 /* ── EXPRESS ── */
 const expressApp = express();
 
-// HTTPS com certificado autoassinado (gerado automaticamente)
-let server;
-const certPath = '/var/www/caus-faturas/ssl/cert.pem';
-const keyPath  = '/var/www/caus-faturas/ssl/key.pem';
-if(fs.existsSync(certPath) && fs.existsSync(keyPath)){
-  const https = require('https');
-  server = https.createServer({
-    cert: fs.readFileSync(certPath),
-    key:  fs.readFileSync(keyPath)
-  }, expressApp);
-  console.log('[SSL] HTTPS ativado!');
-} else {
-  server = http.createServer(expressApp);
-  console.log('[SSL] Certificado não encontrado — usando HTTP');
-}
+server = http.createServer(expressApp);
 
 // Redireciona HTTP para HTTPS se estiver usando HTTPS
-if(fs.existsSync(certPath)){
-  const httpApp = express();
-  httpApp.use((req, res) => res.redirect('https://' + req.headers.host + req.url));
-  http.createServer(httpApp).listen(80, () => console.log('[HTTP] Redirecionando para HTTPS'));
-}
+
 
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] },
@@ -286,8 +268,8 @@ conectarMongo().then(() => {
   }
 });
 
-const porta = fs.existsSync(certPath) ? 443 : PORT;
+const porta = PORT;
 server.listen(porta, '0.0.0.0', () => {
-  const proto = fs.existsSync(certPath) ? 'https' : 'http';
+  const proto = 'http';
   console.log(`[Servidor] Rodando em ${proto}://0.0.0.0:${porta}`);
 });

@@ -1,4 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+
+// Aceita certificado autoassinado do VPS
+app.commandLine.appendSwitch('ignore-certificate-errors');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -277,7 +280,7 @@ function sendJSON(res, code, obj) {
 }
 
 /* ── CRIAR JANELA PRINCIPAL ──────────────────────────────────── */
-const VPS_URL = 'https://187.124.93.190';
+const VPS_URL = 'http://187.124.93.190:3000';
 
 async function createWindow() {
   // Conecta MongoDB e carrega dados
