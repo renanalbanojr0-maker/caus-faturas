@@ -1749,21 +1749,27 @@ function abrirCalculadora(){
 const LOGIN_USUARIO = "site";
 const LOGIN_SENHA   = "dev";
 
+function entrarNoSistema(){
+  document.getElementById("telaLogin").style.display = "none";
+  document.getElementById("sistemaCompleto").style.display = "block";
+  const erro = document.getElementById("loginErroMsg");
+  if(erro) erro.style.display = "none";
+  vincularMascaras();
+  vincularAutoResizes();
+  vincularTodosAutocompletes();
+  vincularAutocompleteClientes();
+  popularListaClientes();
+  carregar();
+  mostrarFatura();
+}
+
 function fazerLogin(){
   const u = document.getElementById("loginUser").value.trim();
   const s = document.getElementById("loginPass").value.trim();
   const erro = document.getElementById("loginErroMsg");
   if(u === LOGIN_USUARIO && s === LOGIN_SENHA){
-    document.getElementById("telaLogin").style.display = "none";
-    document.getElementById("sistemaCompleto").style.display = "block";
-    erro.style.display = "none";
-    vincularMascaras();
-    vincularAutoResizes();
-    vincularTodosAutocompletes();
-    vincularAutocompleteClientes();
-    popularListaClientes();
-    carregar();
-    mostrarFatura();
+    sessionStorage.setItem("logado", "1");
+    entrarNoSistema();
   } else {
     erro.style.display = "block";
     document.getElementById("loginPass").value = "";
@@ -1772,8 +1778,12 @@ function fazerLogin(){
 }
 
 /* ── START ───────────────────────────────────────────────────── */
-// Inicialização acontece após login em fazerLogin()
-document.getElementById("loginUser").focus();
+// Verifica se já estava logado antes do redirecionamento
+if(sessionStorage.getItem("logado") === "1"){
+  entrarNoSistema();
+} else {
+  document.getElementById("loginUser").focus();
+}
 
 /* ── AUTO-UPDATE via IPC ── */
 try{
