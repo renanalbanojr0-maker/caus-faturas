@@ -82,6 +82,74 @@ box-shadow:0 0 12px rgba(0,0,0,.15);
 overflow:hidden;
 }
 
+/* Marca d'água de conferência — aparece quando a fatura é conferida */
+.marca-conferida{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-family:'Arial Black', 'Helvetica', sans-serif;
+  font-weight:900;
+  font-size:78px;
+  color:rgba(40,167,69,0.22);
+  text-align:center;
+  white-space:nowrap;
+  pointer-events:none;
+  line-height:1;
+  letter-spacing:4px;
+  user-select:none;
+  z-index:5;
+  text-shadow:2px 2px 0 rgba(40,167,69,0.08);
+}
+.marca-conferida .mc-nome{
+  display:block;
+  font-size:60px;
+  margin-top:10px;
+  letter-spacing:6px;
+}
+.marca-conferida .mc-data{
+  display:block;
+  font-size:36px;
+  margin-top:10px;
+  font-family:'Arial', sans-serif;
+  font-weight:700;
+  letter-spacing:3px;
+}
+
+/* Marca d'água menor no topo da fatura (mesma cor, mesmo formato, menor) */
+.marca-conferida-topo{
+  position:absolute;
+  top:160px;
+  left:50%;
+  transform:translateX(-50%);
+  font-family:'Arial Black', 'Helvetica', sans-serif;
+  font-weight:900;
+  font-size:78px;
+  color:rgba(40,167,69,0.22);
+  text-align:center;
+  white-space:nowrap;
+  pointer-events:none;
+  line-height:1;
+  letter-spacing:4px;
+  user-select:none;
+  z-index:5;
+  text-shadow:2px 2px 0 rgba(40,167,69,0.08);
+}
+.marca-conferida-topo .mc-nome{
+  display:block;
+  font-size:60px;
+  margin-top:10px;
+  letter-spacing:6px;
+}
+.marca-conferida-topo .mc-data{
+  display:block;
+  font-size:36px;
+  margin-top:10px;
+  font-family:'Arial', sans-serif;
+  font-weight:700;
+  letter-spacing:3px;
+}
+
 .row{display:flex;align-items:flex-end;gap:6px;margin:2px 0;font-size:17px;line-height:1}
 .label{font-weight:700}
 .line{border:none;border-bottom:1px solid #000;height:22px;font-size:17px;font-family:inherit;padding:0 2px;outline:none;color:#08224f;font-weight:600;background:transparent}
@@ -655,6 +723,7 @@ input:focus, textarea:focus{
 <button class="btnBlue" onclick="proximaFatura()">Próximo ➡</button>
 <button class="btnGreen" onclick="gerarPDF()">Gerar PDF</button>
 <button class="btnBlue" onclick="abrirModalEditar()" id="btnEditar" style="background:#e67e22;">✏️ Editar</button>
+<button class="btnGreen" onclick="abrirModalConferencia()" id="btnConferencia" style="background:#198754;">🔍 Conferência</button>
 <button class="btnGray" onclick="abrirModalReset()" style="background:#c0392b;">🗑 Zerar Tudo</button>
 <div class="status" id="statusFatura"></div>
 <div class="sync-indicator">
@@ -733,6 +802,25 @@ input:focus, textarea:focus{
     <div class="modal-btns">
       <button class="modal-cancelar" onclick="fecharModalReset()">Cancelar</button>
       <button class="modal-confirmar" style="background:#c0392b;" onclick="confirmarReset()">Zerar Tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de conferência de fatura -->
+<div class="modal-overlay" id="modalConferencia">
+  <div class="modal-box">
+    <h3 id="conferenciaTitulo">🔍 Conferir Fatura</h3>
+    <p id="conferenciaDesc" style="font-size:13px;color:#555;text-align:center;margin:0 0 14px;">
+      Digite suas credenciais para marcar esta fatura como conferida.
+    </p>
+    <label>Usuário</label>
+    <input type="text" id="confUsuario" placeholder="usuário" autocomplete="off">
+    <label>Senha</label>
+    <input type="password" id="confSenha" placeholder="senha">
+    <div class="modal-erro" id="confErro">Usuário ou senha incorretos.</div>
+    <div class="modal-btns">
+      <button class="modal-cancelar" onclick="fecharModalConferencia()">Cancelar</button>
+      <button class="modal-confirmar" style="background:#198754;" id="btnConfirmarConf" onclick="confirmarConferencia()">Conferir</button>
     </div>
   </div>
 </div>
@@ -842,6 +930,50 @@ pages.forEach((page,i)=>{
 let finalizadas =
 JSON.parse(localStorage.getItem("faturasFinalizadas") || "[]");
 
+/* ── CONFERÊNCIA ─────────────────────────────────────────────── */
+// Array de objetos: [{indice, usuario, data}, ...]
+let conferidas =
+JSON.parse(localStorage.getItem("faturasConferidas") || "[]");
+
+/* Adiciona (ou atualiza) a marca d'água na página conferida */
+function atualizarMarcaConferencia(indice){
+    const page = pages[indice];
+    if(!page) return;
+    // Remove as marcas antigas se existirem
+    const marcaAntiga = page.querySelector(".marca-conferida");
+    if(marcaAntiga) marcaAntiga.remove();
+    const marcaTopoAntiga = page.querySelector(".marca-conferida-topo");
+    if(marcaTopoAntiga) marcaTopoAntiga.remove();
+    // Procura se essa fatura está na lista de conferidas
+    const conf = conferidas.find(c => c.indice === indice);
+    if(!conf) return;
+    const nome = (conf.usuario || "").toUpperCase();
+    const data = conf.data || "";
+    // Marca d'água grande (centro)
+    const marca = document.createElement("div");
+    marca.className = "marca-conferida";
+    marca.innerHTML = `
+      CONFERIDO
+      <span class="mc-nome">${nome}</span>
+      <span class="mc-data">${data}</span>
+    `;
+    page.appendChild(marca);
+    // Marca d'água pequena (topo)
+    const marcaTopo = document.createElement("div");
+    marcaTopo.className = "marca-conferida-topo";
+    marcaTopo.innerHTML = `
+      CONFERIDO
+      <span class="mc-nome">${nome}</span>
+      <span class="mc-data">${data}</span>
+    `;
+    page.appendChild(marcaTopo);
+}
+
+/* Renderiza todas as marcas d'água (usado após carregar dados do servidor) */
+function renderizarTodasMarcas(){
+    pages.forEach((_, i) => atualizarMarcaConferencia(i));
+}
+
 /* ── BOTÃO FINALIZAR ─────────────────────────────────────────── */
 document.querySelector(".topbar").insertAdjacentHTML(
 "beforeend",
@@ -897,9 +1029,10 @@ socket.on("disconnect", () => {
 
 // Recebe dados do servidor (enviado por qualquer cliente conectado)
 socket.on("load-data", (payload) => {
-    // Suporta formato novo {dados, finalizadas} e formato antigo (array direto)
+    // Suporta formato novo {dados, finalizadas, conferidas} e formato antigo (array direto)
     const serverDados     = Array.isArray(payload) ? payload : payload.dados;
     const serverFinaliz   = Array.isArray(payload) ? [] : (payload.finalizadas || []);
+    const serverConferid  = Array.isArray(payload) ? [] : (payload.conferidas || []);
 
     if (!serverDados || !serverDados.length) return;
 
@@ -927,6 +1060,13 @@ socket.on("load-data", (payload) => {
         localStorage.setItem("faturasFinalizadas", JSON.stringify(finalizadas));
     }
 
+    // Sincroniza conferidas vindas do servidor
+    if (!Array.isArray(payload)) {
+        conferidas = serverConferid;
+        localStorage.setItem("faturasConferidas", JSON.stringify(conferidas));
+        renderizarTodasMarcas();
+    }
+
     localStorage.setItem("faturasDados", JSON.stringify(serverDados));
 
     _ignorarInput = false;
@@ -946,8 +1086,10 @@ socket.on("reset-all", () => {
     localStorage.removeItem("faturasDados");
     localStorage.removeItem("faturaAtual");
     localStorage.removeItem("faturasFinalizadas");
+    localStorage.removeItem("faturasConferidas");
     // Limpa todos os inputs
     finalizadas = [];
+    conferidas = [];
     faturaAtual = 0;
     pages.forEach(page => {
         inputsEditaveis(page).forEach(inp => {
@@ -956,6 +1098,11 @@ socket.on("reset-all", () => {
         });
         const soma = page.querySelector(".somaBox");
         if(soma) soma.value = "";
+        // Remove qualquer marca d'água de conferência (grande e pequena)
+        const marca = page.querySelector(".marca-conferida");
+        if(marca) marca.remove();
+        const marcaTopo = page.querySelector(".marca-conferida-topo");
+        if(marcaTopo) marcaTopo.remove();
     });
     _ignorarInput = false;
     mostrarFatura();
@@ -988,6 +1135,79 @@ function confirmarReset(){
     }
 }
 
+/* ── MODAL CONFERÊNCIA ───────────────────────────────────────── */
+function abrirModalConferencia(){
+    // Só permite conferir fatura finalizada
+    const jaFinalizada = finalizadas.includes(faturaAtual);
+    if(!jaFinalizada){
+        alert("⚠️ Só é possível conferir faturas finalizadas.\n\nFinalize a fatura primeiro e depois volte para conferir.");
+        return;
+    }
+    // Verifica se já está conferida para mudar o texto do modal
+    const jaConferida = conferidas.find(c => c.indice === faturaAtual);
+    const titulo = document.getElementById("conferenciaTitulo");
+    const desc = document.getElementById("conferenciaDesc");
+    const btn = document.getElementById("btnConfirmarConf");
+    if(jaConferida){
+        titulo.textContent = "🔓 Desconferir Fatura";
+        desc.textContent = "Esta fatura já foi conferida. Digite suas credenciais para remover a conferência.";
+        btn.textContent = "Desconferir";
+        btn.style.background = "#e67e22";
+    } else {
+        titulo.textContent = "🔍 Conferir Fatura";
+        desc.textContent = "Digite suas credenciais para marcar esta fatura como conferida.";
+        btn.textContent = "Conferir";
+        btn.style.background = "#198754";
+    }
+    // Limpa campos
+    document.getElementById("confUsuario").value = "";
+    document.getElementById("confSenha").value   = "";
+    document.getElementById("confErro").style.display = "none";
+    document.getElementById("modalConferencia").classList.add("ativo");
+    setTimeout(() => document.getElementById("confUsuario").focus(), 150);
+}
+
+function fecharModalConferencia(){
+    document.getElementById("modalConferencia").classList.remove("ativo");
+}
+
+function confirmarConferencia(){
+    const u = document.getElementById("confUsuario").value.trim();
+    const s = document.getElementById("confSenha").value.trim();
+    if(u !== USUARIO_EDIT || s !== SENHA_EDIT){
+        document.getElementById("confErro").style.display = "block";
+        document.getElementById("confSenha").value = "";
+        setTimeout(() => document.getElementById("confUsuario").focus(), 50);
+        return;
+    }
+    const jaConferida = conferidas.find(c => c.indice === faturaAtual);
+    if(jaConferida){
+        // Desconferir → remove do array
+        conferidas = conferidas.filter(c => c.indice !== faturaAtual);
+    } else {
+        // Conferir → adiciona ao array com data atual
+        const hoje = new Date();
+        const dataStr = `${String(hoje.getDate()).padStart(2,"0")}/${String(hoje.getMonth()+1).padStart(2,"0")}/${hoje.getFullYear()}`;
+        conferidas.push({
+            indice: faturaAtual,
+            usuario: u,
+            data: dataStr
+        });
+    }
+    // Atualiza a marca visual na página
+    atualizarMarcaConferencia(faturaAtual);
+    // Salva e sincroniza
+    salvar();
+    fecharModalConferencia();
+}
+
+// Permite Enter para confirmar conferência
+document.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" && document.getElementById("modalConferencia").classList.contains("ativo")){
+        confirmarConferencia();
+    }
+});
+
 /* Retorna apenas inputs/textareas editáveis (exclui somaBox) */
 function inputsEditaveis(page){
     const inputs = [...page.querySelectorAll("input")]
@@ -1012,16 +1232,17 @@ function salvar(){
     localStorage.setItem("faturasDados", JSON.stringify(dados));
     localStorage.setItem("faturaAtual", faturaAtual);
     localStorage.setItem("faturasFinalizadas", JSON.stringify(finalizadas));
+    localStorage.setItem("faturasConferidas", JSON.stringify(conferidas));
 
     // Envia para o servidor → propaga para todos os clientes (celular/PC)
     if (socket.connected) {
         syncDot.className = "sync-dot syncing";
-        socket.emit("update-data", { dados, finalizadas });
+        socket.emit("update-data", { dados, finalizadas, conferidas });
         // Limpa pendente se existia
         localStorage.removeItem("faturasPendente");
     } else {
         // Sem conexão — salva como pendente para sincronizar quando voltar
-        localStorage.setItem("faturasPendente", JSON.stringify({ dados, finalizadas }));
+        localStorage.setItem("faturasPendente", JSON.stringify({ dados, finalizadas, conferidas }));
         syncDot.className = "sync-dot disconnected";
         syncLabel.textContent = "Offline — pendente";
     }
@@ -1771,6 +1992,7 @@ function entrarNoSistema(){
   vincularAutocompleteClientes();
   popularListaClientes();
   carregar();
+  renderizarTodasMarcas();
   mostrarFatura();
 }
 

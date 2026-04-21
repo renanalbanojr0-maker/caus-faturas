@@ -648,19 +648,25 @@ function limparCTE(){
 }
 
 function atualizarBotaoPDF(){
-  const btn = document.getElementById("btn-pdf");
-  if(!btn) return;
-  if(!xmlCarregado){
-    btn.disabled=true;
-    btn.title="Anexe o XML da NF para gerar o PDF";
-    btn.style.opacity="0.4";
-    btn.style.cursor="not-allowed";
-  } else {
-    btn.disabled=false;
-    btn.title="";
-    btn.style.opacity="";
-    btn.style.cursor="";
-  }
+  // Bloqueia/libera tanto o PDF quanto o botão de atualizar Tiny — ambos dependem do XML
+  const btns = [
+    { el: document.getElementById("btn-pdf"), msg: "Anexe o XML da NF para gerar o PDF" },
+    { el: document.getElementById("btn-atualizar-tiny"), msg: "Anexe o XML da NF para atualizar preços no Tiny" }
+  ];
+  btns.forEach(({el, msg}) => {
+    if(!el) return;
+    if(!xmlCarregado){
+      el.disabled = true;
+      el.title = msg;
+      el.style.opacity = "0.4";
+      el.style.cursor = "not-allowed";
+    } else {
+      el.disabled = false;
+      el.title = "";
+      el.style.opacity = "";
+      el.style.cursor = "";
+    }
+  });
 }
 
 /* ── Cálculos ── */
@@ -707,6 +713,7 @@ function updateSummary(){let tPc=0,tPf=0,tPl=0,tPp=0;rows.forEach(r=>{const{pf,p
 
 /* ── ATUALIZAR PREÇOS NO TINY ── */
 async function atualizarPrecosTiny(){
+  if(!xmlCarregado){ toast("Anexe o XML da NF antes de atualizar os preços","err"); return; }
   if(!rows.length){ toast("Nenhum produto para atualizar","err"); return; }
   const btn = document.getElementById("btn-atualizar-tiny");
   btn.disabled = true;
