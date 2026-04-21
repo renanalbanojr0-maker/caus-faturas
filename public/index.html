@@ -661,6 +661,7 @@ input:focus, textarea:focus{
   <div class="sync-dot disconnected" id="syncDot"></div>
   <span id="syncLabel">Desconectado</span>
 </div>
+<span id="versaoLabel" style="font-size:10px;color:#555;margin-left:8px;font-family:monospace;"></span>
 </div>
 
 <div class="lista-clientes">
@@ -851,7 +852,22 @@ document.querySelector(".topbar").insertAdjacentHTML(
 const syncDot   = document.getElementById("syncDot");
 const syncLabel = document.getElementById("syncLabel");
 
-const socket = io(); // conecta automaticamente ao servidor que serviu a página
+// Mostra versão do programa
+try{
+  const {ipcRenderer} = require('electron');
+  ipcRenderer.invoke('get-version').then(v => {
+    const el = document.getElementById('versaoLabel');
+    if(el) el.textContent = 'v'+v;
+  }).catch(()=>{});
+}catch(e){}
+
+// Conecta ao servidor correto baseado no hostname da página
+const _serverHost = window.location.hostname;
+const _serverURL = (_serverHost === 'localhost' || _serverHost === '127.0.0.1')
+  ? undefined  // padrão — conecta ao servidor que serviu a página
+  : `http://${_serverHost}:3000`; // PC2 conecta ao IP do PC1
+const socket = _serverURL ? io(_serverURL) : io();
+console.log('[Socket] Conectando em:', _serverURL || 'localhost');
 
 socket.on("connect", () => {
     syncDot.className   = "sync-dot connected";
