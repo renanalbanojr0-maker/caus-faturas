@@ -277,6 +277,59 @@ function sendJSON(res, code, obj) {
 }
 
 /* ── CRIAR JANELA PRINCIPAL ──────────────────────────────────── */
+function detectarEConectarPC1() {
+  const ifaces = os.networkInterfaces();
+  let ipLocal = '127.0.0.1';
+  Object.values(ifaces).flat().forEach(i => {
+    if(i && i.family === 'IPv4' && !i.internal) ipLocal = i.address;
+  });
+  const faixa = ipLocal.split('.').slice(0,3).join('.');
+
+  const ipFile = path.join(os.homedir(), 'Documents', 'Caus Faturas', 'servidor_ip.txt');
+  const ipsParaTestar = [];
+
+  // Testa IP salvo primeiro
+  if(fs.existsSync(ipFile)){
+    const ipSalvo = fs.readFileSync(ipFile, 'utf8').trim();
+    if(ipSalvo && ipSalvo !== ipLocal) ipsParaTestar.push(ipSalvo);
+  }
+
+  // Testa faixa comum
+  for(let i = 1; i <= 20; i++){
+    const ip = `${faixa}.${i}`;
+    if(ip !== ipLocal && !ipsParaTestar.includes(ip)) ipsParaTestar.push(ip);
+  }
+  for(let i = 100; i <= 120; i++){
+    const ip = `${faixa}.${i}`;
+    if(ip !== ipLocal && !ipsParaTestar.includes(ip)) ipsParaTestar.push(ip);
+  }
+
+  let idx = 0;
+  function testarProximo() {
+    if(idx >= ipsParaTestar.length) return; // não encontrou — é o PC1
+    const ip = ipsParaTestar[idx++];
+    const req = http.get(`http://${ip}:3000/ping`, { timeout: 400 }, (res) => {
+      let body = '';
+      res.on('data', d => body += d);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(body);
+          if(json.servidor === 'caus-faturas') {
+            console.log(`[Rede] PC1 encontrado em: ${ip}`);
+            fs.mkdirSync(path.dirname(ipFile), { recursive: true });
+            fs.writeFileSync(ipFile, ip);
+            if(win) win.loadURL(`http://${ip}:3000`);
+            if(winCalc) winCalc.loadURL(`http://${ip}:3000/calculadora-nf.html`);
+          }
+        } catch(e) { testarProximo(); }
+      });
+    });
+    req.on('error', () => testarProximo());
+    req.on('timeout', () => { req.destroy(); testarProximo(); });
+  }
+  testarProximo();
+}
+
 async function createWindow() {
   // Conecta MongoDB e carrega dados
   await conectarMongo();
@@ -454,89 +507,25 @@ async function createWindow() {
     });
   });
 
-  // Tenta detectar se já existe um servidor PC1 na rede antes de subir o próprio
-  const http = require('http');
-  function detectarServidorPC1(callback) {
-    // Pega o IP local e tenta encontrar o servidor na mesma faixa de rede
-    const os = require('os');
-    const ifaces = os.networkInterfaces();
-    let ipLocal = '127.0.0.1';
-    Object.values(ifaces).flat().forEach(i => {
-      if(i.family === 'IPv4' && !i.internal) ipLocal = i.address;
-    });
-    const partes = ipLocal.split('.');
-    const faixa = partes.slice(0,3).join('.');
-    
-    // Tenta IPs comuns na rede (1-254) mas com timeout curto
-    let encontrado = false;
-    let tentativas = 0;
-    const total = 10; // testa só alguns IPs para ser rápido
-    const ipsParaTestar = [
-      `${faixa}.100`, `${faixa}.101`, `${faixa}.102`, `${faixa}.103`,
-      `${faixa}.104`, `${faixa}.105`, `${faixa}.106`, `${faixa}.107`,
-      `${faixa}.108`, `${faixa}.1`
-    ];
-
-    // Salva IP do servidor em arquivo local para próxima vez
-    const ipFile = path.join(os.homedir(), 'Documents', 'Caus Faturas', 'servidor_ip.txt');
-    if(fs.existsSync(ipFile)){
-      const ipSalvo = fs.readFileSync(ipFile, 'utf8').trim();
-      ipsParaTestar.unshift(ipSalvo); // testa o IP salvo primeiro
-    }
-
-    function testarIP(ip) {
-      if(ip === ipLocal) { verificarProximo(); return; } // pula o próprio IP
-      const req = http.get(`http://${ip}:3000/ping`, { timeout: 500 }, (res) => {
-        if(res.statusCode === 200 && !encontrado) {
-          encontrado = true;
-          fs.writeFileSync(ipFile, ip); // salva para próxima vez
-          callback(ip);
-        }
-      });
-      req.on('error', verificarProximo);
-      req.on('timeout', () => { req.destroy(); verificarProximo(); });
-    }
-
-    function verificarProximo() {
-      tentativas++;
-      if(encontrado) return;
-      if(tentativas >= ipsParaTestar.length) {
-        callback(null); // não encontrou — é o PC1
-        return;
-      }
-      testarIP(ipsParaTestar[tentativas]);
-    }
-    testarIP(ipsParaTestar[0]);
-  }
-
-  // Adiciona rota /ping para identificação do servidor
+  // Rota ping para identificação na rede
   expressApp.get('/ping', (req, res) => res.json({ servidor: 'caus-faturas', ok: true }));
 
   server.listen(3000, '0.0.0.0', () => {
-    // Detecta se é PC1 ou PC2
-    detectarServidorPC1((ipServidor) => {
-      let urlCarregar = 'http://localhost:3000';
-      if(ipServidor) {
-        // É PC2 — conecta ao servidor do PC1
-        urlCarregar = `http://${ipServidor}:3000`;
-        console.log(`[Rede] PC2 detectado — conectando ao PC1: ${ipServidor}`);
-      } else {
-        console.log('[Rede] PC1 detectado — servidor iniciado');
-      }
+    win = new BrowserWindow({
+      width: 1400, height: 900,
+      webPreferences: { nodeIntegration: true, contextIsolation: false }
+    });
+    win.loadURL('http://localhost:3000');
+    
+    // Detecta PC1 em segundo plano após janela abrir
+    setTimeout(() => detectarEConectarPC1(), 1000);
 
-      win = new BrowserWindow({
-        width: 1400, height: 900,
-        webPreferences: { nodeIntegration: true, contextIsolation: false }
-      });
-      win.loadURL(urlCarregar);
-
-      // Verifica atualização 5 segundos após abrir
-      setTimeout(() => {
-        autoUpdater.checkForUpdates()
-          .then(r => console.log('[Update] Resultado:', JSON.stringify(r?.updateInfo)))
-          .catch(e => console.log('[Update] Erro:', e.message));
-      }, 5000);
-    }); // fecha detectarServidorPC1
+    // Verifica atualização 5 segundos após abrir
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+        .then(r => console.log('[Update] Resultado:', JSON.stringify(r?.updateInfo)))
+        .catch(e => console.log('[Update] Erro:', e.message));
+    }, 5000);
   });
 
   /* ── IPC: retorna versão do app ── */
