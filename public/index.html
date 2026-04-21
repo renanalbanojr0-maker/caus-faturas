@@ -82,6 +82,23 @@ box-shadow:0 0 12px rgba(0,0,0,.15);
 overflow:hidden;
 }
 
+/* Força TODOS os inputs e textareas da fatura em maiúsculas */
+.page input,
+.page textarea{
+  text-transform: uppercase;
+}
+
+/* Destaque de campo obrigatório vazio ao tentar finalizar */
+.campo-obrigatorio-vazio{
+  background:rgba(192,57,43,0.18) !important;
+  border-bottom:2px solid #c0392b !important;
+  animation: piscar-obrigatorio 1.2s ease-in-out 2;
+}
+@keyframes piscar-obrigatorio {
+  0%, 100% { background:rgba(192,57,43,0.18); }
+  50% { background:rgba(192,57,43,0.45); }
+}
+
 /* Marca d'água de conferência — aparece quando a fatura é conferida */
 .marca-conferida{
   position:absolute;
@@ -1293,6 +1310,11 @@ function carregar(){
         }
     });
     recalcularTodos();
+    // Redimensiona textareas e ajusta linhas da tabela para conteúdo longo expandir
+    pages.forEach(page => {
+        page.querySelectorAll("textarea.discArea").forEach(ta => autoResizeTextarea(ta));
+        if(typeof ajustarLinhasTabela === "function") ajustarLinhasTabela(page);
+    });
 }
 
 /* ── LIMPAR DADOS ────────────────────────────────────────────── */
@@ -1325,6 +1347,14 @@ function mostrarFatura(){
     });
 
     aplicarBloqueio();
+
+    // Redimensiona textareas da fatura que acabou de ficar visível
+    // (precisa fazer aqui porque scrollHeight=0 quando display:none)
+    const pageAtual = pages[faturaAtual];
+    if(pageAtual){
+        pageAtual.querySelectorAll("textarea.discArea").forEach(ta => autoResizeTextarea(ta));
+        if(typeof ajustarLinhasTabela === "function") ajustarLinhasTabela(pageAtual);
+    }
 
     const numero = String(faturaInicial+faturaAtual).padStart(6,"0");
     let status = "EM ABERTO";
@@ -1368,11 +1398,124 @@ function aplicarBloqueio(){
 }
 
 /* ── FINALIZAR ───────────────────────────────────────────────── */
+/* ── VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS ─────────────────────── */
+/* Retorna lista de campos faltando na fatura atual.
+   Cada item: { label, inputs: [HTMLElement, ...] } */
+function validarCamposObrigatorios(){
+    const page = pages[faturaAtual];
+    if(!page) return [];
+    const faltando = [];
+
+    // Helper: pega input pelo label
+    function inputPorLabel(texto){
+        const spans = [...page.querySelectorAll("span.label")];
+        const span = spans.find(s => s.textContent.trim().replace(/:$/,"") === texto.replace(/:$/,""));
+        if(!span) return null;
+        return span.parentElement.querySelector("input.line, input.flex");
+    }
+
+    // Nome
+    const inpNome = inputPorLabel("Nome");
+    if(inpNome && !inpNome.value.trim()){
+        faltando.push({ label: "Nome", inputs: [inpNome] });
+    }
+
+    // Cidade
+    const inpCidade = inputPorLabel("Cidade");
+    if(inpCidade && !inpCidade.value.trim()){
+        faltando.push({ label: "Cidade", inputs: [inpCidade] });
+    }
+
+    // Data (3 inputs na primeira row: dia/mês/ano)
+    const primeiraRow = page.querySelector(".row");
+    if(primeiraRow){
+        const inputsData = [...primeiraRow.querySelectorAll("input.line")].slice(0, 3);
+        const algumVazio = inputsData.some(i => !i.value.trim());
+        if(algumVazio){
+            faltando.push({ label: "Data", inputs: inputsData.filter(i => !i.value.trim()) });
+        }
+    }
+
+    // TOTAL (input com classe totalBox)
+    const inpTotal = page.querySelector("input.totalBox");
+    if(inpTotal && !inpTotal.value.trim()){
+        faltando.push({ label: "TOTAL", inputs: [inpTotal] });
+    }
+
+    // Vendedor — segundo input dentro de .signs
+    const signs = page.querySelector(".signs");
+    if(signs){
+        const sigs = [...signs.querySelectorAll(".sig input.line")];
+        if(sigs.length >= 2 && !sigs[1].value.trim()){
+            faltando.push({ label: "Vendedor", inputs: [sigs[1]] });
+        }
+    }
+
+    // Linhas da tabela de produtos — se qualquer campo de uma linha foi preenchido,
+    // os outros 2 (Quant / Discriminação / Valor) viram obrigatórios
+    const linhas = [...page.querySelectorAll(".table tr")].slice(1); // pula header
+    linhas.forEach((tr, idx) => {
+        const inpQuant = tr.querySelector("td:nth-child(1) input");
+        const taDisc   = tr.querySelector("td:nth-child(2) textarea.discArea");
+        const inpValor = tr.querySelector("td:nth-child(3) input");
+        if(!inpQuant || !taDisc || !inpValor) return;
+
+        const vQuant = inpQuant.value.trim();
+        const vDisc  = taDisc.value.trim();
+        const vValor = inpValor.value.trim();
+
+        // Se nenhum dos três foi preenchido, pula (linha vazia é permitida)
+        if(!vQuant && !vDisc && !vValor) return;
+
+        // Se pelo menos um está preenchido, os 3 viram obrigatórios
+        const vazios = [];
+        if(!vQuant) vazios.push(inpQuant);
+        if(!vDisc)  vazios.push(taDisc);
+        if(!vValor) vazios.push(inpValor);
+
+        if(vazios.length > 0){
+            faltando.push({
+                label: `Linha ${idx + 1} da tabela (Quant / Discriminação / Valor)`,
+                inputs: vazios
+            });
+        }
+    });
+
+    return faltando;
+}
+
+/* Marca os inputs faltando em vermelho e remove quando o usuário digitar */
+function destacarCamposVazios(faltando){
+    faltando.forEach(item => {
+        item.inputs.forEach(inp => {
+            inp.classList.add("campo-obrigatorio-vazio");
+            const limpar = () => {
+                inp.classList.remove("campo-obrigatorio-vazio");
+                inp.removeEventListener("input", limpar);
+            };
+            inp.addEventListener("input", limpar);
+        });
+    });
+    // Foca no primeiro campo vazio
+    if(faltando.length && faltando[0].inputs.length){
+        try { faltando[0].inputs[0].focus(); } catch(e){}
+    }
+}
+
 async function finalizarFatura(){
     const numero = String(faturaInicial + faturaAtual).padStart(6,"0");
 
     if(finalizadas.includes(faturaAtual)){
         alert("Fatura já finalizada.");
+        return;
+    }
+
+    // Validação de campos obrigatórios
+    const faltando = validarCamposObrigatorios();
+    if(faltando.length > 0){
+        const lista = faltando.map(f => "• " + f.label).join("\n");
+        alert("⚠️ Preencha os campos obrigatórios antes de finalizar:\n\n" + lista);
+        destacarCamposVazios(faltando);
         return;
     }
 
@@ -1625,6 +1768,26 @@ function vincularAutocompleteClientes(){
                             }
                         }
                     });
+
+                    // Clientes isentos (cidades-sede): preenche TOTAL=1,00 e Vendedor=ISENTO
+                    const CODIGOS_ISENTOS = ["396","397","409","473","511","1651","5248"];
+                    if(CODIGOS_ISENTOS.includes(cod)){
+                        // Preenche TOTAL = 1,00
+                        const inpTotal = page.querySelector("input.totalBox");
+                        if(inpTotal){
+                            inpTotal.value = "1,00";
+                            inpTotal.dispatchEvent(new Event("input", { bubbles: true }));
+                        }
+                        // Preenche Vendedor = ISENTO (segundo input em .signs)
+                        const signs = page.querySelector(".signs");
+                        if(signs){
+                            const sigs = [...signs.querySelectorAll(".sig input.line")];
+                            if(sigs.length >= 2){
+                                sigs[1].value = "ISENTO";
+                                sigs[1].dispatchEvent(new Event("input", { bubbles: true }));
+                            }
+                        }
+                    }
                 });
                 lista.appendChild(item);
             });
@@ -1764,6 +1927,27 @@ function aplicarMascaraMonetaria(inp){
     digits = digits.slice(-10);
     const num = parseInt(digits, 10) / 100;
     inp.value = num.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+/* ── FORÇA MAIÚSCULAS em todos os campos de texto da fatura ─── */
+function vincularMaiusculas(){
+    pages.forEach(page => {
+        const campos = page.querySelectorAll("input, textarea");
+        campos.forEach(campo => {
+            if(campo.dataset.maiusculas) return;
+            campo.dataset.maiusculas = "1";
+            campo.addEventListener("input", () => {
+                // Preserva posição do cursor ao converter
+                const start = campo.selectionStart;
+                const end = campo.selectionEnd;
+                const upper = campo.value.toUpperCase();
+                if(campo.value !== upper){
+                    campo.value = upper;
+                    try { campo.setSelectionRange(start, end); } catch(e){}
+                }
+            });
+        });
+    });
 }
 
 function vincularMascaras(){
@@ -1987,6 +2171,7 @@ function entrarNoSistema(){
   const erro = document.getElementById("loginErroMsg");
   if(erro) erro.style.display = "none";
   vincularMascaras();
+  vincularMaiusculas();
   vincularAutoResizes();
   vincularTodosAutocompletes();
   vincularAutocompleteClientes();
