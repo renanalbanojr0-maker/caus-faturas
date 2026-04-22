@@ -88,6 +88,65 @@ overflow:hidden;
   text-transform: uppercase;
 }
 
+/* ── REF FAT (só aparece pro cliente 396) ─────────────────── */
+/* Posicionado no canto inferior esquerdo, alinhado verticalmente com o TOTAL.
+   Ancorado pelo TOP pra que quando cresça, expanda pra baixo (não pra cima) */
+.ref-fat-wrap{
+  position:absolute;
+  top:862px; /* alinhado verticalmente com o TOTAL (que está em bottom:232px) */
+  left:48px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  z-index:3;
+  width:340px;
+}
+.ref-fat-label{
+  font-weight:700;
+  font-size:13px;
+  color:#08224f;
+  white-space:nowrap;
+}
+.ref-fat-inputs{
+  display:grid;
+  grid-template-columns: repeat(5, 60px); /* 5 colunas fixas */
+  gap:5px;
+  width:100%;
+}
+.ref-fat-box{
+  width:60px;
+  height:28px;
+  border:1.4px solid #08224f;
+  border-radius:3px;
+  font-size:16px;
+  font-family:inherit;
+  font-weight:700;
+  color:#c0392b; /* vermelho nos números digitados */
+  text-align:center;
+  padding:0 3px;
+  box-sizing:border-box;
+  outline:none;
+  background:#fff;
+}
+.ref-fat-box:focus{
+  border-color:#0077ff;
+  background:#f0f7ff;
+}
+
+/* Na impressão física (@media print) o REF FAT não aparece.
+   O PDF é gerado via html2canvas, então fica visível no PDF normalmente. */
+@media print {
+  .ref-fat-wrap{
+    display:none !important;
+  }
+}
+/* Esconde REF FAT na impressão e na geração do PDF */
+@media print {
+  .ref-fat-wrap{ display:none !important; }
+}
+.gerando-pdf .ref-fat-wrap{ display:none !important; }
+
 /* Destaque de campo obrigatório vazio ao tentar finalizar */
 .campo-obrigatorio-vazio{
   background:rgba(192,57,43,0.18) !important;
@@ -1122,6 +1181,13 @@ const container = document.getElementById("pages");
 const template = `
 <div class="page">
 
+<div class='ref-fat-wrap' style='display:none;'>
+  <span class='ref-fat-label'>REF FAT:</span>
+  <div class='ref-fat-inputs'>
+    <input class='ref-fat-box' type='text' inputmode='numeric' maxlength='6'>
+  </div>
+</div>
+
 <div class='row'><span class='label'>Data,</span><input class='line' style='width:28px;text-align:center;' maxlength='2' oninput='if(this.value.length===2)this.closest(".row").querySelectorAll("input")[1].focus()'><span>/</span><input class='line' style='width:28px;text-align:center;' maxlength='2' oninput='if(this.value.length===2)this.closest(".row").querySelectorAll("input")[2].focus()'><span>/</span><input class='line' style='width:48px;text-align:center;' maxlength='4'></div>
 <div class='centerTitle'>Nº <span class="numeroFatura"></span></div>
 <div class='client'>É Cliente? <input class='boxInput' maxlength='1'> Sim <input class='boxInput' maxlength='1'> Não</div>
@@ -1285,10 +1351,11 @@ socket.on("disconnect", () => {
 
 // Recebe dados do servidor (enviado por qualquer cliente conectado)
 socket.on("load-data", (payload) => {
-    // Suporta formato novo {dados, finalizadas, conferidas} e formato antigo (array direto)
+    // Suporta formato novo {dados, finalizadas, conferidas, refFats} e formato antigo (array direto)
     const serverDados     = Array.isArray(payload) ? payload : payload.dados;
     const serverFinaliz   = Array.isArray(payload) ? [] : (payload.finalizadas || []);
     const serverConferid  = Array.isArray(payload) ? [] : (payload.conferidas || []);
+    const serverRefFats   = Array.isArray(payload) ? [] : (payload.refFats || []);
 
     if (!serverDados || !serverDados.length) return;
 
@@ -1323,6 +1390,19 @@ socket.on("load-data", (payload) => {
         renderizarTodasMarcas();
     }
 
+    // Sincroniza refFats vindas do servidor — mas não sobrescreve se o campo ativo for uma ref-fat-box
+    if(serverRefFats && serverRefFats.length){
+        const campoAtivoEhRefFat = campoAtivo && campoAtivo.classList && campoAtivo.classList.contains("ref-fat-box");
+        if(!campoAtivoEhRefFat){
+            pages.forEach((page, p) => {
+                if(serverRefFats[p] !== undefined){
+                    setRefFatValores(page, serverRefFats[p]);
+                }
+            });
+        }
+        localStorage.setItem("faturasRefFats", JSON.stringify(serverRefFats));
+    }
+
     localStorage.setItem("faturasDados", JSON.stringify(serverDados));
 
     _ignorarInput = false;
@@ -1343,6 +1423,7 @@ socket.on("reset-all", () => {
     localStorage.removeItem("faturaAtual");
     localStorage.removeItem("faturasFinalizadas");
     localStorage.removeItem("faturasConferidas");
+    localStorage.removeItem("faturasRefFats");
     // Limpa todos os inputs
     finalizadas = [];
     conferidas = [];
@@ -1359,6 +1440,8 @@ socket.on("reset-all", () => {
         if(marca) marca.remove();
         const marcaTopo = page.querySelector(".marca-conferida-topo");
         if(marcaTopo) marcaTopo.remove();
+        // Limpa REF FAT e esconde o container
+        atualizarRefFatVisibilidade(page, "");
     });
     _ignorarInput = false;
     mostrarFatura();
@@ -1466,22 +1549,142 @@ document.addEventListener("keydown", (e) => {
 
 /* Retorna apenas inputs/textareas editáveis (exclui somaBox) */
 function inputsEditaveis(page){
-    const inputs = [...page.querySelectorAll("input")]
-        .filter(i => !i.classList.contains("somaBox"));
-    const textareas = [...page.querySelectorAll("textarea.discArea")];
-    // Intercala na ordem correta: para cada linha da tabela, a ordem é input, textarea, input
-    // Usa querySelectorAll geral para manter a ordem do DOM
-    return [...page.querySelectorAll("input:not(.somaBox), textarea.discArea")];
+    // Exclui .somaBox e .ref-fat-box — esses são salvos à parte
+    return [...page.querySelectorAll("input:not(.somaBox):not(.ref-fat-box), textarea.discArea")];
+}
+
+/* Lê valores do REF FAT de uma página (string "a,b,c") */
+function getRefFatValores(page){
+    const boxes = [...page.querySelectorAll(".ref-fat-box")];
+    return boxes.map(b => b.value.trim()).filter(v => v).join(",");
+}
+
+/* Aplica valores do REF FAT em uma página (recria caixinhas conforme necessário) */
+function setRefFatValores(page, valorStr){
+    const wrap = page.querySelector(".ref-fat-wrap");
+    const cont = page.querySelector(".ref-fat-inputs");
+    if(!wrap || !cont) return;
+    const valores = (valorStr || "").split(",").map(v => v.trim()).filter(v => v);
+    // Remove todas menos a primeira
+    const boxes = [...cont.querySelectorAll(".ref-fat-box")];
+    boxes.slice(1).forEach(b => b.remove());
+    // Se a primeira existe, define o valor dela ou limpa
+    const primeira = cont.querySelector(".ref-fat-box");
+    if(primeira){
+        primeira.value = valores[0] || "";
+        vincularRefFatBox(primeira);
+    }
+    // Cria as restantes
+    for(let i = 1; i < valores.length; i++){
+        const novaBox = criarRefFatBox(valores[i]);
+        cont.appendChild(novaBox);
+    }
+}
+
+/* Cria um novo input .ref-fat-box */
+function criarRefFatBox(valor){
+    const inp = document.createElement("input");
+    inp.className = "ref-fat-box";
+    inp.type = "text";
+    inp.inputMode = "numeric";
+    inp.maxLength = 6;
+    inp.value = valor || "";
+    vincularRefFatBox(inp);
+    // Aplica o filtro de maiúsculas na caixinha nova
+    inp.dataset.maiusculas = "1";
+    inp.addEventListener("input", () => {
+        const start = inp.selectionStart;
+        const end = inp.selectionEnd;
+        const upper = inp.value.toUpperCase();
+        if(inp.value !== upper){
+            inp.value = upper;
+            try { inp.setSelectionRange(start, end); } catch(e){}
+        }
+    });
+    return inp;
+}
+
+/* Vincula eventos numa caixinha REF FAT */
+function vincularRefFatBox(inp){
+    if(inp.dataset.refFatBind) return;
+    inp.dataset.refFatBind = "1";
+
+    // TAB cria próxima caixinha se a atual tem conteúdo
+    inp.addEventListener("keydown", (e) => {
+        const cont = inp.parentElement;
+        if(!cont) return;
+        const boxes = [...cont.querySelectorAll(".ref-fat-box")];
+        const idx = boxes.indexOf(inp);
+
+        if(e.key === "Tab" && !e.shiftKey){
+            // Só cria nova se a caixa atual tem valor e é a última
+            if(inp.value.trim() && idx === boxes.length - 1){
+                e.preventDefault();
+                const nova = criarRefFatBox();
+                cont.appendChild(nova);
+                nova.focus();
+                // Dispara salvamento (evento input propaga pro listener global)
+                inp.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+        } else if(e.key === "Backspace"){
+            // Se caixa vazia e não é a primeira, remove e foca a anterior
+            if(inp.value === "" && idx > 0){
+                e.preventDefault();
+                inp.remove();
+                boxes[idx - 1].focus();
+                // Cursor no final
+                const ant = boxes[idx - 1];
+                try {
+                    const pos = ant.value.length;
+                    ant.setSelectionRange(pos, pos);
+                } catch(_){}
+                // Dispara salvamento
+                ant.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+        }
+    });
+    // O evento "input" é capturado pelo listener global que já salva automaticamente
+}
+
+/* Mostra/esconde wrapper REF FAT baseado em se o cliente é 396 */
+function atualizarRefFatVisibilidade(page, codigoCliente){
+    const wrap = page.querySelector(".ref-fat-wrap");
+    if(!wrap) return;
+    if(codigoCliente === "396"){
+        wrap.style.display = "flex";
+        page.classList.add("com-ref-fat");
+    } else {
+        wrap.style.display = "none";
+        page.classList.remove("com-ref-fat");
+        // Limpa valores e volta só com uma caixa vazia
+        const cont = page.querySelector(".ref-fat-inputs");
+        if(cont){
+            const boxes = [...cont.querySelectorAll(".ref-fat-box")];
+            boxes.slice(1).forEach(b => b.remove());
+            const primeira = cont.querySelector(".ref-fat-box");
+            if(primeira) primeira.value = "";
+        }
+    }
+}
+
+/* Vincula caixinha inicial em todas as pages */
+function vincularRefFatInicial(){
+    pages.forEach(page => {
+        const primeira = page.querySelector(".ref-fat-box");
+        if(primeira) vincularRefFatBox(primeira);
+    });
 }
 
 /* ── SALVAR ──────────────────────────────────────────────────── */
 function salvar(){
     const dados = [];
+    const refFats = [];
 
     pages.forEach(page=>{
         dados.push(
             inputsEditaveis(page).map(i=>i.value)
         );
+        refFats.push(getRefFatValores(page));
     });
 
     // Persiste localmente (fallback offline)
@@ -1489,16 +1692,17 @@ function salvar(){
     localStorage.setItem("faturaAtual", faturaAtual);
     localStorage.setItem("faturasFinalizadas", JSON.stringify(finalizadas));
     localStorage.setItem("faturasConferidas", JSON.stringify(conferidas));
+    localStorage.setItem("faturasRefFats", JSON.stringify(refFats));
 
     // Envia para o servidor → propaga para todos os clientes (celular/PC)
     if (socket.connected) {
         syncDot.className = "sync-dot syncing";
-        socket.emit("update-data", { dados, finalizadas, conferidas });
+        socket.emit("update-data", { dados, finalizadas, conferidas, refFats });
         // Limpa pendente se existia
         localStorage.removeItem("faturasPendente");
     } else {
         // Sem conexão — salva como pendente para sincronizar quando voltar
-        localStorage.setItem("faturasPendente", JSON.stringify({ dados, finalizadas, conferidas }));
+        localStorage.setItem("faturasPendente", JSON.stringify({ dados, finalizadas, conferidas, refFats }));
         syncDot.className = "sync-dot disconnected";
         syncLabel.textContent = "Offline — pendente";
     }
@@ -1548,6 +1752,18 @@ function carregar(){
             });
         }
     });
+
+    // Carrega refFats do localStorage
+    const refFatsStr = localStorage.getItem("faturasRefFats");
+    if(refFatsStr){
+        try {
+            const refFats = JSON.parse(refFatsStr);
+            pages.forEach((page, p) => {
+                if(refFats[p]) setRefFatValores(page, refFats[p]);
+            });
+        } catch(e){}
+    }
+
     recalcularTodos();
     // Redimensiona textareas e ajusta linhas da tabela para conteúdo longo expandir
     pages.forEach(page => {
@@ -1593,6 +1809,16 @@ function mostrarFatura(){
     if(pageAtual){
         pageAtual.querySelectorAll("textarea.discArea").forEach(ta => autoResizeTextarea(ta));
         if(typeof ajustarLinhasTabela === "function") ajustarLinhasTabela(pageAtual);
+
+        // Mostra o REF FAT se já tem valores salvos (pra continuar visível ao voltar numa fatura do cliente 396)
+        const wrap = pageAtual.querySelector(".ref-fat-wrap");
+        if(wrap){
+            const valores = getRefFatValores(pageAtual);
+            if(valores){
+                wrap.style.display = "flex";
+                pageAtual.classList.add("com-ref-fat");
+            }
+        }
     }
 
     const numero = String(faturaInicial+faturaAtual).padStart(6,"0");
@@ -2188,7 +2414,12 @@ function vincularAutocompleteClientes(){
         inpNome.addEventListener("input", () => {
             fecharAutocomplete();
             const termo = inpNome.value.trim().toUpperCase();
-            if(!termo) return;
+
+            // Se apagou o nome, esconde o REF FAT e limpa
+            if(!termo){
+                atualizarRefFatVisibilidade(page, "");
+                return;
+            }
 
             const resultados = Object.entries(CLIENTES).filter(([cod, c]) =>
                 /^\d+$/.test(termo) && cod.startsWith(termo)
@@ -2242,6 +2473,14 @@ function vincularAutocompleteClientes(){
                                 sigs[1].dispatchEvent(new Event("input", { bubbles: true }));
                             }
                         }
+                    }
+
+                    // Mostra/esconde campo REF FAT (só pro código 396 - BAIXO GUANDU)
+                    atualizarRefFatVisibilidade(page, cod);
+                    if(cod === "396"){
+                        // Foca na primeira caixinha de REF FAT pra facilitar
+                        const primeira = page.querySelector(".ref-fat-box");
+                        if(primeira) setTimeout(() => primeira.focus(), 80);
                     }
                 });
                 lista.appendChild(item);
@@ -2630,6 +2869,7 @@ function entrarNoSistema(){
   vincularAutoResizes();
   vincularTodosAutocompletes();
   vincularAutocompleteClientes();
+  vincularRefFatInicial();
   popularListaClientes();
   carregar();
   renderizarTodasMarcas();
