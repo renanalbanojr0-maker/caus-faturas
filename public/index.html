@@ -147,6 +147,220 @@ overflow:hidden;
 }
 .gerando-pdf .ref-fat-wrap{ display:none !important; }
 
+/* ── VIA DE CLIENTE (modo especial pra vendas do e-commerce/Tiny) ─── */
+/* Campo Nº NF no topo esquerdo (em vermelho) */
+.vc-nf-wrap{
+  position:absolute;
+  top:12px;
+  left:30px;
+  display:none;
+  align-items:center;
+  gap:6px;
+  z-index:4;
+}
+.vc-nf-label{
+  font-weight:700;
+  font-size:16px;
+  color:#c0392b;
+  white-space:nowrap;
+}
+.vc-nf-input{
+  border:none;
+  border-bottom:1px solid #333;
+  background:transparent;
+  font-size:16px;
+  font-weight:700;
+  color:#c0392b;
+  width:140px;
+  outline:none;
+  padding:0 2px;
+  font-family:inherit;
+}
+.vc-btn-buscar-nf{
+  background:#6c5ce7;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+  margin-left:6px;
+  box-shadow:0 2px 4px rgba(108,92,231,0.3);
+  transition:all 0.15s ease;
+}
+.vc-btn-buscar-nf:hover{
+  background:#5b4ecf;
+  transform:translateY(-1px);
+  box-shadow:0 3px 6px rgba(108,92,231,0.45);
+}
+.vc-btn-buscar-nf:disabled{
+  background:#999;
+  cursor:not-allowed;
+  transform:none;
+}
+.vc-btn-debug-nf{
+  background:#f39c12;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+  margin-left:4px;
+  box-shadow:0 2px 4px rgba(243,156,18,0.3);
+  transition:all 0.15s ease;
+}
+.vc-btn-debug-nf:hover{
+  background:#e67e22;
+  transform:translateY(-1px);
+}
+.vc-btn-debug-nf:disabled{
+  background:#999;
+  cursor:not-allowed;
+  transform:none;
+}
+/* Esconde os botões na impressão e no PDF — só aparece na tela */
+@media print {
+  .vc-btn-buscar-nf, .vc-btn-debug-nf{ display:none !important; }
+}
+.gerando-pdf .vc-btn-buscar-nf,
+.gerando-pdf .vc-btn-debug-nf{ display:none !important; }
+
+/* Campo Cód Cliente no topo direito (em vermelho) */
+.vc-cod-wrap{
+  position:absolute;
+  top:12px;
+  right:70px;
+  display:none;
+  align-items:center;
+  gap:6px;
+  z-index:4;
+}
+.vc-cod-label{
+  font-weight:700;
+  font-size:16px;
+  color:#c0392b;
+  white-space:nowrap;
+}
+.vc-cod-input{
+  border:none;
+  border-bottom:1px solid #333;
+  background:transparent;
+  font-size:16px;
+  font-weight:700;
+  color:#c0392b;
+  width:150px;
+  outline:none;
+  padding:0 2px;
+  font-family:inherit;
+}
+.vc-cod-btn-confirmar{
+  background:#27ae60;
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:24px;
+  height:24px;
+  padding:0;
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
+  font-family:inherit;
+  margin-left:4px;
+  box-shadow:0 2px 4px rgba(39,174,96,0.4);
+  transition:all 0.15s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+.vc-cod-btn-confirmar:hover{
+  background:#229954;
+  transform:scale(1.1);
+}
+.vc-cod-btn-confirmar:disabled{
+  background:#95a5a6;
+  cursor:not-allowed;
+  transform:none;
+}
+/* Esconde o botão quando Cód já foi confirmado */
+.vc-cod-btn-confirmar.confirmado{
+  display:none;
+}
+/* Esconde o botão na impressão e no PDF */
+@media print {
+  .vc-cod-btn-confirmar{ display:none !important; }
+}
+.gerando-pdf .vc-cod-btn-confirmar{ display:none !important; }
+
+/* Campo OBS grande (retângulo vermelho à esquerda do TOTAL) */
+.vc-obs-wrap{
+  position:absolute;
+  top:862px;
+  left:48px;
+  display:none;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  z-index:3;
+  width:300px;
+}
+.vc-obs-label{
+  font-weight:700;
+  font-size:16px;
+  color:#c0392b;
+  white-space:nowrap;
+}
+.vc-obs-textarea{
+  width:100%;
+  height:85px;
+  border:2px solid #c0392b;
+  background:transparent;
+  font-size:15px;
+  font-weight:600;
+  font-family:inherit;
+  color:#08224f;
+  padding:5px 7px;
+  resize:none;
+  outline:none;
+  box-sizing:border-box;
+  text-transform:uppercase;
+  line-height:1.3;
+}
+
+/* Ativa os campos quando a página está em modo "via de cliente" */
+.page.via-cliente .vc-nf-wrap,
+.page.via-cliente .vc-cod-wrap{
+  display:flex;
+}
+.page.via-cliente .vc-obs-wrap{
+  display:flex;
+}
+
+/* Na impressão e PDF, mostra os valores mas sem bordas dos inputs */
+@media print {
+  .page.via-cliente .vc-nf-input,
+  .page.via-cliente .vc-cod-input{
+    border-bottom:none;
+  }
+  /* Esconde o container inteiro quando o campo estiver vazio */
+  .page.via-cliente .vc-nf-wrap.vazio,
+  .page.via-cliente .vc-cod-wrap.vazio{
+    display:none !important;
+  }
+}
+
+/* Quando gera PDF: se o campo NF ou Cód estiver vazio, esconde tudo (label + input) */
+.gerando-pdf .vc-nf-wrap.vazio,
+.gerando-pdf .vc-cod-wrap.vazio{
+  display:none !important;
+}
+
+
 /* Destaque de campo obrigatório vazio ao tentar finalizar */
 .campo-obrigatorio-vazio{
   background:rgba(192,57,43,0.18) !important;
@@ -319,6 +533,11 @@ overflow:hidden;
 .res-status.aberto{ background:#fff3cd; color:#856404; }
 .res-status.finalizada{ background:#d4edda; color:#155724; }
 .res-status.conferida{ background:#cfe2ff; color:#084298; }
+.res-status.via-cliente{
+  background:linear-gradient(135deg,#6c5ce7,#8e7dff);
+  color:#fff;
+  margin-left:4px;
+}
 
 .painel-vazio{
   text-align:center;
@@ -1011,6 +1230,66 @@ input:focus, textarea:focus{
       <span style="font-size:11px;letter-spacing:1px;opacity:0.85;font-weight:600">PRECIFICAÇÃO</span>
       <span style="font-size:13px;font-weight:800">Calculadora NFs</span>
     </button>
+
+    <!-- Botão Via de Cliente (modo e-commerce) -->
+    <button onclick="toggleViaCliente()" id="btnToggleViaCliente" style="
+      width:100%;
+      margin-top:10px;
+      padding:12px 8px;
+      background:linear-gradient(135deg,#6c5ce7,#8e7dff);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+      font-family:'Times New Roman',serif;
+      line-height:1.5;
+      letter-spacing:0.5px;
+      box-shadow:0 3px 10px rgba(108,92,231,0.35);
+      transition:all 0.2s ease;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+    "
+    onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(108,92,231,0.45)'"
+    onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 3px 10px rgba(108,92,231,0.35)'"
+    >
+      <span style="font-size:22px;line-height:1">📋</span>
+      <span style="font-size:11px;letter-spacing:1px;opacity:0.85;font-weight:600" id="vcLabelTop">VIA DE CLIENTE</span>
+      <span style="font-size:13px;font-weight:800" id="vcLabelBottom">Ativar Modo</span>
+    </button>
+
+    <!-- Botão Preenchimento Massivo (lote de NFs do Tiny) -->
+    <button onclick="abrirModalMassivo()" id="btnMassivo" style="
+      width:100%;
+      margin-top:10px;
+      padding:12px 8px;
+      background:linear-gradient(135deg,#c0392b,#e74c3c);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+      font-family:'Times New Roman',serif;
+      line-height:1.5;
+      letter-spacing:0.5px;
+      box-shadow:0 3px 10px rgba(192,57,43,0.35);
+      transition:all 0.2s ease;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+    "
+    onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(192,57,43,0.45)'"
+    onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 3px 10px rgba(192,57,43,0.35)'"
+    >
+      <span style="font-size:22px;line-height:1">⚡</span>
+      <span style="font-size:11px;letter-spacing:1px;opacity:0.85;font-weight:600">PREENCHIMENTO</span>
+      <span style="font-size:13px;font-weight:800">Massivo por Data</span>
+    </button>
   </div>
 </div>
 
@@ -1131,6 +1410,19 @@ input:focus, textarea:focus{
 
       <div class="painel-divider"></div>
 
+      <!-- Filtro rápido por tipo -->
+      <div class="painel-secao">
+        <label class="painel-label">Filtro rápido</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn-painel-pill" id="btnFiltroTodas" onclick="aplicarFiltroTipo('todas')"
+                  style="background:#3498db;">Todas</button>
+          <button class="btn-painel-pill" id="btnFiltroVC" onclick="aplicarFiltroTipo('via-cliente')"
+                  style="background:#6c5ce7;">📋 Via de Cliente</button>
+        </div>
+      </div>
+
+      <div class="painel-divider"></div>
+
       <div class="painel-secao">
         <div id="buscaResumo" style="font-size:12px;color:#555;margin-bottom:8px;"></div>
         <div id="buscaResultados" class="painel-resultados"></div>
@@ -1164,6 +1456,61 @@ input:focus, textarea:focus{
   </div>
 </div>
 
+<!-- Modal de Preenchimento Massivo por data -->
+<div class="modal-overlay" id="modalMassivo" style="display:none;">
+  <div class="modal-box" style="max-width:520px;">
+    <h3>⚡ Preenchimento Massivo</h3>
+    <p style="font-size:13px;color:#555;line-height:1.4;margin:0 0 14px;">
+      Busca todas as NFs de <strong>marketplace</strong> no período e preenche as faturas
+      em aberto automaticamente (ativando o modo Via de Cliente, finalizando e arquivando cada uma).
+    </p>
+
+    <div id="massivoEtapaDatas">
+      <label style="display:block;font-weight:600;margin-bottom:4px;font-size:13px;">Data inicial:</label>
+      <input type="date" id="massivoDataInicial" style="width:100%;padding:8px;font-size:14px;margin-bottom:10px;border:1px solid #ccc;border-radius:6px;">
+
+      <label style="display:block;font-weight:600;margin-bottom:4px;font-size:13px;">Data final:</label>
+      <input type="date" id="massivoDataFinal" style="width:100%;padding:8px;font-size:14px;margin-bottom:14px;border:1px solid #ccc;border-radius:6px;">
+
+      <div style="background:#fff3cd;border-left:3px solid #f39c12;padding:8px 10px;border-radius:4px;font-size:11.5px;color:#856404;margin-bottom:14px;line-height:1.4;">
+        ⚠️ <strong>Atenção:</strong> NFs com mais de 14 itens ou SKUs não cadastrados serão puladas.
+        Um relatório com tudo que foi feito aparece no final.
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button onclick="fecharModalMassivo()" style="flex:1;padding:10px;background:#95a5a6;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">Cancelar</button>
+        <button onclick="iniciarPrevia()" id="btnPreviaMassivo" style="flex:2;padding:10px;background:#3498db;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;">🔍 Buscar NFs do Período</button>
+      </div>
+    </div>
+
+    <!-- Etapa 2: confirmação com prévia -->
+    <div id="massivoEtapaPrevia" style="display:none;">
+      <div id="massivoPreviaInfo" style="font-size:13px;line-height:1.5;margin-bottom:12px;"></div>
+      <div id="massivoPreviaLista" style="max-height:200px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:6px;padding:6px 8px;margin-bottom:14px;font-size:12px;background:#fafafa;"></div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="voltarMassivoEtapaDatas()" style="flex:1;padding:10px;background:#95a5a6;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;">← Voltar</button>
+        <button onclick="executarMassivo()" id="btnExecMassivo" style="flex:2;padding:10px;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;">⚡ Executar Preenchimento</button>
+      </div>
+    </div>
+
+    <!-- Etapa 3: execução com barra de progresso -->
+    <div id="massivoEtapaProgresso" style="display:none;">
+      <div style="font-size:14px;margin-bottom:6px;"><strong id="massivoProgTexto">Preparando...</strong></div>
+      <div style="background:#e0e0e0;border-radius:10px;overflow:hidden;height:22px;margin-bottom:10px;">
+        <div id="massivoBarraProgresso" style="background:linear-gradient(135deg,#27ae60,#2ecc71);height:100%;width:0%;transition:width 0.3s ease;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;">0%</div>
+      </div>
+      <div id="massivoProgDetalhe" style="font-size:11.5px;color:#666;margin-bottom:10px;max-height:140px;overflow-y:auto;background:#fafafa;padding:6px 8px;border-radius:4px;border:1px solid #e0e0e0;font-family:monospace;line-height:1.4;"></div>
+      <div style="text-align:center;font-size:11px;color:#999;">⏳ Não feche esta janela enquanto o processamento estiver em andamento</div>
+    </div>
+
+    <!-- Etapa 4: relatório final -->
+    <div id="massivoEtapaRelatorio" style="display:none;">
+      <div id="massivoRelatorio" style="font-size:13px;line-height:1.5;"></div>
+      <button onclick="fecharModalMassivo()" style="width:100%;margin-top:12px;padding:10px;background:#27ae60;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;">✓ Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Socket.io client carregado do próprio servidor Electron/Express -->
 <script src="/produtos.js"></script>
 <script src="/clientes.js"></script>
@@ -1187,6 +1534,27 @@ const template = `
     <input class='ref-fat-box' type='text' inputmode='numeric' maxlength='6'>
   </div>
 </div>
+
+<!-- VIA DE CLIENTE: Nº NF (topo esquerdo) -->
+<div class='vc-nf-wrap'>
+  <span class='vc-nf-label'>Nº NF:</span>
+  <input class='vc-nf-input' type='text' maxlength='20'>
+  <button class='vc-btn-buscar-nf' type='button' onclick='buscarNFTiny(this)'>🔍 Buscar</button>
+</div>
+
+<!-- VIA DE CLIENTE: Cód Cliente (topo direito) -->
+<div class='vc-cod-wrap'>
+  <span class='vc-cod-label'>CÓD CLIENTE:</span>
+  <input class='vc-cod-input' type='text' maxlength='20'>
+  <button class='vc-cod-btn-confirmar' type='button' onclick='confirmarCodCliente(this)' title='Confirmar e bloquear edição'>✓</button>
+</div>
+
+<!-- VIA DE CLIENTE: OBS grande (à esquerda do TOTAL) -->
+<div class='vc-obs-wrap'>
+  <span class='vc-obs-label'>OBS:</span>
+  <textarea class='vc-obs-textarea' rows='4'></textarea>
+</div>
+
 
 <div class='row'><span class='label'>Data,</span><input class='line' style='width:28px;text-align:center;' maxlength='2' oninput='if(this.value.length===2)this.closest(".row").querySelectorAll("input")[1].focus()'><span>/</span><input class='line' style='width:28px;text-align:center;' maxlength='2' oninput='if(this.value.length===2)this.closest(".row").querySelectorAll("input")[2].focus()'><span>/</span><input class='line' style='width:48px;text-align:center;' maxlength='4'></div>
 <div class='centerTitle'>Nº <span class="numeroFatura"></span></div>
@@ -1256,6 +1624,12 @@ JSON.parse(localStorage.getItem("faturasFinalizadas") || "[]");
 // Array de objetos: [{indice, usuario, data}, ...]
 let conferidas =
 JSON.parse(localStorage.getItem("faturasConferidas") || "[]");
+
+/* ── VIA DE CLIENTE ───────────────────────────────────────────── */
+// Array de objetos: [{indice, nf, codCliente, obs}, ...]
+// Cada objeto representa uma fatura que está em modo "via de cliente"
+let viasCliente =
+JSON.parse(localStorage.getItem("faturasViasCliente") || "[]");
 
 /* Adiciona (ou atualiza) a marca d'água na página conferida */
 function atualizarMarcaConferencia(indice){
@@ -1351,11 +1725,12 @@ socket.on("disconnect", () => {
 
 // Recebe dados do servidor (enviado por qualquer cliente conectado)
 socket.on("load-data", (payload) => {
-    // Suporta formato novo {dados, finalizadas, conferidas, refFats} e formato antigo (array direto)
+    // Suporta formato novo {dados, finalizadas, conferidas, refFats, viasCliente} e formato antigo (array direto)
     const serverDados     = Array.isArray(payload) ? payload : payload.dados;
     const serverFinaliz   = Array.isArray(payload) ? [] : (payload.finalizadas || []);
     const serverConferid  = Array.isArray(payload) ? [] : (payload.conferidas || []);
     const serverRefFats   = Array.isArray(payload) ? [] : (payload.refFats || []);
+    const serverViasCli   = Array.isArray(payload) ? [] : (payload.viasCliente || []);
 
     if (!serverDados || !serverDados.length) return;
 
@@ -1403,6 +1778,21 @@ socket.on("load-data", (payload) => {
         localStorage.setItem("faturasRefFats", JSON.stringify(serverRefFats));
     }
 
+    // Sincroniza viasCliente vindas do servidor — não sobrescreve se o campo ativo for input do VC
+    if(!Array.isArray(payload)){
+        const campoAtivoEhVC = campoAtivo && campoAtivo.classList && (
+            campoAtivo.classList.contains("vc-nf-input") ||
+            campoAtivo.classList.contains("vc-cod-input") ||
+            campoAtivo.classList.contains("vc-obs-textarea")
+        );
+        if(!campoAtivoEhVC){
+            viasCliente = serverViasCli;
+            localStorage.setItem("faturasViasCliente", JSON.stringify(viasCliente));
+            aplicarViaClienteEmTodasPaginas();
+            atualizarBotaoViaCliente();
+        }
+    }
+
     localStorage.setItem("faturasDados", JSON.stringify(serverDados));
 
     _ignorarInput = false;
@@ -1424,9 +1814,11 @@ socket.on("reset-all", () => {
     localStorage.removeItem("faturasFinalizadas");
     localStorage.removeItem("faturasConferidas");
     localStorage.removeItem("faturasRefFats");
+    localStorage.removeItem("faturasViasCliente");
     // Limpa todos os inputs
     finalizadas = [];
     conferidas = [];
+    viasCliente = [];
     faturaAtual = 0;
     pages.forEach(page => {
         inputsEditaveis(page).forEach(inp => {
@@ -1442,7 +1834,16 @@ socket.on("reset-all", () => {
         if(marcaTopo) marcaTopo.remove();
         // Limpa REF FAT e esconde o container
         atualizarRefFatVisibilidade(page, "");
+        // Limpa campos de Via de Cliente e remove a classe
+        page.classList.remove("via-cliente");
+        const vcNF = page.querySelector(".vc-nf-input");
+        const vcCod = page.querySelector(".vc-cod-input");
+        const vcObs = page.querySelector(".vc-obs-textarea");
+        if(vcNF) vcNF.value = "";
+        if(vcCod) vcCod.value = "";
+        if(vcObs) vcObs.value = "";
     });
+    atualizarBotaoViaCliente();
     _ignorarInput = false;
     mostrarFatura();
 });
@@ -1675,6 +2076,1280 @@ function vincularRefFatInicial(){
     });
 }
 
+/* ── VIA DE CLIENTE (modo e-commerce) ─────────────────────────── */
+/* Retorna o objeto da via de cliente pra uma fatura (ou null) */
+function getViaCliente(indice){
+    return viasCliente.find(v => v.indice === indice) || null;
+}
+
+/* Verifica se a fatura está em modo via de cliente ATIVO (não arquivado).
+   Usado pelo botão "Ativar/Desativar". */
+function isViaClienteAtiva(indice){
+    const vc = getViaCliente(indice);
+    return vc !== null && !vc.arquivada;
+}
+
+/* Verifica se a fatura TEM ou TEVE registro de via de cliente (inclui arquivadas).
+   Usado pela tag no painel de filtros e pra mostrar os campos na impressão. */
+function foiViaCliente(indice){
+    return getViaCliente(indice) !== null;
+}
+
+/* Aplica visualmente o modo via de cliente numa página.
+   Os campos ficam visíveis tanto quando ATIVA quanto quando ARQUIVADA
+   (pra manter impressão/conferência de faturas finalizadas). */
+function aplicarViaClienteNaPagina(indice){
+    const page = pages[indice];
+    if(!page) return;
+    const vc = getViaCliente(indice);
+    const btnCodConfirmar = page.querySelector(".vc-cod-btn-confirmar");
+    if(vc){
+        // Mostra os campos em ambos os casos (ativa ou arquivada)
+        page.classList.add("via-cliente");
+        // Preenche os valores salvos
+        const inpNF = page.querySelector(".vc-nf-input");
+        const inpCod = page.querySelector(".vc-cod-input");
+        const taObs = page.querySelector(".vc-obs-textarea");
+        if(inpNF) inpNF.value = vc.nf || "";
+        if(inpCod) inpCod.value = vc.codCliente || "";
+        if(taObs) taObs.value = vc.obs || "";
+
+        // Regras de bloqueio:
+        // - Se ATIVA: tudo liberado pra edição
+        // - Se ARQUIVADA (finalizada): NF e OBS travados, mas CÓD CLIENTE
+        //   fica editável ATÉ ser confirmado pelo botão ✓
+        const estaArquivada = !!vc.arquivada;
+        const codJaConfirmado = !!vc.codConfirmado;
+
+        if(inpNF) inpNF.readOnly = estaArquivada;
+        if(taObs) taObs.readOnly = estaArquivada;
+        // Cód Cliente: só trava se arquivada E já confirmado
+        if(inpCod) inpCod.readOnly = estaArquivada && codJaConfirmado;
+
+        // Botão ✓: aparece só se arquivada E ainda não confirmado
+        if(btnCodConfirmar){
+            if(estaArquivada && !codJaConfirmado){
+                btnCodConfirmar.classList.remove("confirmado");
+            } else {
+                btnCodConfirmar.classList.add("confirmado");
+            }
+        }
+    } else {
+        page.classList.remove("via-cliente");
+        // Limpa os valores
+        const inpNF = page.querySelector(".vc-nf-input");
+        const inpCod = page.querySelector(".vc-cod-input");
+        const taObs = page.querySelector(".vc-obs-textarea");
+        if(inpNF) { inpNF.value = ""; inpNF.readOnly = false; }
+        if(inpCod) { inpCod.value = ""; inpCod.readOnly = false; }
+        if(taObs) { taObs.value = ""; taObs.readOnly = false; }
+        if(btnCodConfirmar) btnCodConfirmar.classList.add("confirmado");
+    }
+}
+
+/* Aplica via de cliente em todas as páginas (usado ao carregar dados do servidor) */
+function aplicarViaClienteEmTodasPaginas(){
+    pages.forEach((page, indice) => {
+        aplicarViaClienteNaPagina(indice);
+    });
+}
+
+/* Atualiza os dados da via de cliente atual (pega valores dos inputs) */
+function atualizarDadosViaClienteAtual(){
+    const page = pages[faturaAtual];
+    if(!page) return;
+    const vc = viasCliente.find(v => v.indice === faturaAtual);
+    if(!vc) return; // nenhum registro VC pra atualizar
+    // Só lê os valores dos inputs se os campos estiverem visíveis (tem classe via-cliente)
+    if(!page.classList.contains("via-cliente")) return;
+    const inpNF = page.querySelector(".vc-nf-input");
+    const inpCod = page.querySelector(".vc-cod-input");
+    const taObs = page.querySelector(".vc-obs-textarea");
+    vc.nf = inpNF ? inpNF.value : "";
+    vc.codCliente = inpCod ? inpCod.value : "";
+    vc.obs = taObs ? taObs.value : "";
+}
+
+/* Toggle: liga/desliga o modo via de cliente pra fatura atual */
+function toggleViaCliente(){
+    const page = pages[faturaAtual];
+    if(!page){
+        alert("Nenhuma fatura selecionada.");
+        return;
+    }
+    const jaAtivo = isViaClienteAtiva(faturaAtual);
+    const estaFinalizada = finalizadas.includes(faturaAtual);
+
+    if(jaAtivo){
+        // Desligar
+        if(estaFinalizada){
+            // Fatura finalizada: PRESERVA os dados pra manter impressão/conferência
+            // Apenas marca como "arquivada" — os campos continuam visíveis e salvos
+            const vc = viasCliente.find(v => v.indice === faturaAtual);
+            if(vc){
+                // Salva os valores atuais dos inputs antes de "arquivar"
+                atualizarDadosViaClienteAtual();
+                vc.arquivada = true; // marca que foi desativada mas é finalizada (mantém visual)
+            }
+            alert("ℹ️ Fatura já finalizada — modo Via de Cliente arquivado mas os dados foram preservados.\n\nO Nº NF, Cód Cliente e OBS continuam salvos na fatura e aparecerão na impressão/conferência.");
+        } else {
+            // Fatura não finalizada: comportamento antigo (apaga tudo)
+            if(!confirm("Desativar o modo Via de Cliente?\nOs valores de Nº NF, Cód Cliente e OBS serão apagados.\n\n(Se quiser preservar os dados, finalize a fatura antes de desativar.)")) return;
+            viasCliente = viasCliente.filter(v => v.indice !== faturaAtual);
+            aplicarViaClienteNaPagina(faturaAtual);
+        }
+    } else {
+        // Ligar — verifica se tem registro arquivado pra restaurar
+        const vcArquivada = viasCliente.find(v => v.indice === faturaAtual && v.arquivada);
+        if(vcArquivada){
+            // Reativa o registro arquivado
+            delete vcArquivada.arquivada;
+        } else {
+            // Cria novo registro
+            viasCliente.push({
+                indice: faturaAtual,
+                nf: "",
+                codCliente: "",
+                obs: ""
+            });
+        }
+        aplicarViaClienteNaPagina(faturaAtual);
+    }
+    atualizarBotaoViaCliente();
+    salvar();
+}
+
+/* Atualiza o label/cor do botão no painel baseado na fatura atual */
+function atualizarBotaoViaCliente(){
+    const btn = document.getElementById("btnToggleViaCliente");
+    const labelTop = document.getElementById("vcLabelTop");
+    const labelBottom = document.getElementById("vcLabelBottom");
+    if(!btn) return;
+
+    const vc = getViaCliente(faturaAtual);
+    const estaAtivo = isViaClienteAtiva(faturaAtual);
+    const estaArquivado = vc && vc.arquivada;
+
+    if(estaAtivo){
+        // Modo ATIVO — gradiente laranja
+        btn.style.background = "linear-gradient(135deg,#e67e22,#f39c12)";
+        btn.style.boxShadow = "0 3px 10px rgba(230,126,34,0.45)";
+        btn.setAttribute("onmouseover",
+            "this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(230,126,34,0.55)'");
+        btn.setAttribute("onmouseout",
+            "this.style.transform='translateY(0)';this.style.boxShadow='0 3px 10px rgba(230,126,34,0.45)'");
+        if(labelTop)    labelTop.textContent    = "VIA DE CLIENTE";
+        if(labelBottom) labelBottom.textContent = "✓ ATIVO (Desativar)";
+    } else if(estaArquivado){
+        // Modo ARQUIVADO — gradiente verde (fatura finalizada mantendo dados)
+        btn.style.background = "linear-gradient(135deg,#27ae60,#2ecc71)";
+        btn.style.boxShadow = "0 3px 10px rgba(39,174,96,0.45)";
+        btn.setAttribute("onmouseover",
+            "this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(39,174,96,0.55)'");
+        btn.setAttribute("onmouseout",
+            "this.style.transform='translateY(0)';this.style.boxShadow='0 3px 10px rgba(39,174,96,0.45)'");
+        if(labelTop)    labelTop.textContent    = "VIA DE CLIENTE";
+        if(labelBottom) labelBottom.textContent = "📋 ARQUIVADA (Reativar)";
+    } else {
+        // Modo INATIVO — gradiente roxo original
+        btn.style.background = "linear-gradient(135deg,#6c5ce7,#8e7dff)";
+        btn.style.boxShadow = "0 3px 10px rgba(108,92,231,0.35)";
+        btn.setAttribute("onmouseover",
+            "this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(108,92,231,0.45)'");
+        btn.setAttribute("onmouseout",
+            "this.style.transform='translateY(0)';this.style.boxShadow='0 3px 10px rgba(108,92,231,0.35)'");
+        if(labelTop)    labelTop.textContent    = "VIA DE CLIENTE";
+        if(labelBottom) labelBottom.textContent = "Ativar Modo";
+    }
+}
+
+/* Vincula listeners aos inputs de via de cliente em todas as páginas */
+function vincularViaClienteInputs(){
+    pages.forEach((page, indice) => {
+        const inpNF = page.querySelector(".vc-nf-input");
+        const inpCod = page.querySelector(".vc-cod-input");
+        const taObs = page.querySelector(".vc-obs-textarea");
+        [inpNF, inpCod, taObs].forEach(inp => {
+            if(!inp) return;
+            inp.addEventListener("input", () => {
+                const vc = viasCliente.find(v => v.indice === indice);
+                if(vc){
+                    // Pra campos de fatura ARQUIVADA, só aceita alteração do Cód Cliente
+                    // (os outros ficam readonly mesmo, então esse if nem executa pra eles)
+                    if(vc.arquivada){
+                        // Só atualiza o Cód Cliente (os outros estão readonly)
+                        vc.codCliente = inpCod ? inpCod.value : "";
+                    } else {
+                        // Modo ATIVO — atualiza tudo
+                        vc.nf = inpNF ? inpNF.value : "";
+                        vc.codCliente = inpCod ? inpCod.value : "";
+                        vc.obs = taObs ? taObs.value : "";
+                    }
+                    salvar();
+                }
+            });
+        });
+    });
+}
+
+/* Confirma o Cód Cliente da fatura arquivada — trava o campo após confirmação.
+   Depois que clicar em ✓, só o botão Editar (com senha) libera de novo. */
+function confirmarCodCliente(btn){
+    const page = btn.closest(".page");
+    if(!page) return;
+    const indice = pages.indexOf(page);
+    if(indice < 0) return;
+    const vc = viasCliente.find(v => v.indice === indice);
+    if(!vc) return;
+
+    const inpCod = page.querySelector(".vc-cod-input");
+    const valorAtual = (inpCod?.value || "").trim();
+
+    if(!valorAtual){
+        alert("⚠️ Preencha o Cód Cliente antes de confirmar.");
+        inpCod?.focus();
+        return;
+    }
+
+    if(!confirm(`Confirmar Cód Cliente "${valorAtual}"?\n\nApós confirmar, o campo ficará bloqueado. Só será possível destravar pelo botão Editar (com senha).`)){
+        return;
+    }
+
+    // Grava o valor final e marca como confirmado
+    vc.codCliente = valorAtual;
+    vc.codConfirmado = true;
+
+    // Aplica visual: trava o campo e esconde o botão
+    if(inpCod) inpCod.readOnly = true;
+    btn.classList.add("confirmado");
+
+    salvar();
+}
+
+/* ── INTEGRAÇÃO TINY ERP (puxar dados de NF) ─────────────────── */
+const TINY_TOKEN = "018e68d029d67390d34804439cf22815f369f37d";
+const TINY_API_URL = "/tiny-api"; // proxy no VPS (já existe no server-vps.js)
+
+/* Helper: chama a API Tiny via proxy do VPS */
+async function chamarTinyAPI(action, params){
+    try{
+        const resp = await fetch(TINY_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, token: TINY_TOKEN, params })
+        });
+        if(!resp.ok) throw new Error("HTTP " + resp.status);
+        return await resp.json();
+    }catch(e){
+        console.error("[Tiny API] Erro:", e);
+        return { erro: e.message };
+    }
+}
+
+/* Botão "Buscar NF" — puxa os dados do Tiny e preenche a fatura */
+async function buscarNFTiny(btn){
+    const page = btn.closest(".page");
+    if(!page) return;
+    const inpNF = page.querySelector(".vc-nf-input");
+    const numero = (inpNF?.value || "").trim();
+
+    if(!numero){
+        alert("⚠️ Digite o número da NF antes de buscar.");
+        inpNF?.focus();
+        return;
+    }
+
+    // SEGURANÇA: verifica se o número da NF já existe em outra fatura
+    // (ignora a fatura atual, pra permitir re-buscar dados da própria)
+    const indiceAtual = pages.indexOf(page);
+    const faturaDuplicada = buscarFaturaPorNumeroNF(numero, indiceAtual);
+    if(faturaDuplicada >= 0){
+        const numFaturaDup = String(faturaInicial + faturaDuplicada).padStart(6, "0");
+        alert("❌ NF " + numero + " JÁ ESTÁ CADASTRADA!\n\n" +
+              "Essa NF já foi preenchida na Fatura " + numFaturaDup + ".\n\n" +
+              "Não é permitido preencher a mesma NF em duas faturas diferentes.\n" +
+              "Se precisar corrigir, vá até a Fatura " + numFaturaDup + " e use o botão Editar.");
+        // Limpa o campo Nº NF da fatura atual pra não deixar dado errado
+        if(inpNF) inpNF.value = "";
+        return;
+    }
+
+    // Estado visual: desativa botão e muda label
+    const labelOriginal = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "⏳ Buscando...";
+
+    try{
+        // Passo 1: pesquisa a NF pelo número pra obter o ID
+        const resp1 = await chamarTinyAPI("listar_nf", { numero });
+        if(resp1.erro){
+            alert("❌ Erro ao conectar no Tiny:\n" + resp1.erro);
+            return;
+        }
+        const retorno1 = resp1.retorno || {};
+        if(retorno1.status === "Erro"){
+            const erros = (retorno1.erros || []).map(e => e.erro || e).join("\n");
+            alert("❌ Tiny retornou erro:\n" + erros);
+            return;
+        }
+        const notas = retorno1.notas_fiscais || [];
+        if(notas.length === 0){
+            alert("❌ NF nº " + numero + " não encontrada no Tiny.");
+            return;
+        }
+
+        // Pega a primeira NF da lista (geralmente é a correta)
+        const idNF = notas[0].nota_fiscal?.id;
+        if(!idNF){
+            alert("❌ ID da NF não encontrado na resposta do Tiny.");
+            return;
+        }
+
+        // Passo 2: obtém os detalhes completos da NF pelo ID
+        const resp2 = await chamarTinyAPI("detalhe_nf", { id: idNF });
+        if(resp2.erro){
+            alert("❌ Erro ao obter detalhes da NF:\n" + resp2.erro);
+            return;
+        }
+        const retorno2 = resp2.retorno || {};
+        if(retorno2.status === "Erro"){
+            const erros = (retorno2.erros || []).map(e => e.erro || e).join("\n");
+            alert("❌ Erro ao obter NF:\n" + erros);
+            return;
+        }
+
+        const nf = retorno2.nota_fiscal;
+        if(!nf){
+            alert("❌ Dados da NF não retornados pelo Tiny.");
+            return;
+        }
+
+        // Validação: limite de 14 itens (linhas da fatura)
+        const itens = nf.itens || [];
+        if(itens.length > 14){
+            alert("⚠️ Esta NF tem " + itens.length + " produtos.\n" +
+                  "A fatura suporta no máximo 14 itens.\n\n" +
+                  "Nada foi preenchido. Edite manualmente ou divida a venda em duas faturas.");
+            return;
+        }
+
+        // Tudo OK — preenche a fatura
+        const resultado = preencherFaturaComNF(page, nf);
+        const skusNaoCad = resultado?.skusNaoEncontrados || [];
+        const marketplace = resultado?.marketplace || "";
+
+        let msg = "✅ NF " + numero + " preenchida com sucesso!\n" +
+                  "Cliente: " + (nf.cliente?.nome || "-") + "\n" +
+                  "Itens: " + itens.length + "\n" +
+                  "Total: R$ " + formatarValorBR(nf.valor_nota || nf.total_nota || 0);
+
+        if(marketplace){
+            msg += "\nVendedor: " + marketplace;
+        } else {
+            msg += "\n⚠️ Marketplace não identificado (preencha Vendedor manualmente)";
+        }
+
+        if(skusNaoCad.length > 0){
+            msg += "\n\n⚠️ ATENÇÃO: " + skusNaoCad.length + " SKU(s) não estão cadastrados no sistema:\n"
+                 + skusNaoCad.join(", ")
+                 + "\n\n(Foi usada a descrição do Tiny como fallback. Cadastre esses produtos no sistema pra padronizar.)";
+        }
+        alert(msg);
+
+    }catch(e){
+        console.error("[Buscar NF]", e);
+        alert("❌ Erro inesperado:\n" + e.message);
+    }finally{
+        btn.disabled = false;
+        btn.textContent = labelOriginal;
+    }
+}
+
+/* Preenche a página da fatura com os dados vindos do Tiny */
+/* Botão "🔬 Debug" — baixa JSON bruto da resposta do Tiny pra análise */
+async function debugNFTiny(btn){
+    const page = btn.closest(".page");
+    if(!page) return;
+    const inpNF = page.querySelector(".vc-nf-input");
+    const numero = (inpNF?.value || "").trim();
+
+    if(!numero){
+        alert("⚠️ Digite o número da NF antes de usar o Debug.");
+        inpNF?.focus();
+        return;
+    }
+
+    const labelOriginal = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "⏳";
+
+    try{
+        // Passo 1: pesquisa
+        const resp1 = await chamarTinyAPI("listar_nf", { numero });
+
+        // Passo 2: detalhes (só se achou)
+        let resp2 = null;
+        const idNF = resp1?.retorno?.notas_fiscais?.[0]?.nota_fiscal?.id;
+        if(idNF){
+            resp2 = await chamarTinyAPI("detalhe_nf", { id: idNF });
+        }
+
+        // Monta o pacote completo
+        const debugData = {
+            numero_buscado: numero,
+            timestamp: new Date().toISOString(),
+            passo_1_pesquisa: resp1,
+            passo_2_detalhe: resp2,
+            // Atalhos pra análise rápida
+            analise: {
+                id_encontrado: idNF || null,
+                campos_da_nf: resp2?.retorno?.nota_fiscal ? Object.keys(resp2.retorno.nota_fiscal).sort() : null,
+                campos_do_cliente: resp2?.retorno?.nota_fiscal?.cliente ? Object.keys(resp2.retorno.nota_fiscal.cliente).sort() : null,
+                primeiro_item_campos: resp2?.retorno?.nota_fiscal?.itens?.[0]?.item ? Object.keys(resp2.retorno.nota_fiscal.itens[0].item).sort() : null
+            }
+        };
+
+        // Gera e baixa o arquivo JSON
+        const json = JSON.stringify(debugData, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `debug-nf-${numero}-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert("✅ Arquivo de debug baixado!\n\n" +
+              "Arquivo: debug-nf-" + numero + ".json\n\n" +
+              "Agora você pode abrir esse arquivo e ver todos os campos que o Tiny retorna, " +
+              "ou me enviar ele pra eu analisar e implementar o marketplace.");
+    }catch(e){
+        console.error("[Debug NF]", e);
+        alert("❌ Erro: " + e.message);
+    }finally{
+        btn.disabled = false;
+        btn.textContent = labelOriginal;
+    }
+}
+
+
+/* Preenche a página da fatura com os dados vindos do Tiny */
+function preencherFaturaComNF(page, nf){
+    const cli = nf.cliente || {};
+    const itens = nf.itens || [];
+
+    // ── DADOS DO CLIENTE ──
+    // Busca todos os inputs editáveis da página pra mapear por label
+    const rows = page.querySelectorAll(".row");
+    rows.forEach(row => {
+        const label = (row.querySelector(".label")?.textContent || "").trim().toLowerCase();
+        const inputs = row.querySelectorAll("input.line");
+
+        if(label === "nome:" && inputs[0]){
+            inputs[0].value = (cli.nome || "").toUpperCase();
+            // Campo "Cel.:" é o segundo input da mesma linha
+            if(inputs[1]) inputs[1].value = cli.fone || "";
+        }
+        else if(label === "rua:" && inputs[0]){
+            inputs[0].value = (cli.endereco || "").toUpperCase();
+            if(inputs[1]) inputs[1].value = cli.numero || "";
+            if(inputs[2]) inputs[2].value = cli.fone || ""; // Fone da linha Rua
+        }
+        else if(label === "localidade:" && inputs[0]){
+            inputs[0].value = (cli.cidade || "").toUpperCase();
+            if(inputs[1]) inputs[1].value = (cli.bairro || "").toUpperCase();
+        }
+        else if(label === "cidade:" && inputs[0]){
+            inputs[0].value = (cli.cidade || "").toUpperCase();
+            if(inputs[1]) inputs[1].value = (cli.uf || "").toUpperCase();
+        }
+        else if(label === "cpf:" && inputs[0]){
+            inputs[0].value = cli.cpf_cnpj || "";
+            if(inputs[1]) inputs[1].value = cli.ie || cli.rg || "";
+        }
+    });
+
+    // ── DATA DA NF (se estiver em dd/mm/yyyy) ──
+    const dataEmissao = nf.data_emissao || ""; // formato "dd/mm/yyyy"
+    if(dataEmissao){
+        const [dd, mm, yyyy] = dataEmissao.split("/");
+        const rowData = [...page.querySelectorAll(".row")].find(r => {
+            const lbl = r.querySelector(".label");
+            return lbl && lbl.textContent.trim().toLowerCase() === "data,";
+        });
+        if(rowData){
+            const dtInputs = rowData.querySelectorAll("input");
+            if(dtInputs[0]) dtInputs[0].value = dd || "";
+            if(dtInputs[1]) dtInputs[1].value = mm || "";
+            if(dtInputs[2]) dtInputs[2].value = yyyy || "";
+        }
+    }
+
+    // ── ITENS (linhas da tabela) ──
+    const tableRows = page.querySelectorAll(".table tr");
+    // A primeira tr é o cabeçalho (th), as próximas são os itens
+    let linhaIdx = 0;
+    const skusNaoEncontrados = []; // pra avisar no final se algum SKU não estiver cadastrado
+    tableRows.forEach(tr => {
+        if(tr.querySelector("th")) return; // pula cabeçalho
+        const tdQuant = tr.querySelectorAll("td input")[0];
+        const tdDescTa = tr.querySelector("td textarea.discArea");
+        const tdValor = tr.querySelectorAll("td input")[1];
+
+        if(linhaIdx < itens.length){
+            const item = itens[linhaIdx].item || {};
+            const qtde = parseFloat(item.quantidade || "0");
+            const valUnit = parseFloat(item.valor_unitario || "0");
+            const sku = (item.codigo || "").trim();
+
+            if(tdQuant) tdQuant.value = formatarQuantidade(qtde);
+            if(tdDescTa){
+                // Busca a descrição no banco de produtos do sistema (PRODUTOS do produtos.js)
+                // usando o SKU como chave — essa é a descrição padronizada pra fatura
+                let descricaoFinal = "";
+                if(sku && typeof PRODUTOS !== "undefined" && PRODUTOS[sku]){
+                    // Formato: "SKU - DESCRIÇÃO DO SISTEMA"
+                    descricaoFinal = sku + " - " + PRODUTOS[sku];
+                } else {
+                    // SKU não cadastrado no sistema — usa a descrição do Tiny como fallback
+                    // e registra pra avisar depois
+                    const descTiny = (item.descricao || "").toUpperCase();
+                    descricaoFinal = sku ? (sku + " - " + descTiny) : descTiny;
+                    if(sku) skusNaoEncontrados.push(sku);
+                }
+                tdDescTa.value = descricaoFinal;
+                // Dispara auto-resize pra acomodar o texto
+                if(typeof autoResizeTextarea === "function") autoResizeTextarea(tdDescTa);
+            }
+            if(tdValor) tdValor.value = formatarValorBR(valUnit);
+        } else {
+            // Limpa linhas restantes pra não ficar lixo de outras faturas
+            if(tdQuant) tdQuant.value = "";
+            if(tdDescTa) tdDescTa.value = "";
+            if(tdValor) tdValor.value = "";
+        }
+        linhaIdx++;
+    });
+
+    // ── TOTAL ──
+    const total = parseFloat(nf.valor_nota || nf.total_nota || 0);
+    const inpTotal = page.querySelector(".totalBox");
+    if(inpTotal) inpTotal.value = formatarValorBR(total);
+
+    // ── VENDEDOR (marketplace identificado) ──
+    const marketplace = identificarMarketplace(nf);
+    if(marketplace){
+        // Campo Vendedor é o segundo input dentro de .signs
+        const sigs = page.querySelectorAll(".signs .line");
+        if(sigs[1]) sigs[1].value = marketplace;
+    }
+
+    // ── RECALCULA A SOMA AUTOMÁTICA ──
+    if(typeof recalcularPagina === "function") recalcularPagina(page);
+
+    // ── GARANTE QUE O Nº NF ESTÁ SALVO NO REGISTRO VC ──
+    // Pega o índice desta página
+    const indicePage = pages.indexOf(page);
+    if(indicePage >= 0){
+        const vc = viasCliente.find(v => v.indice === indicePage);
+        if(vc){
+            const inpNF = page.querySelector(".vc-nf-input");
+            const inpCod = page.querySelector(".vc-cod-input");
+            const taObs = page.querySelector(".vc-obs-textarea");
+
+            // Extrai a forma de pagamento da NF (ex: "CARTÃO 4X", "PIX", "DINHEIRO")
+            const formaPgto = extrairFormaPagamento(nf);
+
+            // Monta a OBS: adiciona forma de pagamento no COMEÇO, antes do conteúdo
+            // existente (se já tiver algo). Evita duplicar se já começa com a mesma forma.
+            let obsFinal = taObs ? taObs.value : "";
+            if(formaPgto){
+                // Se a OBS atual já começa com a forma de pagamento, não duplica
+                if(!obsFinal.toUpperCase().startsWith(formaPgto.toUpperCase())){
+                    obsFinal = obsFinal.trim()
+                        ? formaPgto + "\n" + obsFinal
+                        : formaPgto;
+                }
+            }
+
+            // Atualiza o textarea visualmente + redimensiona
+            if(taObs){
+                taObs.value = obsFinal;
+                if(typeof autoResizeTextarea === "function") autoResizeTextarea(taObs);
+            }
+
+            vc.nf = inpNF ? inpNF.value : "";
+            vc.codCliente = inpCod ? inpCod.value : vc.codCliente;
+            vc.obs = obsFinal;
+        }
+    }
+
+    // ── SALVA NO SERVIDOR/MONGODB ──
+    salvar();
+
+    // Retorna info pros alertas finais
+    return { skusNaoEncontrados, marketplace };
+}
+
+/* Helpers de formatação BR */
+function formatarValorBR(valor){
+    const n = parseFloat(valor) || 0;
+    return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function formatarQuantidade(q){
+    const n = parseFloat(q) || 0;
+    // Se for inteiro, mostra sem decimais; se tiver decimais, mostra até 2
+    return n % 1 === 0 ? String(n) : n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* Identifica o marketplace (vendedor) a partir dos dados da NF do Tiny.
+   Procura em várias fontes por ordem de confiabilidade e retorna o nome
+   padronizado, ou string vazia se não achar. */
+/* Verifica se um número de NF já está cadastrado em alguma fatura (Via de Cliente).
+   Retorna o índice da fatura que já tem esse NF, ou -1 se não tiver.
+   Normaliza o número removendo zeros à esquerda pra evitar falhas por formato
+   (ex: "012087" e "12087" devem bater como duplicata). */
+function buscarFaturaPorNumeroNF(numeroNF, indiceAIgnorar){
+    if(!numeroNF) return -1;
+    // Normaliza: remove zeros à esquerda e espaços
+    const norm = (s) => String(s || "").trim().replace(/^0+/, "");
+    const numeroBuscado = norm(numeroNF);
+    if(!numeroBuscado) return -1;
+
+    for(const vc of viasCliente){
+        if(vc.indice === indiceAIgnorar) continue; // ignora a própria fatura (útil em edição)
+        if(norm(vc.nf) === numeroBuscado) return vc.indice;
+    }
+    return -1;
+}
+
+/* Extrai a forma de pagamento da NF do Tiny e formata pra OBS.
+   Formato: "CARTÃO 4X", "PIX", "DINHEIRO", etc. */
+function extrairFormaPagamento(nf){
+    if(!nf) return "";
+
+    const formaPgto = (nf.forma_pagamento || "").toLowerCase().trim();
+    const parcelas = nf.parcelas || [];
+
+    // Mapeia código Tiny → texto amigável (formato simples)
+    const mapaFormas = {
+        "credito":  "CARTÃO",
+        "debito":   "CARTÃO DÉBITO",
+        "dinheiro": "DINHEIRO",
+        "pix":      "PIX",
+        "boleto":   "BOLETO",
+        "cheque":   "CHEQUE",
+        "transferencia": "TRANSFERÊNCIA",
+        "a_vista":  "À VISTA"
+    };
+
+    // Caso 1: forma_pagamento simples (não múltipla)
+    if(formaPgto !== "multiplas" && mapaFormas[formaPgto]){
+        // Crédito com parcelamento
+        if(formaPgto === "credito" && parcelas.length > 1){
+            return `CARTÃO ${parcelas.length}X`;
+        }
+        // Crédito 1x
+        if(formaPgto === "credito"){
+            return "CARTÃO 1X";
+        }
+        // Outros casos (débito, pix, dinheiro, etc.)
+        return mapaFormas[formaPgto];
+    }
+
+    // Caso 2: multiplas — olha as parcelas pra detectar o tipo
+    if(formaPgto === "multiplas" && parcelas.length > 0){
+        // Pega a forma da primeira parcela (geralmente todas são iguais)
+        const tipoParcela = (parcelas[0].parcela?.forma_pagamento || "").toLowerCase();
+        if(tipoParcela === "credito"){
+            return `CARTÃO ${parcelas.length}X`;
+        }
+        if(tipoParcela === "debito"){
+            return parcelas.length > 1 ? `CARTÃO DÉBITO ${parcelas.length}X` : "CARTÃO DÉBITO";
+        }
+        // Outros tipos com parcelas
+        const nomeTipo = mapaFormas[tipoParcela] || tipoParcela.toUpperCase();
+        return parcelas.length > 1 ? `${nomeTipo} ${parcelas.length}X` : nomeTipo;
+    }
+
+    // Fallback
+    if(formaPgto){
+        return formaPgto.toUpperCase();
+    }
+
+    return "";
+}
+
+function identificarMarketplace(nf){
+    if(!nf) return "";
+
+    // Coleta todos os textos que podem conter o nome do marketplace
+    const fontes = [
+        nf.intermediador?.nome || "",           // MELHOR fonte (obrigatório por lei em venda marketplace)
+        nf.forma_envio?.descricao || "",        // Ex: "Via Varejo Envvias", "Mercado Envios"
+        nf.cliente?.email || "",                // Ex: "...@mktp.extra.com.br"
+        nf.obs || "",                           // Texto livre
+        nf.natureza_operacao || ""              // Às vezes "Venda Mercado Livre"
+    ].join(" | ").toLowerCase();
+
+    // Padrões em ordem de prioridade (mais específico primeiro)
+    // Cada marketplace tem suas variações conhecidas
+    const padroes = [
+        // Mercado Livre: inclui razões sociais antigas (Ebazar, Ibazar), Mercado Pago (mesmo grupo)
+        { match: /mercado ?livre|mercadolivre|mercado envios|mercadoenvios|mercado pago|mercadopago|\bmeli\b|\bml\b|ebazar|ibazar/i, nome: "MERCADO LIVRE" },
+        { match: /via varejo|casas bahia|casasbahia|ponto frio|pontofrio|\bextra\b|mktp\.extra|extra\.com/i, nome: "VIA VAREJO" },
+        { match: /madeira ?madeira|madeiramadeira|\bmm\b/i, nome: "MADEIRA MADEIRA" },
+        { match: /magazine luiza|magalu|magazineluiza|\blu\b/i, nome: "MAGALU" },
+        { match: /shopee/i, nome: "SHOPEE" },
+        { match: /amazon/i, nome: "AMAZON" },
+        { match: /americanas|b2w|submarino|shoptime/i, nome: "AMERICANAS" },
+        { match: /carrefour/i, nome: "CARREFOUR" },
+        { match: /mobly/i, nome: "MOBLY" },
+        { match: /leroy merlin|leroymerlin/i, nome: "LEROY MERLIN" }
+    ];
+
+    for(const p of padroes){
+        if(p.match.test(fontes)) return p.nome;
+    }
+
+    // DETECÇÃO POR PADRÃO DE numero_ecommerce:
+    // Mercado Livre usa IDs que começam com "2000" e têm 16+ dígitos
+    // (ex: 2000012543328483). Como o ML nem sempre preenche intermediador
+    // nas NFs, esse é o melhor indicador secundário.
+    const numEcom = String(nf.numero_ecommerce || "").trim();
+    if(/^2000\d{10,}$/.test(numEcom)){
+        return "MERCADO LIVRE";
+    }
+
+    // Se não bateu com nenhum padrão conhecido mas tem intermediador, usa ele
+    // (caso de marketplace novo que ainda não está na lista)
+    if(nf.intermediador?.nome){
+        return nf.intermediador.nome.toUpperCase();
+    }
+
+    // FALLBACK FINAL: se tem numero_ecommerce mas nenhum marketplace reconhecido,
+    // é uma venda de e-commerce (marketplace desconhecido ou marketplace próprio).
+    // Retorna "E-COMMERCE" genérico em vez de vazio — assim NÃO é pulada no massivo.
+    if(numEcom !== ""){
+        return "E-COMMERCE";
+    }
+
+    return "";
+}
+
+/* ── PREENCHIMENTO MASSIVO ───────────────────────────────────── */
+
+// Estado do massivo — cache das NFs que serão processadas
+let _massivoNFs = [];
+let _massivoAbortar = false;
+
+/* Abre modal pra começar o preenchimento massivo */
+function abrirModalMassivo(){
+    // Reset visual
+    document.getElementById("massivoEtapaDatas").style.display = "block";
+    document.getElementById("massivoEtapaPrevia").style.display = "none";
+    document.getElementById("massivoEtapaProgresso").style.display = "none";
+    document.getElementById("massivoEtapaRelatorio").style.display = "none";
+    _massivoNFs = [];
+    _massivoAbortar = false;
+
+    // Sugere datas padrão: mês atual
+    const hoje = new Date();
+    const primeiroDoMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    document.getElementById("massivoDataInicial").value = primeiroDoMes.toISOString().slice(0,10);
+    document.getElementById("massivoDataFinal").value = hoje.toISOString().slice(0,10);
+
+    document.getElementById("modalMassivo").style.display = "flex";
+}
+
+function fecharModalMassivo(){
+    document.getElementById("modalMassivo").style.display = "none";
+    _massivoAbortar = true;
+}
+
+function voltarMassivoEtapaDatas(){
+    document.getElementById("massivoEtapaDatas").style.display = "block";
+    document.getElementById("massivoEtapaPrevia").style.display = "none";
+    _massivoNFs = [];
+}
+
+/* Converte YYYY-MM-DD pro formato dd/mm/yyyy (que o Tiny aceita) */
+function isoParaBR(iso){
+    if(!iso) return "";
+    const [y, m, d] = iso.split("-");
+    return `${d}/${m}/${y}`;
+}
+
+/* Etapa 1: busca todas as NFs do período e filtra por marketplace */
+async function iniciarPrevia(){
+    const dIni = document.getElementById("massivoDataInicial").value;
+    const dFim = document.getElementById("massivoDataFinal").value;
+
+    if(!dIni || !dFim){
+        alert("⚠️ Preencha as duas datas antes de continuar.");
+        return;
+    }
+    if(dIni > dFim){
+        alert("⚠️ A data inicial não pode ser posterior à data final.");
+        return;
+    }
+
+    const btn = document.getElementById("btnPreviaMassivo");
+    btn.disabled = true;
+    const labelOriginal = btn.textContent;
+    btn.textContent = "⏳ Conectando no Tiny...";
+
+    // Timer visual pra acompanhar quanto tempo tá levando
+    const tempoInicio = Date.now();
+    let paginaAtual = 0;
+    let totalPagsEsperadas = 0;
+    let candidatasEncontradas = 0;
+
+    let timerInterval = setInterval(() => {
+        const segs = Math.floor((Date.now() - tempoInicio) / 1000);
+        if(totalPagsEsperadas > 0){
+            btn.textContent = `⏳ Página ${paginaAtual}/${totalPagsEsperadas} • ${candidatasEncontradas} candidatas • ${segs}s`;
+        } else {
+            btn.textContent = `⏳ Conectando no Tiny... ${segs}s`;
+        }
+    }, 500);
+
+    try{
+        const dataIniBR = isoParaBR(dIni);
+        const dataFimBR = isoParaBR(dFim);
+        console.log(`[Massivo] Buscando NFs de ${dataIniBR} a ${dataFimBR}...`);
+
+        // Busca TODAS as NFs no período (paginada) — a API do Tiny retorna 100 por página
+        // ESTRATÉGIA: pré-filtra candidatas a marketplace durante a paginação,
+        // descartando as demais pra não sobrecarregar a memória/parse.
+        const candidatasEcommerce = [];
+        let pagina = 1;
+        let totalPaginas = 1;
+        let totalAnalisadas = 0;
+
+        const dominiosML = [
+            "mktp.extra","mercadolivre","meli.","magazineluiza","magalu",
+            "madeiramadeira","amazon","shopee","americanas","mobly",
+            "leroymerlin","carrefour","viavarejo"
+        ];
+
+        do {
+            const t0 = Date.now();
+
+            const resp = await chamarTinyAPI("listar_nf", {
+                dataInicial: dataIniBR,
+                dataFinal: dataFimBR,
+                pagina: String(pagina),
+                tipoNota: "S" // só notas de SAÍDA — filtra entradas direto na API
+            });
+
+            const tempoReq = Date.now() - t0;
+
+            if(resp.erro){
+                clearInterval(timerInterval);
+                alert("❌ Erro ao conectar no Tiny:\n" + resp.erro);
+                return;
+            }
+            const retorno = resp.retorno || {};
+            if(retorno.status === "Erro"){
+                const erros = (retorno.erros || []).map(e => e.erro || e).join("\n");
+                console.warn("[Massivo] Tiny erro:", erros);
+                if(erros.toLowerCase().includes("nenhum registro")){
+                    break;
+                }
+                clearInterval(timerInterval);
+                alert("❌ Tiny retornou erro:\n" + erros);
+                return;
+            }
+
+            const notas = retorno.notas_fiscais || [];
+            totalPaginas = parseInt(retorno.numero_paginas || 1);
+            totalPagsEsperadas = totalPaginas;
+            paginaAtual = pagina;
+
+            // SAFETY: se a primeira página retornar mais de 10 páginas totais,
+            // o filtro de data provavelmente falhou e tá retornando TUDO.
+            // Aborta pra não travar o app.
+            if(pagina === 1 && totalPaginas > 10){
+                clearInterval(timerInterval);
+                const msg = `⚠️ A API retornou ${totalPaginas} páginas (${totalPaginas * 100}+ NFs) — isso indica que o filtro de data não foi aceito pelo Tiny.\n\nPara períodos grandes, tente dividir em pedaços menores (ex: 1 semana por vez).\n\nSe o período já é pequeno e ainda veio muito, reporta esse erro — é um bug da integração.`;
+                alert(msg);
+                console.error("[Massivo] FILTRO NÃO FUNCIONOU — " + totalPaginas + " páginas retornadas. Verifique os nomes dos parâmetros.");
+                return;
+            }
+
+            // Filtra LOCALMENTE já nesta página — só guarda candidatas
+            for(const n of notas){
+                const nf = n.nota_fiscal;
+                totalAnalisadas++;
+
+                // Filtro local: candidata a marketplace se tiver numero_ecommerce
+                // OU se o email do cliente tiver domínio conhecido de marketplace
+                const temNumEcom = nf.numero_ecommerce && nf.numero_ecommerce.trim() !== "";
+                const email = (nf.cliente?.email || "").toLowerCase();
+                const temDominioML = dominiosML.some(d => email.includes(d));
+
+                if(temNumEcom || temDominioML){
+                    candidatasEcommerce.push(nf);
+                    candidatasEncontradas = candidatasEcommerce.length;
+                }
+            }
+
+            console.log(`[Massivo] Pág ${pagina}/${totalPaginas} em ${tempoReq}ms — ${notas.length} NFs (${candidatasEcommerce.length} candidatas totais)`);
+
+            pagina++;
+            // Delay mínimo pra respeitar rate limit (30 req/min = 2s entre requisições)
+            // Reduzi pra 1s pra ser mais rápido — se der rate limit erro, aumento
+            if(pagina <= totalPaginas) await new Promise(r => setTimeout(r, 1000));
+        } while(pagina <= totalPaginas);
+
+        clearInterval(timerInterval);
+        const tempoTotal = Math.floor((Date.now() - tempoInicio) / 1000);
+        console.log(`[Massivo] Busca completa em ${tempoTotal}s. ${totalAnalisadas} NFs analisadas, ${candidatasEcommerce.length} candidatas.`);
+
+        if(totalAnalisadas === 0){
+            alert("ℹ️ Nenhuma NF de saída encontrada no período selecionado.");
+            return;
+        }
+
+        if(candidatasEcommerce.length === 0){
+            alert(`ℹ️ Nenhuma NF de marketplace encontrada no período.\n\nAnalisadas: ${totalAnalisadas} NFs de saída\nNenhuma tem indicadores de e-commerce (número de e-commerce ou email de marketplace).\n\nTempo: ${tempoTotal}s`);
+            return;
+        }
+
+        _massivoNFs = candidatasEcommerce;
+
+        // Calcula quantas faturas em aberto disponíveis
+        const faturasDisponiveis = [];
+        pages.forEach((page, i) => {
+            if(!finalizadas.includes(i)) faturasDisponiveis.push(i);
+        });
+
+        // Monta prévia
+        const info = document.getElementById("massivoPreviaInfo");
+        const lista = document.getElementById("massivoPreviaLista");
+
+        info.innerHTML = `
+            <strong>${candidatasEcommerce.length}</strong> NF(s) de marketplace encontrada(s) no período
+            <strong>${isoParaBR(dIni)}</strong> a <strong>${isoParaBR(dFim)}</strong>.<br>
+            <span style="color:#666;font-size:12px;">(${totalAnalisadas} NFs totais analisadas)</span><br><br>
+            Faturas em aberto disponíveis: <strong>${faturasDisponiveis.length}</strong>
+            ${faturasDisponiveis.length < candidatasEcommerce.length
+                ? `<br><span style="color:#c0392b;font-weight:600;">⚠️ Só ${faturasDisponiveis.length} NFs poderão ser processadas (o resto ficará sem fatura).</span>`
+                : ""}
+        `;
+
+        lista.innerHTML = candidatasEcommerce.slice(0, 50).map(nf => `
+            <div style="padding:4px 0;border-bottom:1px dotted #ddd;">
+                NF ${nf.numero} — ${nf.nome || nf.cliente?.nome || "—"}
+                <span style="color:#666;">• ${nf.data_emissao}</span>
+                <span style="color:#2ecc71;font-weight:600;">• R$ ${nf.valor || "0,00"}</span>
+            </div>
+        `).join("") + (candidatasEcommerce.length > 50 ? `<div style="padding:6px;color:#666;font-style:italic;">... e mais ${candidatasEcommerce.length - 50} NFs</div>` : "");
+
+        document.getElementById("massivoEtapaDatas").style.display = "none";
+        document.getElementById("massivoEtapaPrevia").style.display = "block";
+
+    }catch(e){
+        console.error("[Massivo Prévia]", e);
+        alert("❌ Erro inesperado:\n" + e.message);
+    }finally{
+        clearInterval(timerInterval);
+        btn.disabled = false;
+        btn.textContent = labelOriginal;
+    }
+}
+
+/* Etapa 3: executa o processamento real */
+async function executarMassivo(){
+    if(_massivoNFs.length === 0){
+        alert("⚠️ Nada pra processar.");
+        return;
+    }
+
+    // Confirma antes
+    if(!confirm(`Confirmar processamento de ${_massivoNFs.length} NF(s)?\n\nCada NF vai:\n• Ativar modo Via de Cliente na próxima fatura em aberto\n• Preencher dados do cliente, itens, vendedor e total\n• Finalizar a fatura\n• Salvar imagem no servidor\n• Arquivar o modo VC\n\nProcesso não pode ser desfeito facilmente.`)) return;
+
+    _massivoAbortar = false;
+    document.getElementById("massivoEtapaPrevia").style.display = "none";
+    document.getElementById("massivoEtapaProgresso").style.display = "block";
+
+    const barra = document.getElementById("massivoBarraProgresso");
+    const texto = document.getElementById("massivoProgTexto");
+    const detalhe = document.getElementById("massivoProgDetalhe");
+
+    const total = _massivoNFs.length;
+    const sucessos = [];
+    const pulados = [];
+    const erros = [];
+    const skusFaltando = new Set();
+
+    const addLog = (msg) => {
+        const linha = document.createElement("div");
+        linha.innerHTML = msg;
+        detalhe.appendChild(linha);
+        detalhe.scrollTop = detalhe.scrollHeight;
+    };
+
+    const atualizarProgresso = (i) => {
+        const pct = Math.round((i / total) * 100);
+        barra.style.width = pct + "%";
+        barra.textContent = pct + "%";
+        texto.textContent = `Processando ${i} de ${total}...`;
+    };
+
+    atualizarProgresso(0);
+    addLog("🚀 Iniciando processamento...");
+
+    // Encontra a próxima fatura em aberto (índice da primeira não-finalizada)
+    const encontrarProximaFaturaAberta = () => {
+        for(let i = 0; i < pages.length; i++){
+            if(!finalizadas.includes(i)) return i;
+        }
+        return -1;
+    };
+
+    for(let idx = 0; idx < _massivoNFs.length; idx++){
+        if(_massivoAbortar){
+            addLog("🛑 Processamento abortado pelo usuário.");
+            break;
+        }
+
+        const nfResumo = _massivoNFs[idx];
+        const numero = nfResumo.numero;
+
+        atualizarProgresso(idx);
+        texto.textContent = `Processando ${idx+1} de ${total}: NF ${numero}`;
+
+        try{
+            // SEGURANÇA: verifica se essa NF já foi cadastrada em outra fatura
+            // (cruzamento de dados pra evitar duplicata)
+            const faturaExistente = buscarFaturaPorNumeroNF(numero);
+            if(faturaExistente >= 0){
+                const numFaturaExistente = String(faturaInicial + faturaExistente).padStart(6, "0");
+                pulados.push({ numero, motivo: `Já existe na Fatura ${numFaturaExistente}` });
+                addLog(`⚠️ NF ${numero}: já está na Fatura ${numFaturaExistente} — pulada`);
+                // Alerta rápido não-bloqueante (não pausa o loop)
+                console.warn(`[Massivo] NF ${numero} duplicada — já existe na Fatura ${numFaturaExistente}`);
+                continue;
+            }
+
+            // Busca próxima fatura disponível
+            const indiceFatura = encontrarProximaFaturaAberta();
+            if(indiceFatura === -1){
+                pulados.push({ numero, motivo: "Sem faturas em aberto disponíveis" });
+                addLog(`⚠️ NF ${numero}: sem fatura em aberto — pulada`);
+                continue;
+            }
+
+            // Busca detalhes completos da NF no Tiny
+            const idNF = nfResumo.id;
+            if(!idNF){
+                erros.push({ numero, motivo: "ID da NF não encontrado" });
+                addLog(`❌ NF ${numero}: sem ID — pulada`);
+                continue;
+            }
+
+            const resp = await chamarTinyAPI("detalhe_nf", { id: idNF });
+            if(resp.erro){
+                erros.push({ numero, motivo: "Erro na API: " + resp.erro });
+                addLog(`❌ NF ${numero}: ${resp.erro}`);
+                continue;
+            }
+            const retorno = resp.retorno || {};
+            if(retorno.status === "Erro"){
+                const msgErro = (retorno.erros || []).map(e => e.erro || e).join(" / ");
+                erros.push({ numero, motivo: msgErro });
+                addLog(`❌ NF ${numero}: ${msgErro}`);
+                continue;
+            }
+            const nf = retorno.nota_fiscal;
+            if(!nf){
+                erros.push({ numero, motivo: "Dados da NF não retornados" });
+                addLog(`❌ NF ${numero}: sem dados`);
+                continue;
+            }
+
+            // Valida que realmente é marketplace (tem intermediador ou forma_envio de marketplace)
+            const marketplace = identificarMarketplace(nf);
+            if(!marketplace){
+                pulados.push({ numero, motivo: "Não é NF de marketplace (sem intermediador identificado)" });
+                addLog(`⏭️ NF ${numero}: não é marketplace — pulada`);
+                // Delay mesmo pulando pra respeitar rate limit
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+            }
+
+            // Valida limite de 14 itens
+            const itens = nf.itens || [];
+            if(itens.length > 14){
+                pulados.push({ numero, motivo: `${itens.length} itens (máx 14)` });
+                addLog(`⏭️ NF ${numero}: ${itens.length} itens — pulada (máx 14)`);
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+            }
+
+            // Ativa modo Via de Cliente na fatura
+            // Remove registros arquivados antigos dessa fatura se houver
+            viasCliente = viasCliente.filter(v => v.indice !== indiceFatura);
+            viasCliente.push({
+                indice: indiceFatura,
+                nf: numero,
+                codCliente: "",
+                obs: ""
+            });
+
+            // Navega pra fatura e aplica visual
+            faturaAtual = indiceFatura;
+            mostrarFatura();
+            aplicarViaClienteNaPagina(indiceFatura);
+
+            // Aguarda DOM atualizar
+            await new Promise(r => setTimeout(r, 100));
+
+            const page = pages[indiceFatura];
+            if(!page){
+                erros.push({ numero, motivo: "Página da fatura não encontrada" });
+                addLog(`❌ NF ${numero}: fatura inexistente`);
+                continue;
+            }
+
+            // Preenche o campo Nº NF visualmente
+            const inpNF = page.querySelector(".vc-nf-input");
+            if(inpNF) inpNF.value = numero;
+
+            // Preenche todos os dados da NF (cliente, itens, total, vendedor)
+            const resultado = preencherFaturaComNF(page, nf);
+            const skusNaoCad = resultado?.skusNaoEncontrados || [];
+
+            // Se tem SKU não cadastrado → pula e desfaz
+            if(skusNaoCad.length > 0){
+                // Desfaz o preenchimento
+                viasCliente = viasCliente.filter(v => v.indice !== indiceFatura);
+                aplicarViaClienteNaPagina(indiceFatura);
+                // Limpa os campos que foram preenchidos
+                limparFatura(indiceFatura);
+
+                pulados.push({ numero, motivo: `SKUs não cadastrados: ${skusNaoCad.join(", ")}` });
+                skusNaoCad.forEach(s => skusFaltando.add(s));
+                addLog(`⏭️ NF ${numero}: SKU(s) não cadastrado(s): ${skusNaoCad.join(", ")}`);
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+            }
+
+            // Finaliza a fatura (adiciona à lista de finalizadas)
+            if(!finalizadas.includes(indiceFatura)){
+                finalizadas.push(indiceFatura);
+            }
+
+            // Gera imagem da fatura e envia pro VPS
+            const numeroFatura = String(faturaInicial + indiceFatura).padStart(6,"0");
+            try {
+                await gerarESalvarImagem(numeroFatura);
+            } catch(imgErr){
+                console.warn("[Massivo] Erro ao gerar imagem:", imgErr);
+                addLog(`⚠️ NF ${numero}: imagem não foi gerada (${imgErr.message})`);
+            }
+
+            // Arquiva o modo VC (preserva dados, bloqueia edição)
+            const vc = viasCliente.find(v => v.indice === indiceFatura);
+            if(vc) vc.arquivada = true;
+            aplicarViaClienteNaPagina(indiceFatura);
+
+            sucessos.push({ numero, fatura: numeroFatura, cliente: nf.cliente?.nome || "-", marketplace });
+            addLog(`✅ NF ${numero} → Fatura ${numeroFatura} (${marketplace})`);
+
+            // Throttle: 2s entre chamadas pra não bater o rate limit do Tiny (30req/min)
+            await new Promise(r => setTimeout(r, 2000));
+
+        } catch(e){
+            console.error("[Massivo]", e);
+            erros.push({ numero, motivo: e.message });
+            addLog(`❌ NF ${numero}: ${e.message}`);
+            await new Promise(r => setTimeout(r, 2000));
+        }
+    }
+
+    atualizarProgresso(total);
+    texto.textContent = "✅ Processamento concluído!";
+
+    // Sincroniza tudo uma vez só no final
+    salvar();
+
+    // Monta relatório final
+    const relatorio = document.getElementById("massivoRelatorio");
+    relatorio.innerHTML = `
+        <h4 style="margin:0 0 10px;color:#27ae60;">✅ Processamento concluído</h4>
+        <div style="margin-bottom:10px;">
+            <strong>Processadas com sucesso:</strong> ${sucessos.length}<br>
+            <strong>Puladas:</strong> ${pulados.length}<br>
+            <strong>Com erro:</strong> ${erros.length}
+        </div>
+
+        ${sucessos.length > 0 ? `
+            <details style="margin-bottom:8px;">
+                <summary style="cursor:pointer;color:#27ae60;font-weight:600;">✅ Sucessos (${sucessos.length})</summary>
+                <div style="max-height:150px;overflow-y:auto;margin-top:6px;font-size:12px;background:#eafaf1;padding:6px;border-radius:4px;">
+                    ${sucessos.map(s => `NF ${s.numero} → Fatura ${s.fatura} — ${s.cliente} (${s.marketplace})`).join("<br>")}
+                </div>
+            </details>
+        ` : ""}
+
+        ${pulados.length > 0 ? `
+            <details style="margin-bottom:8px;">
+                <summary style="cursor:pointer;color:#e67e22;font-weight:600;">⏭️ Puladas (${pulados.length})</summary>
+                <div style="max-height:150px;overflow-y:auto;margin-top:6px;font-size:12px;background:#fef5e7;padding:6px;border-radius:4px;">
+                    ${pulados.map(p => `NF ${p.numero}: ${p.motivo}`).join("<br>")}
+                </div>
+            </details>
+        ` : ""}
+
+        ${erros.length > 0 ? `
+            <details style="margin-bottom:8px;">
+                <summary style="cursor:pointer;color:#c0392b;font-weight:600;">❌ Erros (${erros.length})</summary>
+                <div style="max-height:150px;overflow-y:auto;margin-top:6px;font-size:12px;background:#fadbd8;padding:6px;border-radius:4px;">
+                    ${erros.map(e => `NF ${e.numero}: ${e.motivo}`).join("<br>")}
+                </div>
+            </details>
+        ` : ""}
+
+        ${skusFaltando.size > 0 ? `
+            <div style="margin-top:10px;padding:8px;background:#fff3cd;border-left:3px solid #f39c12;border-radius:4px;font-size:12px;">
+                <strong>📦 SKUs não cadastrados:</strong><br>
+                ${[...skusFaltando].join(", ")}<br><br>
+                <em>Cadastre esses produtos no sistema pra que eles sejam aceitos no próximo massivo.</em>
+            </div>
+        ` : ""}
+    `;
+
+    document.getElementById("massivoEtapaProgresso").style.display = "none";
+    document.getElementById("massivoEtapaRelatorio").style.display = "block";
+}
+
+/* Helper: limpa uma fatura (pra quando o preenchimento falha no massivo) */
+function limparFatura(indice){
+    const page = pages[indice];
+    if(!page) return;
+
+    // Limpa todos os inputs da fatura
+    page.querySelectorAll("input.line, input.flex").forEach(inp => inp.value = "");
+    page.querySelectorAll("textarea.discArea").forEach(ta => ta.value = "");
+    page.querySelectorAll(".table td input").forEach(inp => inp.value = "");
+    const totalBox = page.querySelector(".totalBox");
+    if(totalBox) totalBox.value = "";
+    const somaBox = page.querySelector(".somaBox");
+    if(somaBox) somaBox.value = "";
+    // Campos do VC
+    const inpNF = page.querySelector(".vc-nf-input");
+    const inpCod = page.querySelector(".vc-cod-input");
+    const taObs = page.querySelector(".vc-obs-textarea");
+    if(inpNF) inpNF.value = "";
+    if(inpCod) inpCod.value = "";
+    if(taObs) taObs.value = "";
+}
+
 /* ── SALVAR ──────────────────────────────────────────────────── */
 function salvar(){
     const dados = [];
@@ -1687,22 +3362,26 @@ function salvar(){
         refFats.push(getRefFatValores(page));
     });
 
+    // Atualiza dados do Via de Cliente pra fatura atual (se estiver em modo VC)
+    atualizarDadosViaClienteAtual();
+
     // Persiste localmente (fallback offline)
     localStorage.setItem("faturasDados", JSON.stringify(dados));
     localStorage.setItem("faturaAtual", faturaAtual);
     localStorage.setItem("faturasFinalizadas", JSON.stringify(finalizadas));
     localStorage.setItem("faturasConferidas", JSON.stringify(conferidas));
     localStorage.setItem("faturasRefFats", JSON.stringify(refFats));
+    localStorage.setItem("faturasViasCliente", JSON.stringify(viasCliente));
 
     // Envia para o servidor → propaga para todos os clientes (celular/PC)
     if (socket.connected) {
         syncDot.className = "sync-dot syncing";
-        socket.emit("update-data", { dados, finalizadas, conferidas, refFats });
+        socket.emit("update-data", { dados, finalizadas, conferidas, refFats, viasCliente });
         // Limpa pendente se existia
         localStorage.removeItem("faturasPendente");
     } else {
         // Sem conexão — salva como pendente para sincronizar quando voltar
-        localStorage.setItem("faturasPendente", JSON.stringify({ dados, finalizadas, conferidas, refFats }));
+        localStorage.setItem("faturasPendente", JSON.stringify({ dados, finalizadas, conferidas, refFats, viasCliente }));
         syncDot.className = "sync-dot disconnected";
         syncLabel.textContent = "Offline — pendente";
     }
@@ -1819,7 +3498,13 @@ function mostrarFatura(){
                 pageAtual.classList.add("com-ref-fat");
             }
         }
+
+        // Aplica modo Via de Cliente se estiver ativo na fatura atual
+        aplicarViaClienteNaPagina(faturaAtual);
     }
+
+    // Atualiza o botão do painel conforme a fatura atual
+    atualizarBotaoViaCliente();
 
     const numero = String(faturaInicial+faturaAtual).padStart(6,"0");
     let status = "EM ABERTO";
@@ -1860,6 +3545,21 @@ function aplicarBloqueio(){
         inp.disabled = !liberar;
         inp.style.background = liberar ? "" : "#f3f3f3";
     });
+
+    // EXCEÇÃO: mesmo com a fatura bloqueada/finalizada, o CÓD CLIENTE do modo
+    // Via de Cliente arquivada continua editável ATÉ ser confirmado pelo botão ✓.
+    // Isso permite que a pessoa que faz o preenchimento massivo possa colocar
+    // o código do cliente depois, sem precisar destravar a fatura inteira.
+    if(!liberar){
+        const vc = viasCliente.find(v => v.indice === faturaAtual);
+        if(vc && vc.arquivada && !vc.codConfirmado){
+            const inpCod = pages[faturaAtual].querySelector(".vc-cod-input");
+            if(inpCod){
+                inpCod.disabled = false;
+                inpCod.style.background = "";
+            }
+        }
+    }
 }
 
 /* ── FINALIZAR ───────────────────────────────────────────────── */
@@ -2099,6 +3799,30 @@ function aplicarPeriodo(tipo){
 }
 
 /* Aplica o filtro e busca, atualizando a lista de resultados */
+// Estado do filtro por tipo (todas | via-cliente)
+let _filtroTipoAtivo = "todas";
+
+function aplicarFiltroTipo(tipo){
+    _filtroTipoAtivo = tipo;
+    // Destaca visualmente qual filtro está ativo
+    const btnTodas = document.getElementById("btnFiltroTodas");
+    const btnVC = document.getElementById("btnFiltroVC");
+    if(btnTodas && btnVC){
+        if(tipo === "via-cliente"){
+            btnTodas.style.opacity = "0.5";
+            btnVC.style.opacity = "1";
+            btnVC.style.transform = "scale(1.05)";
+            btnTodas.style.transform = "scale(1)";
+        } else {
+            btnTodas.style.opacity = "1";
+            btnVC.style.opacity = "0.7";
+            btnTodas.style.transform = "scale(1.05)";
+            btnVC.style.transform = "scale(1)";
+        }
+    }
+    aplicarFiltroBusca();
+}
+
 function aplicarFiltroBusca(){
     const termoNum = (document.getElementById("buscaNumero").value || "").trim();
     const dataIni  = document.getElementById("buscaDataInicio").value;
@@ -2124,6 +3848,9 @@ function aplicarFiltroBusca(){
             if(dIni && dataFat < dIni) return;
             if(dFim && dataFat > dFim) return;
         }
+
+        // Filtro por tipo (Via de Cliente)
+        if(_filtroTipoAtivo === "via-cliente" && !foiViaCliente(i)) return;
 
         resultados.push({
             indice: i,
@@ -2161,9 +3888,16 @@ function renderizarResultadosBusca(resultados){
             statusTxt = "Finalizada";
         }
         const dataStr = r.data ? r.data.toLocaleDateString("pt-BR") : "—";
+
+        // Tag de Via de Cliente — aparece em qualquer fatura que tenha ou teve VC
+        const tagVC = foiViaCliente(r.indice)
+            ? '<span class="res-status via-cliente">📋 Via de Cliente</span>'
+            : '';
+
         div.innerHTML = `
             <div class="res-numero">Nº ${r.numero}
                 <span class="res-status ${statusClass}">${statusTxt}</span>
+                ${tagVC}
             </div>
             <div class="res-info">
                 ${r.cliente || "<sem nome>"} • ${dataStr}
@@ -2201,6 +3935,10 @@ async function finalizarFatura(){
     }
 
     finalizadas.push(faturaAtual);
+    // Se estiver em modo Via de Cliente, garante que os valores estão salvos
+    if(isViaClienteAtiva(faturaAtual)){
+        atualizarDadosViaClienteAtual();
+    }
     // Força salvar imediatamente sem debounce ao finalizar
     clearTimeout(_salvarTimer);
     salvar();
@@ -2226,6 +3964,22 @@ async function gerarESalvarImagem(numero){
         topbar.style.display = 'none';
         sidebar.style.display = 'none';
 
+        // Marca campos vazios da Via de Cliente com classe "vazio" pra que fiquem ocultos
+        const vcNFWrap = page.querySelector(".vc-nf-wrap");
+        const vcCodWrap = page.querySelector(".vc-cod-wrap");
+        const vcNF = page.querySelector(".vc-nf-input");
+        const vcCod = page.querySelector(".vc-cod-input");
+        if(vcNFWrap){
+            if(!vcNF || !vcNF.value.trim()) vcNFWrap.classList.add("vazio");
+            else vcNFWrap.classList.remove("vazio");
+        }
+        if(vcCodWrap){
+            if(!vcCod || !vcCod.value.trim()) vcCodWrap.classList.add("vazio");
+            else vcCodWrap.classList.remove("vazio");
+        }
+        // Adiciona classe "gerando-pdf" temporariamente pra CSS esconder campos vazios
+        page.classList.add("gerando-pdf");
+
         // Captura a fatura como canvas
         const canvas = await html2canvas(page, {
             scale: 2,           // alta resolução
@@ -2240,6 +3994,7 @@ async function gerarESalvarImagem(numero){
         // Restaura elementos
         topbar.style.display = topbarDisplay;
         sidebar.style.display = sidebarDisplay;
+        page.classList.remove("gerando-pdf");
 
         // Converte para base64
         const imgBase64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
@@ -2248,11 +4003,14 @@ async function gerarESalvarImagem(numero){
         socket.emit('salvar-imagem', { numero, imgBase64 });
         console.log('Imagem enviada para salvar: FAT ' + numero);
 
-        // Salva cópia local via IPC (funciona em qualquer PC com Electron)
-        try{
-          const { ipcRenderer } = require('electron');
-          ipcRenderer.invoke('salvar-imagem-local', { numero, imgBase64 });
-        }catch(e){ console.log('Cópia local não salva:', e.message); }
+        // Salva cópia local via IPC (só funciona em Electron, no navegador é ignorado silenciosamente)
+        if(typeof require === "function"){
+          try{
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.invoke('salvar-imagem-local', { numero, imgBase64 });
+          }catch(e){ console.log('Cópia local Electron não salva:', e.message); }
+        }
+        // Se estiver no navegador (sem Electron), não tenta — a imagem já foi enviada pro VPS
 
     }catch(e){
         console.error('Erro ao gerar imagem:', e);
@@ -2764,6 +4522,19 @@ function ativarEdicao(){
             inp.style.background = "";
         }
     });
+
+    // Se a fatura é Via de Cliente arquivada com Cód Cliente já confirmado,
+    // reseta o estado "confirmado" pra o usuário poder confirmar de novo depois
+    const vc = viasCliente.find(v => v.indice === faturaAtual);
+    if(vc && vc.arquivada && vc.codConfirmado){
+        vc.codConfirmado = false;
+        // Remove readonly do input e mostra o botão ✓
+        const page = pages[faturaAtual];
+        const inpCod = page.querySelector(".vc-cod-input");
+        const btnCodConfirmar = page.querySelector(".vc-cod-btn-confirmar");
+        if(inpCod) inpCod.readOnly = false;
+        if(btnCodConfirmar) btnCodConfirmar.classList.remove("confirmado");
+    }
 }
 
 function desativarEdicao(){
@@ -2838,6 +4609,22 @@ function resetarModoEdicao(){
 }
 
 function gerarPDF(){
+    // Antes de imprimir: marca campos vazios da Via de Cliente com a classe "vazio"
+    // assim o CSS @media print oculta esses containers na impressão
+    pages.forEach(page => {
+        const vcNFWrap = page.querySelector(".vc-nf-wrap");
+        const vcCodWrap = page.querySelector(".vc-cod-wrap");
+        const vcNF = page.querySelector(".vc-nf-input");
+        const vcCod = page.querySelector(".vc-cod-input");
+        if(vcNFWrap){
+            if(!vcNF || !vcNF.value.trim()) vcNFWrap.classList.add("vazio");
+            else vcNFWrap.classList.remove("vazio");
+        }
+        if(vcCodWrap){
+            if(!vcCod || !vcCod.value.trim()) vcCodWrap.classList.add("vazio");
+            else vcCodWrap.classList.remove("vazio");
+        }
+    });
     window.print();
 }
 
@@ -2870,9 +4657,11 @@ function entrarNoSistema(){
   vincularTodosAutocompletes();
   vincularAutocompleteClientes();
   vincularRefFatInicial();
+  vincularViaClienteInputs();
   popularListaClientes();
   carregar();
   renderizarTodasMarcas();
+  aplicarViaClienteEmTodasPaginas();
   mostrarFatura();
 }
 

@@ -117,6 +117,92 @@ td input:focus{border-bottom-color:var(--accent-dim);}
 .tab-content{display:none;flex:1;flex-direction:column;}
 .tab-content.active{display:flex;}
 
+/* ═══════ CADASTRO AUTOMÁTICO ═══════ */
+.cad-wrap{padding:32px;max-width:1100px;margin:0 auto;width:100%;}
+.cad-section{margin-bottom:28px;}
+.cad-title{font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.01em;}
+.cad-subtitle{font-size:18px;font-weight:600;color:var(--text);margin-bottom:14px;}
+.cad-sub{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5;}
+.cad-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.cad-label{display:block;font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;font-weight:600;margin-bottom:10px;}
+.cad-token-row{display:flex;gap:8px;}
+.cad-token-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;}
+.cad-token-row input:focus{border-color:var(--accent-dim);}
+.cad-card textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:vertical;min-height:120px;line-height:1.6;}
+.cad-card textarea:focus{border-color:var(--accent-dim);}
+.cad-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.cad-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 18px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+.cad-btn:hover:not(:disabled){background:var(--border);}
+.cad-btn:disabled{opacity:.4;cursor:not-allowed;}
+.cad-btn-sm{padding:8px 14px;font-size:12px;}
+.cad-btn-primary{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:600;margin-top:14px;}
+.cad-btn-primary:hover:not(:disabled){background:var(--accent-dim);color:#fff;}
+.cad-btn-secondary{background:transparent;}
+.cad-actions{display:flex;gap:10px;margin-top:20px;}
+.cad-actions .cad-btn{flex:1;}
+.cad-actions .cad-btn-primary{flex:2;}
+
+/* Cards de produto na listagem */
+.cad-produto{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
+.cad-produto.erro{border-color:rgba(224,92,92,.4);background:rgba(224,92,92,.05);}
+.cad-produto-icon{font-size:22px;flex-shrink:0;}
+.cad-produto-info{flex:1;min-width:0;}
+.cad-produto-sku{font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:3px;}
+.cad-produto-nome{font-size:14px;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cad-produto-meta{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.cad-produto-status{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:600;letter-spacing:.03em;flex-shrink:0;}
+.cad-status-ok{background:rgba(62,207,178,.15);color:var(--teal);}
+.cad-status-warn{background:rgba(240,180,41,.15);color:var(--amber);}
+.cad-status-err{background:rgba(224,92,92,.15);color:var(--red);}
+
+/* Progresso */
+.cad-progresso{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+.cad-progresso-bar{background:var(--surface2);border-radius:99px;overflow:hidden;height:28px;margin-bottom:12px;}
+.cad-progresso-fill{background:linear-gradient(90deg,var(--accent-dim),var(--accent));height:100%;width:0%;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:#0f0f0f;font-weight:700;font-size:12px;font-family:var(--mono);}
+.cad-progresso-txt{font-size:13px;color:var(--text);text-align:center;margin-bottom:14px;}
+.cad-progresso-log{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);max-height:200px;overflow-y:auto;line-height:1.7;}
+.cad-progresso-log .ok{color:var(--teal);}
+.cad-progresso-log .err{color:var(--red);}
+.cad-progresso-log .wrn{color:var(--amber);}
+
+/* Revisão */
+.cad-rev{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.cad-rev.aprovado{border-color:var(--teal);}
+.cad-rev.rejeitado{border-color:var(--red);opacity:.6;}
+.cad-rev-head{padding:14px 18px;display:flex;align-items:center;gap:12px;background:var(--surface2);cursor:pointer;user-select:none;}
+.cad-rev-head:hover{background:var(--border);}
+.cad-rev-chevron{font-size:12px;color:var(--muted);transition:transform .2s;}
+.cad-rev.open .cad-rev-chevron{transform:rotate(90deg);}
+.cad-rev-sku{font-family:var(--mono);font-size:12px;color:var(--accent);}
+.cad-rev-nome{flex:1;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cad-rev-status{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:600;}
+.cad-rev-body{display:none;padding:18px;border-top:1px solid var(--border);}
+.cad-rev.open .cad-rev-body{display:block;}
+.cad-rev-field{margin-bottom:14px;}
+.cad-rev-field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px;}
+.cad-rev-field input,.cad-rev-field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;line-height:1.55;}
+.cad-rev-field input:focus,.cad-rev-field textarea:focus{border-color:var(--accent-dim);}
+.cad-rev-field textarea{resize:vertical;min-height:140px;font-family:var(--mono);font-size:12px;}
+.cad-rev-btns{display:flex;gap:8px;margin-top:14px;}
+.cad-rev-btns .cad-btn{flex:1;}
+.cad-btn-aprovar{background:var(--teal);color:#0f0f0f;border-color:var(--teal);font-weight:600;}
+.cad-btn-aprovar:hover:not(:disabled){background:#2fa48e;color:#fff;}
+.cad-btn-rejeitar{background:transparent;border-color:var(--red);color:var(--red);}
+.cad-btn-rejeitar:hover:not(:disabled){background:rgba(224,92,92,.1);}
+
+/* Relatório final */
+.cad-rel-resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.cad-rel-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.cad-rel-box.ok{border-color:var(--teal);}
+.cad-rel-box.err{border-color:var(--red);}
+.cad-rel-num{font-size:32px;font-weight:700;color:var(--text);font-family:var(--mono);margin-bottom:4px;}
+.cad-rel-box.ok .cad-rel-num{color:var(--teal);}
+.cad-rel-box.err .cad-rel-num{color:var(--red);}
+.cad-rel-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.cad-rel-detalhes{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:12px;color:var(--muted);max-height:300px;overflow-y:auto;}
+.cad-rel-detalhes summary{cursor:pointer;font-weight:600;color:var(--text);margin-bottom:8px;}
+.cad-rel-detalhes ul{margin:8px 0 0 20px;line-height:1.7;}
+
 /* ── Histórico ── */
 .hist-header{padding:20px 36px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;}
 .hist-title{font-size:18px;font-weight:600;}
@@ -232,6 +318,7 @@ td input:focus{border-bottom-color:var(--accent-dim);}
     <div class="app-tabs">
       <div class="app-tab active" id="tab-calc" onclick="mudarAba('calc')">📊 Precificação</div>
       <div class="app-tab" id="tab-hist" onclick="mudarAba('hist')">🗂 Histórico</div>
+      <div class="app-tab" id="tab-cad" onclick="mudarAba('cad')">🏷️ Cadastro Automático</div>
     </div>
 
     <!-- Tab: Precificação -->
@@ -259,6 +346,90 @@ td input:focus{border-bottom-color:var(--accent-dim);}
         <div class="hist-empty">
           <div class="big">🗂</div>
           <p>Nenhuma NF precificada ainda.<br>Gere um PDF para registrar aqui.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Cadastro Automático -->
+    <div class="tab-content" id="tc-cad" style="overflow:auto;">
+      <div class="cad-wrap">
+        <!-- Etapa 1: Configuração e SKUs -->
+        <div class="cad-section" id="cadSection1">
+          <h2 class="cad-title">🏷️ Cadastro Automático de Produtos</h2>
+          <p class="cad-sub">Usa <strong>Claude Sonnet 4.5</strong> pra gerar descrições no seu padrão e atualiza direto no Tiny ERP.</p>
+
+          <div class="cad-card">
+            <label class="cad-label">🔑 API Key da Anthropic</label>
+            <div class="cad-token-row">
+              <input type="password" id="cadApiKey" placeholder="sk-ant-..." autocomplete="off">
+              <button class="cad-btn cad-btn-sm" onclick="salvarApiKeyCad()">Salvar</button>
+            </div>
+            <div class="cad-hint" id="cadApiKeyStatus">Cole sua chave e clique em Salvar (fica guardada localmente).</div>
+          </div>
+
+          <div class="cad-card">
+            <label class="cad-label">🌐 Token Cosmos Bluesoft (opcional, mas recomendado)</label>
+            <div class="cad-token-row">
+              <input type="password" id="cadCosmosToken" placeholder="Token X-Cosmos-Token..." autocomplete="off">
+              <button class="cad-btn cad-btn-sm" onclick="salvarCosmosToken()">Salvar</button>
+            </div>
+            <div class="cad-hint" id="cadCosmosStatus">Consulta GTIN em banco BR de produtos. Cadastre em <a href="https://cosmos.bluesoft.com.br/api" target="_blank" style="color:var(--accent);">cosmos.bluesoft.com.br/api</a> (free: 25/dia).</div>
+          </div>
+
+          <div class="cad-card">
+            <label class="cad-label">📋 Lista de SKUs (um por linha)</label>
+            <textarea id="cadSkus" placeholder="2391&#10;1234&#10;5678" rows="8"></textarea>
+            <div class="cad-hint">Cole os códigos dos produtos que você quer cadastrar/atualizar.</div>
+            <button class="cad-btn cad-btn-primary" onclick="buscarProdutosTiny()" id="btnBuscarProdutos">
+              🔍 Buscar Produtos no Tiny
+            </button>
+          </div>
+        </div>
+
+        <!-- Etapa 2: Lista de produtos encontrados -->
+        <div class="cad-section" id="cadSection2" style="display:none;">
+          <h3 class="cad-subtitle">📦 Produtos encontrados</h3>
+          <div id="cadListaProdutos"></div>
+          <div class="cad-actions">
+            <button class="cad-btn cad-btn-secondary" onclick="voltarEtapa1()">← Voltar</button>
+            <button class="cad-btn cad-btn-primary" onclick="gerarDescricoes()" id="btnGerarDesc">
+              ✨ Gerar Descrições com Claude
+            </button>
+          </div>
+        </div>
+
+        <!-- Etapa 3: Progresso da geração -->
+        <div class="cad-section" id="cadSection3" style="display:none;">
+          <h3 class="cad-subtitle">🤖 Gerando descrições...</h3>
+          <div class="cad-progresso">
+            <div class="cad-progresso-bar">
+              <div class="cad-progresso-fill" id="cadProgFill" style="width:0%;">0%</div>
+            </div>
+            <div class="cad-progresso-txt" id="cadProgTxt">Preparando...</div>
+            <div class="cad-progresso-log" id="cadProgLog"></div>
+          </div>
+        </div>
+
+        <!-- Etapa 4: Revisar e aprovar -->
+        <div class="cad-section" id="cadSection4" style="display:none;">
+          <h3 class="cad-subtitle">✏️ Revisar e aprovar descrições</h3>
+          <p class="cad-sub">Revise cada produto, edite se precisar, e marque como aprovado. Só os aprovados vão ser publicados no Tiny.</p>
+          <div id="cadListaRevisao"></div>
+          <div class="cad-actions">
+            <button class="cad-btn cad-btn-secondary" onclick="voltarEtapa1()">← Recomeçar</button>
+            <button class="cad-btn cad-btn-primary" onclick="publicarNoTiny()" id="btnPublicar">
+              📤 Publicar Aprovados no Tiny
+            </button>
+          </div>
+        </div>
+
+        <!-- Etapa 5: Relatório final -->
+        <div class="cad-section" id="cadSection5" style="display:none;">
+          <h3 class="cad-subtitle">✅ Concluído</h3>
+          <div id="cadRelatorio"></div>
+          <div class="cad-actions">
+            <button class="cad-btn cad-btn-primary" onclick="voltarEtapa1()">🏁 Novo cadastro</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1386,6 +1557,995 @@ document.getElementById("senhaModal").addEventListener("click",function(e){
 
 // Carrega histórico ao iniciar
 carregarHistorico();
+
+/* ═══════════════════════════════════════════════════════════════
+   CADASTRO AUTOMÁTICO DE PRODUTOS — Fase 1
+   Fluxo: SKUs → busca Tiny → Claude gera descrição → revisa → publica
+   ═══════════════════════════════════════════════════════════════ */
+
+const CAD_TOKEN_TINY = "018e68d029d67390d34804439cf22815f369f37d";
+const CAD_LS_APIKEY  = "caus_cad_api_key";       // API key Anthropic
+const CAD_LS_COSMOS  = "caus_cad_cosmos_token";  // Token Cosmos (Bluesoft)
+const CAD_MODELO     = "claude-sonnet-4-5";      // Claude Sonnet 4.5
+
+// Estado global da aba
+let _cadProdutos = [];   // [{ sku, id, nome, gtin, marca, descOriginal, status, erro? }]
+let _cadResultados = []; // [{ sku, nomeGerado, descricaoGerada, aprovado: null|true|false }]
+
+// Bloco IMPORTANTE fixo que vai no final de toda descrição
+const BLOCO_IMPORTANTE = `IMPORTANTE:
+Recomendamos que os produtos sejam montados/instalados por profissionais especializados e não nos responsabilizamos pelo mau uso ou montagem/instalação indevida, causando a perda da garantia. Todas as informações divulgadas são de responsabilidade do fabricante/fornecedor. Verifique com os fabricantes do produto e de seus componentes eventuais limitações à utilização de todos os recursos e funcionalidades. Tempo de garantia: 3 meses de garantia legal (consultar se tem mais tempo de garantia) Valor unitário *Imagem ilustrativa Prazo de troca e devolução: 7 dias a partir do recebimento do produto - Lei nº 8.078`;
+
+/* ── 0. Persistência da API Key (localStorage) ── */
+function salvarApiKeyCad(){
+  const inp = document.getElementById("cadApiKey");
+  const key = (inp?.value || "").trim();
+  if(!key){
+    alert("Cole a API Key antes de salvar.");
+    return;
+  }
+  if(!key.startsWith("sk-ant-")){
+    if(!confirm("A chave não parece estar no formato sk-ant-... Salvar mesmo assim?")) return;
+  }
+  localStorage.setItem(CAD_LS_APIKEY, key);
+  mostrarApiKeyStatus(true);
+}
+function mostrarApiKeyStatus(salvouAgora){
+  const el = document.getElementById("cadApiKeyStatus");
+  const key = localStorage.getItem(CAD_LS_APIKEY);
+  if(el){
+    if(key){
+      el.textContent = salvouAgora ? "✅ API Key salva com sucesso!" : "✅ API Key já configurada.";
+      el.style.color = "var(--teal)";
+    } else {
+      el.textContent = "Cole sua chave e clique em Salvar (fica guardada localmente).";
+      el.style.color = "var(--muted)";
+    }
+  }
+}
+
+function salvarCosmosToken(){
+  const inp = document.getElementById("cadCosmosToken");
+  const t = (inp?.value || "").trim();
+  if(!t){
+    alert("Cole o token do Cosmos antes de salvar.");
+    return;
+  }
+  localStorage.setItem(CAD_LS_COSMOS, t);
+  mostrarCosmosStatus(true);
+}
+function mostrarCosmosStatus(salvouAgora){
+  const el = document.getElementById("cadCosmosStatus");
+  const t = localStorage.getItem(CAD_LS_COSMOS);
+  if(el){
+    if(t){
+      el.innerHTML = salvouAgora
+        ? "✅ Token Cosmos salvo! (pode trocar a qualquer momento)"
+        : "✅ Token Cosmos configurado.";
+      el.style.color = "var(--teal)";
+    } else {
+      el.innerHTML = 'Consulta GTIN em banco BR de produtos. Cadastre em <a href="https://cosmos.bluesoft.com.br/api" target="_blank" style="color:var(--accent);">cosmos.bluesoft.com.br/api</a> (free: 25/dia).';
+      el.style.color = "var(--muted)";
+    }
+  }
+}
+
+// Ao carregar a aba, preenche os campos se já tiver chaves salvas
+document.addEventListener("DOMContentLoaded", () => {
+  const key = localStorage.getItem(CAD_LS_APIKEY);
+  const inpKey = document.getElementById("cadApiKey");
+  if(key && inpKey){
+    inpKey.value = key;
+    mostrarApiKeyStatus(false);
+  }
+  const cosmos = localStorage.getItem(CAD_LS_COSMOS);
+  const inpCosmos = document.getElementById("cadCosmosToken");
+  if(cosmos && inpCosmos){
+    inpCosmos.value = cosmos;
+    mostrarCosmosStatus(false);
+  }
+});
+
+/* ── 1. Buscar produtos no Tiny pelos SKUs ── */
+async function buscarProdutosTiny(){
+  const texto = (document.getElementById("cadSkus")?.value || "").trim();
+  if(!texto){
+    alert("Cole os SKUs antes de buscar.");
+    return;
+  }
+  // Extrai SKUs: quebra por linha, tab, vírgula, ponto-e-vírgula, espaço
+  const skus = [...new Set(
+    texto.split(/[\n\t,;\s]+/).map(s => s.trim()).filter(Boolean)
+  )];
+  if(skus.length === 0){
+    alert("Nenhum SKU válido encontrado.");
+    return;
+  }
+
+  const btn = document.getElementById("btnBuscarProdutos");
+  btn.disabled = true;
+  const labelOriginal = btn.textContent;
+
+  _cadProdutos = [];
+
+  try{
+    for(let i = 0; i < skus.length; i++){
+      const sku = skus[i];
+      btn.textContent = `⏳ Buscando ${i+1}/${skus.length}: ${sku}...`;
+
+      try{
+        // Passo 1: pesquisar produto pra achar ID
+        const r1 = await cadChamarTinyAPI("pesquisar_produto", { pesquisa: sku });
+        const listaP = r1?.retorno?.produtos || [];
+        const achado = listaP.find(p => String(p.produto?.codigo || "").trim() === sku);
+
+        if(!achado){
+          _cadProdutos.push({ sku, status: "erro", erro: "SKU não encontrado no Tiny" });
+          continue;
+        }
+
+        const idProduto = achado.produto.id;
+
+        // Passo 2: obter detalhes completos
+        const r2 = await cadChamarTinyAPI("obter_produto", { id: idProduto });
+        const prod = r2?.retorno?.produto;
+
+        if(!prod){
+          _cadProdutos.push({ sku, status: "erro", erro: "Dados do produto vazios" });
+          continue;
+        }
+
+        _cadProdutos.push({
+          sku,
+          id: idProduto,
+          nome: prod.nome || "",
+          gtin: prod.gtin || prod.codigo_ean || "",
+          marca: prod.marca || "",
+          categoria: prod.categoria || "",
+          unidade: prod.unidade || "",
+          precoAtual: prod.preco || "",
+          descOriginal: prod.descricao_complementar || "",
+          dadosCompletos: prod,
+          status: "ok"
+        });
+
+        // Throttle pra não bater rate limit do Tiny
+        if(i < skus.length - 1) await new Promise(r => setTimeout(r, 800));
+
+      } catch(e){
+        _cadProdutos.push({ sku, status: "erro", erro: e.message });
+      }
+    }
+
+    renderizarListaProdutos();
+    document.getElementById("cadSection1").style.display = "none";
+    document.getElementById("cadSection2").style.display = "block";
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent = labelOriginal;
+  }
+}
+
+function renderizarListaProdutos(){
+  const cont = document.getElementById("cadListaProdutos");
+  cont.innerHTML = "";
+
+  _cadProdutos.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "cad-produto" + (p.status === "erro" ? " erro" : "");
+
+    const icon = p.status === "ok" ? "✅" : "❌";
+    const statusClass = p.status === "ok" ? "cad-status-ok" : "cad-status-err";
+    const statusTxt = p.status === "ok" ? "OK" : "ERRO";
+
+    div.innerHTML = `
+      <div class="cad-produto-icon">${icon}</div>
+      <div class="cad-produto-info">
+        <div class="cad-produto-sku">SKU ${p.sku}</div>
+        <div class="cad-produto-nome">${p.status === "ok" ? escapeHtml(p.nome) : escapeHtml(p.erro || "Erro desconhecido")}</div>
+        ${p.status === "ok" ? `<div class="cad-produto-meta">${p.gtin ? "GTIN: "+p.gtin+" · " : ""}${p.marca || "sem marca"}</div>` : ""}
+      </div>
+      <div class="cad-produto-status ${statusClass}">${statusTxt}</div>
+    `;
+    cont.appendChild(div);
+  });
+
+  const okCount = _cadProdutos.filter(p => p.status === "ok").length;
+  const btn = document.getElementById("btnGerarDesc");
+  btn.textContent = `✨ Gerar Descrições com Claude (${okCount} produtos)`;
+  btn.disabled = okCount === 0;
+}
+
+function voltarEtapa1(){
+  document.getElementById("cadSection1").style.display = "block";
+  document.getElementById("cadSection2").style.display = "none";
+  document.getElementById("cadSection3").style.display = "none";
+  document.getElementById("cadSection4").style.display = "none";
+  document.getElementById("cadSection5").style.display = "none";
+}
+
+/* ── 2. Gerar descrições com Claude ── */
+async function gerarDescricoes(){
+  const apiKey = localStorage.getItem(CAD_LS_APIKEY);
+  if(!apiKey){
+    alert("Salve sua API Key da Anthropic antes de gerar descrições.");
+    voltarEtapa1();
+    return;
+  }
+
+  const produtosOk = _cadProdutos.filter(p => p.status === "ok");
+  if(produtosOk.length === 0){
+    alert("Nenhum produto válido pra gerar descrição.");
+    return;
+  }
+
+  document.getElementById("cadSection2").style.display = "none";
+  document.getElementById("cadSection3").style.display = "block";
+
+  const fill = document.getElementById("cadProgFill");
+  const txt = document.getElementById("cadProgTxt");
+  const log = document.getElementById("cadProgLog");
+  log.innerHTML = "";
+
+  const addLog = (msg, tipo) => {
+    const line = document.createElement("div");
+    if(tipo) line.className = tipo;
+    line.textContent = msg;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  _cadResultados = [];
+
+  // Throttle entre cada chamada pra evitar rate limit (30k tokens/min na Anthropic).
+  // Com prompt ~3500 tokens + web search, dá pra fazer ~6-8 produtos/min no safe.
+  // Usamos 8s entre produtos = 7,5 produtos/min (margem de segurança).
+  const DELAY_ENTRE_PRODUTOS = 8000;
+
+  for(let i = 0; i < produtosOk.length; i++){
+    const p = produtosOk[i];
+    const pct = Math.round((i / produtosOk.length) * 100);
+    fill.style.width = pct + "%";
+    fill.textContent = pct + "%";
+    txt.textContent = `Processando ${i+1}/${produtosOk.length}: ${p.sku} - ${p.nome.substring(0,40)}...`;
+
+    // Tenta até 3 vezes em caso de rate limit (429)
+    let tentativas = 0;
+    let sucesso = false;
+    let ultimoErro = null;
+
+    while(tentativas < 3 && !sucesso){
+      tentativas++;
+      try{
+        if(tentativas === 1){
+          addLog(`🤖 Gerando: ${p.sku} - ${p.nome}`);
+        } else {
+          addLog(`🔄 Tentativa ${tentativas}/3 do SKU ${p.sku}...`, "wrn");
+        }
+
+        const resultado = await chamarClaudeParaProduto(p, apiKey);
+
+        _cadResultados.push({
+          sku: p.sku,
+          id: p.id,
+          nomeOriginal: p.nome,
+          nomeGerado: resultado.nome || p.nome,
+          descricaoGerada: resultado.descricao,
+          fontesUsadas: resultado.fontesUsadas || "",
+          gtin: p.gtin,
+          aprovado: null
+        });
+
+        addLog(`✓ ${p.sku} OK — Fontes: ${resultado.fontesUsadas}`, "ok");
+        sucesso = true;
+
+      } catch(e){
+        ultimoErro = e;
+        // Se for erro 429 (rate limit), espera 60s e tenta de novo
+        if(e.message.includes("429") || e.message.toLowerCase().includes("rate_limit")){
+          if(tentativas < 3){
+            addLog(`⚠️ Rate limit atingido. Aguardando 60s antes de tentar novamente...`, "wrn");
+            txt.textContent = `⏳ Aguardando rate limit reset (60s)... SKU ${p.sku}`;
+            await new Promise(r => setTimeout(r, 60000));
+          }
+        } else {
+          // Erro não recuperável — não tenta de novo
+          break;
+        }
+      }
+    }
+
+    if(!sucesso){
+      const msgErro = ultimoErro?.message || "Erro desconhecido";
+      addLog(`✗ ${p.sku} ERRO: ${msgErro}`, "err");
+      _cadResultados.push({
+        sku: p.sku,
+        id: p.id,
+        nomeOriginal: p.nome,
+        nomeGerado: p.nome,
+        descricaoGerada: "",
+        erro: msgErro,
+        aprovado: false
+      });
+    }
+
+    // Throttle entre produtos (exceto no último)
+    if(i < produtosOk.length - 1){
+      txt.textContent = `⏸️ Aguardando ${DELAY_ENTRE_PRODUTOS/1000}s pra respeitar rate limit...`;
+      await new Promise(r => setTimeout(r, DELAY_ENTRE_PRODUTOS));
+    }
+  }
+
+  fill.style.width = "100%";
+  fill.textContent = "100%";
+  txt.textContent = "✅ Concluído!";
+
+  // Pequena pausa pra usuário ver o 100%
+  await new Promise(r => setTimeout(r, 600));
+
+  renderizarRevisao();
+  document.getElementById("cadSection3").style.display = "none";
+  document.getElementById("cadSection4").style.display = "block";
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FONTES EXTERNAS DE DADOS — Cosmos Bluesoft + Mercado Livre
+   Essas funções buscam dados REAIS dos produtos pra evitar que
+   o Claude invente marca, dimensões, peso, etc.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Consulta produto no Cosmos pela GTIN.
+   Retorna objeto simplificado com campos úteis ou null se não achar. */
+async function consultarCosmos(gtin){
+  const token = localStorage.getItem(CAD_LS_COSMOS);
+  if(!token || !gtin) return null;
+  try{
+    const resp = await fetch(`https://api.cosmos.bluesoft.com.br/gtins/${encodeURIComponent(gtin)}.json`, {
+      headers: {
+        "X-Cosmos-Token": token,
+        "Content-Type": "application/json",
+        "User-Agent": "CAUS Cadastro Automatico"
+      }
+    });
+    if(!resp.ok){
+      console.warn(`[Cosmos] GTIN ${gtin}: HTTP ${resp.status}`);
+      return null;
+    }
+    const d = await resp.json();
+    if(!d || d.message === "Produto não encontrado") return null;
+
+    return {
+      fonte: "Cosmos",
+      nome: d.description || d.title || "",
+      marca: d.brand?.name || "",
+      ncm: d.ncm?.code || "",
+      categoria: d.gpc?.description || "",
+      altura: d.height || d.dimension?.height || "",
+      largura: d.width || d.dimension?.width || "",
+      comprimento: d.length || d.depth || d.dimension?.length || "",
+      peso: d.net_weight || d.gross_weight || "",
+      thumbnail: d.thumbnail || (d.pictures?.[0]?.url || "")
+    };
+  }catch(e){
+    console.warn(`[Cosmos] Erro GTIN ${gtin}:`, e.message);
+    return null;
+  }
+}
+
+/* Consulta Mercado Livre — DESATIVADA temporariamente.
+   Motivo: o ML endureceu a política de API pública em 2025 e agora rejeita
+   requisições sem OAuth (retorna 403). Em vez de implementar OAuth flow
+   (complexo, com risco de quebrar de novo), preferimos confiar em:
+     - Cosmos Bluesoft (dados oficiais BR)
+     - Claude Sonnet 4.5 com web_search nativo (busca tudo da web em tempo real)
+   Essa função fica preservada pra caso decidirmos voltar no futuro. */
+async function consultarMercadoLivre(gtin){
+  return null;  // desativado — ver comentário acima
+}
+
+/* Monta o "dossiê" do produto — junta dados do Tiny + Cosmos + ML.
+   É esse dossiê que vai pra Claude. */
+async function montarDossie(produto){
+  const gtin = produto.gtin;
+  const dossie = {
+    sku: produto.sku,
+    nomeOriginal: produto.nome,
+    gtin,
+    marcaTiny: produto.marca || "",
+    categoriaTiny: produto.categoria || "",
+    cosmos: null,
+    ml: null,
+    fontesUsadas: []
+  };
+
+  // Tenta Cosmos primeiro (se tem GTIN e token)
+  if(gtin){
+    dossie.cosmos = await consultarCosmos(gtin);
+    if(dossie.cosmos) dossie.fontesUsadas.push("Cosmos");
+  }
+  // Tenta ML (sempre que tem GTIN)
+  if(gtin){
+    dossie.ml = await consultarMercadoLivre(gtin);
+    if(dossie.ml) dossie.fontesUsadas.push("Mercado Livre");
+  }
+
+  return dossie;
+}
+
+async function chamarClaudeParaProduto(produto, apiKey){
+  // Monta dossiê com dados reais do Cosmos + ML antes de chamar Claude
+  const dossie = await montarDossie(produto);
+
+  const prompt = montarPromptDescricao(produto, dossie);
+
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: CAD_MODELO,
+      max_tokens: 5000,
+      messages: [{ role: "user", content: prompt }],
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          max_uses: 3  // 3 buscas pra compensar ausência do ML API (Cosmos é limitado)
+        }
+      ]
+    })
+  });
+
+  if(!resp.ok){
+    const errTxt = await resp.text();
+    throw new Error(`Claude API ${resp.status}: ${errTxt.substring(0,200)}`);
+  }
+
+  const data = await resp.json();
+
+  // A resposta com web_search pode ter múltiplos blocos de content.
+  // Pega o último bloco de texto (resposta final do Claude)
+  const blocos = data.content || [];
+  const textoResp = blocos
+    .filter(b => b.type === "text")
+    .map(b => b.text)
+    .join("\n\n") || "";
+
+  // Parse da resposta
+  const matchTitulo = textoResp.match(/TITULO:\s*(.+?)(?:\n|$)/);
+  // Pega o bloco DESCRICAO: até o próximo delimitador conhecido (FONTES:, OBSERVAÇÕES:, ---, ***)
+  // ou até o fim do texto se não tiver delimitador
+  const matchDesc = textoResp.match(/DESCRICAO:\s*([\s\S]+?)(?:\n\s*(?:---+|\*\*\*+|FONTES:|OBSERVAÇÕES PRA REVISÃO|OBS:|NOTAS:)[\s\S]*)?$/i);
+
+  const nome = matchTitulo ? limparMarkdown(matchTitulo[1].trim()) : produto.nome;
+  let descricao = matchDesc ? matchDesc[1].trim() : textoResp.trim();
+
+  // Limpa markdown residual (asteriscos, hashtags, separadores, etc)
+  descricao = limparMarkdown(descricao);
+
+  // Garante que o bloco IMPORTANTE tá no final
+  if(!descricao.includes("IMPORTANTE:")){
+    descricao = descricao.trim() + "\n\n" + BLOCO_IMPORTANTE;
+  }
+
+  // Remove múltiplas quebras de linha seguidas (max 2 quebras = 1 linha em branco)
+  descricao = descricao.replace(/\n{3,}/g, "\n\n").trim();
+
+  return {
+    nome,
+    descricao,
+    fontesUsadas: dossie.fontesUsadas.length > 0 ? dossie.fontesUsadas.join(", ") : "Apenas Tiny + Web Search"
+  };
+}
+
+/* Remove formatação markdown que o Claude às vezes coloca mesmo quando pedido pra não colocar.
+   Remove: **negrito**, *itálico*, ## headers, --- separadores, `código`, [links](url) */
+function limparMarkdown(texto){
+  if(!texto) return "";
+  return texto
+    // Remove separadores de linha (---, ***, ___)
+    .replace(/^[\-*_]{3,}\s*$/gm, "")
+    // Remove **negrito** e *itálico* (mas preserva o conteúdo)
+    .replace(/\*{2,3}([^*]+?)\*{2,3}/g, "$1")
+    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, "$1")
+    // Remove ## headers (mantém o texto)
+    .replace(/^#{1,6}\s+/gm, "")
+    // Remove `código inline`
+    .replace(/`([^`]+)`/g, "$1")
+    // Remove [texto](link) virando só texto
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // Remove linhas que ficaram só com espaço depois das substituições
+    .replace(/^[ \t]+$/gm, "")
+    .trim();
+}
+
+/* ── Monta o prompt calibrado no estilo do Renan (baseado na Prancha PPR10) ── */
+function montarPromptDescricao(produto, dossie){
+  // Formata o dossiê em texto pra o Claude ver dados REAIS e não inventar
+  const partesDossie = [];
+
+  if(dossie.cosmos){
+    const c = dossie.cosmos;
+    partesDossie.push(`📦 DADOS DO COSMOS BLUESOFT (fonte oficial BR):
+- Nome oficial: ${c.nome || "(vazio)"}
+- Marca: ${c.marca || "(vazio)"}
+- Categoria: ${c.categoria || "(vazio)"}
+- NCM: ${c.ncm || "(vazio)"}
+- Altura: ${c.altura || "(vazio)"}
+- Largura: ${c.largura || "(vazio)"}
+- Comprimento: ${c.comprimento || "(vazio)"}
+- Peso: ${c.peso || "(vazio)"}`);
+  }
+
+  if(dossie.ml){
+    const m = dossie.ml;
+    partesDossie.push(`🛒 DADOS DO MERCADO LIVRE (combinado de ${m.qtdAnuncios || 1} anúncios reais):
+- Nome: ${m.nome || "(vazio)"}
+- Marca: ${m.marca || "(vazio)"}
+- Modelo: ${m.modelo || "(vazio)"}
+- Altura: ${m.altura || "(vazio)"}
+- Largura: ${m.largura || "(vazio)"}
+- Comprimento: ${m.comprimento || "(vazio)"}
+- Peso: ${m.peso || "(vazio)"}
+- Voltagem: ${m.voltagem || "(vazio)"}
+- Potência: ${m.potencia || "(vazio)"}
+- Capacidade: ${m.capacidade || "(vazio)"}
+- Cor: ${m.cor || "(vazio)"}
+- Material: ${m.material || "(vazio)"}
+- Link do anúncio: ${m.link || ""}`);
+  }
+
+  const dossieTexto = partesDossie.length > 0
+    ? "═══ DADOS VERIFICADOS DE FONTES EXTERNAS (USE SEM INVENTAR) ═══\n" + partesDossie.join("\n\n")
+    : "═══ ATENÇÃO: SEM DADOS EXTERNOS DISPONÍVEIS ═══\nUse a ferramenta de busca na web (web_search) pra encontrar especificações reais antes de escrever.";
+
+  return `Você é especialista em criar descrições de produtos para marketplaces (Mercado Livre, Magalu, Shopee, etc) no estilo da loja CAUS Móveis e Eletrodomésticos.
+
+TAREFA: Criar uma descrição completa do produto abaixo, seguindo EXATAMENTE o padrão do exemplo.
+
+⚠️ REGRA ABSOLUTA — ANTI-ALUCINAÇÃO:
+- **NUNCA invente** marca, modelo, dimensões, peso, voltagem, potência ou qualquer especificação
+- Só use informações que estão NO DOSSIÊ abaixo OU que você conseguir confirmar via web_search
+- Se você não achar um dado específico (ex: altura), OMITA aquela linha em vez de chutar
+- Campos da seção "Dimensões" que forem desconhecidos: DEIXE FORA (não escreva "Altura: ?" nem chute valores)
+- Quando tiver conflito de informações entre fontes, priorize: Cosmos > Mercado Livre > Nome do Tiny
+
+⚠️ REGRA DE FORMATAÇÃO — TEXTO PURO:
+- NÃO use markdown em hipótese alguma na descrição
+- NÃO use **asteriscos** pra negrito
+- NÃO use ### ou ## pra cabeçalhos
+- NÃO use --- ou *** como separadores
+- NÃO use \`crase\` pra código
+- NÃO use [texto](link) pra links
+- Use APENAS texto puro com quebras de linha normais, igual o exemplo
+
+⚠️ REGRA DE ESPAÇAMENTO:
+- NÃO coloque linhas em branco dentro de um parágrafo
+- Use UMA linha em branco pra separar parágrafos
+- NÃO quebre uma frase no meio com quebras de linha estranhas
+
+═══ DADOS DO PRODUTO A CADASTRAR ═══
+SKU: ${produto.sku}
+Nome atual no Tiny: ${produto.nome}
+${produto.gtin ? "GTIN/Código de Barras: " + produto.gtin : "GTIN: não cadastrado"}
+${produto.marca ? "Marca no Tiny: " + produto.marca : ""}
+${produto.categoria ? "Categoria Tiny: " + produto.categoria : ""}
+
+${dossieTexto}
+
+═══ USO DA WEB_SEARCH — REGRA CRÍTICA ═══
+Você tem direito a até 3 buscas na web. **USE-AS** sempre que precisar.
+
+PRIORIDADE ABSOLUTA — É OBRIGATÓRIO usar web_search em qualquer um destes casos:
+  1. Se o dossiê NÃO tem altura, largura, comprimento E peso todos preenchidos
+  2. Se o dossiê NÃO tem marca correta (campo vazio)
+  3. Se o nome do produto não está claro (ex: código cifrado tipo "PPR10" sem contexto)
+  4. Se você não conhece bem o produto específico
+
+Exemplos de consultas efetivas:
+  ✅ "Batedeira Mondial Perola 550W 127V dimensões altura largura peso"
+  ✅ "Philco PPR10 prancha cabelo especificações técnicas ficha"
+  ✅ "Frigobar EOS EFB50 medidas mm cm"
+  ✅ "Liquidificador Britânia CH-20 potência capacidade"
+
+Fontes confiáveis pra buscar (prioridade decrescente):
+  1. Site oficial do fabricante (ex: philco.com.br, britania.com.br, mondial.com.br)
+  2. Sites de grandes varejistas com ficha técnica (Magazine Luiza, Americanas, Casas Bahia, Fast Shop, Ponto Frio)
+  3. Mercado Livre (busque "mercadolivre.com.br nome do produto especificações")
+  4. Amazon Brasil (descrições técnicas padronizadas)
+  5. Blogs e reviews técnicos
+
+ESTRATÉGIA RECOMENDADA (pra aproveitar bem as 3 buscas):
+  • Busca 1: "[Marca] [Modelo] especificações técnicas ficha"  ← pega dimensões + potência + voltagem
+  • Busca 2: "[Nome completo do produto] magazine luiza OU americanas"  ← ficha estruturada de varejista
+  • Busca 3: [opcional] buscar algo específico que ficou faltando
+
+NÃO economize buscas! Elas existem pra melhorar a qualidade.
+Uma descrição sem dimensões/marca fica incompleta — o custo da busca vale mais que isso.
+
+═══ EXEMPLO DE DESCRIÇÃO NO ESTILO DA LOJA ═══
+TITULO: Prancha de Cabelo Titanium Chrome Rose Bivolt PPR10 - Philco
+
+DESCRICAO: Prancha de Cabelo Titanium Chrome Rose Bivolt PPR10 - Philco
+
+A Prancha de Cabelo Philco Titanium Chrome Rose Bivolt PPR10 possibilita que você garanta cabelos lisos e modelados da maneira que você deseja.
+De forma prática, rápida e segura. Graças às suas placas de Titânio, que possibilitam um aquecimento mais rápido e uniforme por toda a placa. Garantindo melhor controle de temperatura para os mais variados cabelos, são 5 níveis de calor para você escolher o que melhor lhe atende.
+Além de trazer maior praticidade ergonômica com seu cabo giratório, maior liberdade de torção durante o uso. Seja em cabelos secos ou úmidos. Você contará com os Ions Tourmaline, que reduzirão o frizz e deixarão seus cabelos mais macios e sedosos.
+
+- Placas de titânio
+- Seletor de temperatura
+- 5 temperaturas disponíveis: 150, 170, 190, 210 e 230 graus
+- Display digital
+- Aquecimento com PTC
+- Anel de pendurar
+- Desligamento automático de 1h
+- Trava de fechamento das chapas
+- Pintura de íons tourmaline
+- Cabo emborrachado
+- Cordão giratório
+- Comprimento do cordão de 1,80M
+- Bivolt automático
+- Acompanha bolsa.
+
+Especificações Técnicas:
+Modelo: PPR10
+Marca: Philco
+
+Dimensões
+Altura: 3 cm
+Largura: 3,3 cm
+Comprimento: 33 cm
+Peso: 0,290 Kg
+
+IMPORTANTE:
+Recomendamos que os produtos sejam montados/instalados por profissionais especializados e não nos responsabilizamos pelo mau uso ou montagem/instalação indevida, causando a perda da garantia. Todas as informações divulgadas são de responsabilidade do fabricante/fornecedor. Verifique com os fabricantes do produto e de seus componentes eventuais limitações à utilização de todos os recursos e funcionalidades. Tempo de garantia: 3 meses de garantia legal (consultar se tem mais tempo de garantia) Valor unitário *Imagem ilustrativa Prazo de troca e devolução: 7 dias a partir do recebimento do produto - Lei nº 8.078
+
+═══ ESTRUTURA OBRIGATÓRIA ═══
+
+⚠️ REGRA DO NOME/TÍTULO:
+O nome do produto SEMPRE segue o padrão:
+  [Tipo do produto] [Características] [Modelo] - [MARCA]
+
+Exemplos válidos:
+  ✅ "Prancha de Cabelo Titanium Chrome Rose Bivolt PPR10 - Philco"
+  ✅ "Batedeira Planetária 550W 127V Pérola - Mondial"
+  ✅ "Frigobar Compact 47L 127V Branco EFB50 - EOS"
+  ✅ "Liquidificador 2L 550W L-97 127V Branco - Mondial"
+
+NUNCA escreva:
+  ❌ "Philco Prancha de Cabelo PPR10"  (marca no começo)
+  ❌ "Mondial Batedeira 550W"            (marca no começo)
+  ❌ "Prancha Philco PPR10 - Titanium"   (marca no meio)
+
+A MARCA É SEMPRE O ÚLTIMO ELEMENTO, precedida por " - " (espaço hífen espaço).
+
+⚠️ PRIMEIRA LINHA DA DESCRIÇÃO:
+É IDÊNTICA ao título. Copie o TITULO como primeira linha da DESCRICAO.
+Depois pule uma linha em branco e comece o parágrafo persuasivo.
+
+═══ ORDEM DOS BLOCOS DA DESCRIÇÃO ═══
+1. Primeira linha: nome completo (idêntico ao TITULO, marca no fim)
+2. [linha em branco]
+3. Parágrafo 1: apresentação persuasiva com benefícios principais (use 'você')
+4. Parágrafo 2: detalhamento técnico em linguagem de venda
+5. [linha em branco]
+6. Lista com hífens das principais features (só coloque o que for REAL)
+7. [linha em branco]
+8. "Especificações Técnicas:" com Modelo e Marca (só se souber)
+9. [linha em branco]
+10. "Dimensões" com Altura, Largura, Comprimento, Peso (OMITA os que não souber)
+11. [linha em branco]
+12. "IMPORTANTE:" IDÊNTICO ao exemplo (copie literalmente, sem alterar NADA)
+
+═══ FORMATO DA RESPOSTA ═══
+Responda ESTRITAMENTE neste formato (sem markdown, sem asteriscos, sem separadores):
+
+TITULO: [Tipo] [Características] [Modelo] - [MARCA no final sempre]
+DESCRICAO: [primeira linha idêntica ao TITULO, depois estrutura completa do exemplo]
+
+FONTES: [liste de onde pegou as informações: Cosmos, Web Search, Tiny]
+
+OBSERVAÇÕES PRA REVISÃO: [somente se tiver algo incerto pra o usuário revisar. Não obrigatório.]
+
+IMPORTANTE: O conteúdo DEPOIS de "FONTES:" é pra controle interno. NÃO deve aparecer na descrição que vai pro marketplace.`;
+}
+
+/* ── 4. Renderizar tela de revisão ── */
+function renderizarRevisao(){
+  const cont = document.getElementById("cadListaRevisao");
+  cont.innerHTML = "";
+
+  _cadResultados.forEach((r, idx) => {
+    const div = document.createElement("div");
+    div.className = "cad-rev";
+    div.dataset.idx = idx;
+
+    const statusClass = r.aprovado === true ? "cad-status-ok" :
+                        r.aprovado === false ? "cad-status-err" : "cad-status-warn";
+    const statusTxt = r.aprovado === true ? "APROVADO" :
+                      r.aprovado === false ? "REJEITADO" : "PENDENTE";
+
+    div.innerHTML = `
+      <div class="cad-rev-head" onclick="toggleRev(${idx})">
+        <span class="cad-rev-chevron">▶</span>
+        <span class="cad-rev-sku">${r.sku}</span>
+        <span class="cad-rev-nome">${escapeHtml(r.nomeGerado || r.nomeOriginal)}</span>
+        <span class="cad-rev-status ${statusClass}">${statusTxt}</span>
+      </div>
+      <div class="cad-rev-body">
+        ${r.erro ? `<div style="background:rgba(224,92,92,.1);border:1px solid var(--red);border-radius:8px;padding:10px;margin-bottom:14px;color:var(--red);font-size:12px;">❌ ${escapeHtml(r.erro)}</div>` : ""}
+
+        ${r.fontesUsadas ? `<div style="background:rgba(62,207,178,.08);border:1px solid rgba(62,207,178,.3);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:11px;color:var(--teal);"><strong>📊 Fontes consultadas:</strong> ${escapeHtml(r.fontesUsadas)}</div>` : ""}
+
+        <div class="cad-rev-field">
+          <label>Nome do produto</label>
+          <input type="text" value="${escapeHtml(r.nomeGerado)}" oninput="atualizarRev(${idx}, 'nomeGerado', this.value)">
+        </div>
+
+        <div class="cad-rev-field">
+          <label>Descrição complementar</label>
+          <textarea rows="20" oninput="atualizarRev(${idx}, 'descricaoGerada', this.value)">${escapeHtml(r.descricaoGerada)}</textarea>
+        </div>
+
+        <div class="cad-rev-btns">
+          <button class="cad-btn cad-btn-aprovar" onclick="aprovarRev(${idx})">✓ Aprovar</button>
+          <button class="cad-btn cad-btn-rejeitar" onclick="rejeitarRev(${idx})">✗ Rejeitar</button>
+        </div>
+      </div>
+    `;
+    cont.appendChild(div);
+
+    if(r.aprovado === true) div.classList.add("aprovado");
+    if(r.aprovado === false) div.classList.add("rejeitado");
+  });
+
+  atualizarBotaoPublicar();
+}
+
+function toggleRev(idx){
+  const div = document.querySelector(`.cad-rev[data-idx="${idx}"]`);
+  if(div) div.classList.toggle("open");
+}
+
+function atualizarRev(idx, campo, valor){
+  if(_cadResultados[idx]){
+    _cadResultados[idx][campo] = valor;
+  }
+}
+
+function aprovarRev(idx){
+  _cadResultados[idx].aprovado = true;
+  renderizarRevisao();
+  // Reabre o mesmo card
+  const d = document.querySelector(`.cad-rev[data-idx="${idx}"]`);
+  if(d) d.classList.add("open");
+}
+
+function rejeitarRev(idx){
+  _cadResultados[idx].aprovado = false;
+  renderizarRevisao();
+}
+
+function atualizarBotaoPublicar(){
+  const qtd = _cadResultados.filter(r => r.aprovado === true).length;
+  const btn = document.getElementById("btnPublicar");
+  btn.textContent = `📤 Publicar ${qtd} aprovado(s) no Tiny`;
+  btn.disabled = qtd === 0;
+}
+
+/* ── 5. Publicar aprovados no Tiny ── */
+async function publicarNoTiny(){
+  const aprovados = _cadResultados.filter(r => r.aprovado === true);
+  if(aprovados.length === 0){
+    alert("Nenhum produto aprovado.");
+    return;
+  }
+
+  if(!confirm(`Confirmar publicação de ${aprovados.length} produto(s) no Tiny?\n\nEssa ação atualiza o nome e a descrição dos produtos no Tiny ERP. As imagens NÃO são alteradas.`)){
+    return;
+  }
+
+  document.getElementById("cadSection4").style.display = "none";
+  document.getElementById("cadSection3").style.display = "block";
+
+  const fill = document.getElementById("cadProgFill");
+  const txt = document.getElementById("cadProgTxt");
+  const log = document.getElementById("cadProgLog");
+  log.innerHTML = "";
+  fill.style.width = "0%";
+  fill.textContent = "0%";
+
+  const addLog = (msg, tipo) => {
+    const line = document.createElement("div");
+    if(tipo) line.className = tipo;
+    line.textContent = msg;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  const sucessos = [];
+  const erros = [];
+
+  for(let i = 0; i < aprovados.length; i++){
+    const r = aprovados[i];
+    const pct = Math.round((i / aprovados.length) * 100);
+    fill.style.width = pct + "%";
+    fill.textContent = pct + "%";
+    txt.textContent = `Publicando ${i+1}/${aprovados.length}: ${r.sku}`;
+
+    try{
+      addLog(`📤 Enviando ${r.sku}...`);
+      await publicarProdutoTiny(r);
+      sucessos.push(r);
+      addLog(`✓ ${r.sku} publicado`, "ok");
+
+      // Throttle de 1.5s entre cada publicação
+      if(i < aprovados.length - 1) await new Promise(rs => setTimeout(rs, 1500));
+
+    } catch(e){
+      console.error(`[Publicar Tiny] Erro SKU ${r.sku}:`, e);
+      const msg = e.message || "Erro desconhecido - veja console (F12) pra detalhes";
+      erros.push({ sku: r.sku, motivo: msg });
+      addLog(`✗ ${r.sku}: ${msg}`, "err");
+    }
+  }
+
+  fill.style.width = "100%";
+  fill.textContent = "100%";
+  txt.textContent = "✅ Publicação concluída!";
+
+  await new Promise(r => setTimeout(r, 600));
+
+  // Relatório final
+  const relatorio = document.getElementById("cadRelatorio");
+  relatorio.innerHTML = `
+    <div class="cad-rel-resumo">
+      <div class="cad-rel-box ok">
+        <div class="cad-rel-num">${sucessos.length}</div>
+        <div class="cad-rel-lbl">Publicados</div>
+      </div>
+      <div class="cad-rel-box err">
+        <div class="cad-rel-num">${erros.length}</div>
+        <div class="cad-rel-lbl">Com erro</div>
+      </div>
+      <div class="cad-rel-box">
+        <div class="cad-rel-num">${aprovados.length}</div>
+        <div class="cad-rel-lbl">Total</div>
+      </div>
+    </div>
+
+    ${sucessos.length > 0 ? `
+      <details class="cad-rel-detalhes">
+        <summary>✅ Sucessos (${sucessos.length})</summary>
+        <ul>${sucessos.map(s => `<li>SKU ${s.sku} - ${escapeHtml(s.nomeGerado)}</li>`).join("")}</ul>
+      </details>
+    ` : ""}
+
+    ${erros.length > 0 ? `
+      <details class="cad-rel-detalhes" open>
+        <summary>❌ Erros (${erros.length})</summary>
+        <ul>${erros.map(e => `<li>SKU ${e.sku}: ${escapeHtml(e.motivo)}</li>`).join("")}</ul>
+      </details>
+    ` : ""}
+  `;
+
+  document.getElementById("cadSection3").style.display = "none";
+  document.getElementById("cadSection5").style.display = "block";
+}
+
+/* ── Atualiza um produto no Tiny via produto.alterar.php ──
+   A API do Tiny pede TODOS os campos obrigatórios mesmo em update parcial.
+   Então pegamos o produto completo primeiro e sobrescrevemos só nome + descrição. */
+async function publicarProdutoTiny(resultado){
+  // 1. Busca dados completos atuais do produto (pra preservar campos obrigatórios)
+  const r = await cadChamarTinyAPI("obter_produto", { id: String(resultado.id) });
+  const prodAtual = r?.retorno?.produto;
+  if(!prodAtual){
+    throw new Error("Não foi possível obter dados atuais do produto no Tiny");
+  }
+
+  // 2. Monta payload com TODOS os campos atuais, só sobrescrevendo nome e descrição.
+  // Campos obrigatórios do Tiny: nome, unidade, preco, origem, situacao, tipo
+  const dadosProduto = {
+    sequencia: "1",
+    id: String(resultado.id),
+    // Sobrescreve só os campos que geramos
+    nome: resultado.nomeGerado,
+    descricao_complementar: resultado.descricaoGerada,
+    // Preserva os campos obrigatórios atuais
+    unidade: prodAtual.unidade || "UN",
+    preco: prodAtual.preco || "0",
+    origem: prodAtual.origem || "0",
+    situacao: prodAtual.situacao || "A",
+    tipo: prodAtual.tipo || "P"
+  };
+
+  // Preserva outros campos importantes se existirem (não obrigatórios mas bom manter)
+  const camposOpcionais = [
+    "codigo", "preco_promocional", "ncm", "gtin", "gtin_embalagem",
+    "marca", "peso_liquido", "peso_bruto",
+    "categoria", "anexos", "classe_ipi", "valor_ipi_fixo", "cod_lista_servicos",
+    "descricao_complementar_embedded", "obs"
+  ];
+  camposOpcionais.forEach(campo => {
+    if(prodAtual[campo] !== undefined && prodAtual[campo] !== null && prodAtual[campo] !== ""){
+      // Só preenche se não vamos sobrescrever
+      if(!(campo in dadosProduto)){
+        dadosProduto[campo] = prodAtual[campo];
+      }
+    }
+  });
+
+  const envelope = {
+    produtos: [{ produto: dadosProduto }]
+  };
+
+  const payload = {
+    produto: JSON.stringify(envelope)
+  };
+
+  // 3. Envia alteração
+  const resp = await cadChamarTinyAPI("alterar_produto", payload);
+
+  const retorno = resp?.retorno;
+  if(!retorno){
+    throw new Error("Resposta vazia do Tiny: " + JSON.stringify(resp).substring(0,300));
+  }
+  if(retorno.status === "Erro"){
+    let erros = "";
+    if(Array.isArray(retorno.erros)){
+      erros = retorno.erros.map(e => {
+        if(typeof e === "string") return e;
+        if(e.erro) return e.erro;
+        return JSON.stringify(e);
+      }).join(" | ");
+    } else if(retorno.erros){
+      erros = typeof retorno.erros === "string" ? retorno.erros : JSON.stringify(retorno.erros);
+    }
+    throw new Error(erros || `Status Erro (sem detalhes): ${JSON.stringify(retorno).substring(0,400)}`);
+  }
+
+  // Verifica registros retornados
+  const regs = retorno.registros || [];
+  if(regs.length > 0){
+    const reg = regs[0].registro;
+    if(reg?.status === "Erro"){
+      const msgs = Array.isArray(reg.erros)
+        ? reg.erros.map(e => e.erro || JSON.stringify(e)).join(" | ")
+        : JSON.stringify(reg.erros || reg);
+      throw new Error(msgs);
+    }
+  }
+
+  return retorno;
+}
+
+/* ── Helper: chamada ao proxy Tiny (mesmo formato do index.html) ── */
+async function cadChamarTinyAPI(action, params){
+  const resp = await fetch("/tiny-api", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, token: CAD_TOKEN_TINY, params })
+  });
+  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return await resp.json();
+}
+
+/* ── Helper: escape HTML pra evitar injeção na view ── */
+function escapeHtml(s){
+  if(s === null || s === undefined) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 </script>
 </body>
 </html>

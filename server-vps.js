@@ -181,6 +181,47 @@ expressApp.post('/tiny-api', async (req, res) => {
   } catch(e) { res.json({ erro: e.message }); }
 });
 
+// Proxy Mercado Livre API (pública, sem auth, mas bloqueia navegador por CORS)
+// Aqui no servidor funciona normal. Usado pelo cadastro automático de produtos.
+expressApp.post('/ml-api', async (req, res) => {
+  const { action, params } = req.body || {};
+  try {
+    const https = require('https');
+    let path = '';
+    if(action === 'search_by_gtin'){
+      const gtin = (params?.gtin || '').trim();
+      const limit = params?.limit || 5;
+      if(!gtin) return res.json({ erro: 'GTIN não informado' });
+      path = `/sites/MLB/search?q=${encodeURIComponent(gtin)}&limit=${limit}`;
+    } else if(action === 'search'){
+      const q = (params?.q || '').trim();
+      const limit = params?.limit || 5;
+      if(!q) return res.json({ erro: 'Query não informada' });
+      path = `/sites/MLB/search?q=${encodeURIComponent(q)}&limit=${limit}`;
+    } else {
+      return res.json({ erro: 'Ação inválida: ' + action });
+    }
+    const options = {
+      hostname: 'api.mercadolibre.com',
+      path,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'CAUS Cadastro Automatico/1.0',
+        'Accept': 'application/json'
+      }
+    };
+    const proxyReq = https.request(options, proxyRes => {
+      let data = '';
+      proxyRes.on('data', d => data += d);
+      proxyRes.on('end', () => {
+        try { res.json(JSON.parse(data)); } catch(e) { res.json({ erro: data.substring(0,500) }); }
+      });
+    });
+    proxyReq.on('error', e => res.json({ erro: e.message }));
+    proxyReq.end();
+  } catch(e) { res.json({ erro: e.message }); }
+});
+
 // Histórico de precificação
 expressApp.get('/historico-prec', async (req, res) => {
   try {
