@@ -1,6 +1,6 @@
 {
   "name": "caus-faturas",
-  "version": "1.0.45",
+  "version": "1.0.46",
   "description": "Sistema de Faturas Caus",
   "main": "main.js",
   "scripts": {
@@ -24,11 +24,10 @@
     "asar": false,
     "icon": "build/icon.ico",
     "files": [
-  "main.js",
-  "blindagem.js",
-  "public/**/*",
-  "node_modules/**/*"
-]
+      "main.js",
+      "blindagem.js",
+      "public/**/*",
+      "node_modules/**/*"
     ],
     "directories": {
       "buildResources": "build",
