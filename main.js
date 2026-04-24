@@ -11,6 +11,7 @@ const http = require('http');
 const https = require('https');
 const { Server } = require('socket.io');
 const { MongoClient } = require('mongodb');
+const blindagem = require('./blindagem');
 
 /* ── AUTO-UPDATER ────────────────────────────────────────────── */
 autoUpdater.autoDownload = true;
@@ -131,9 +132,25 @@ const backupDir  = path.join(baseDir, 'FaturasBackup');
 const faturasDir = path.join(baseDir, 'FaturasPDF');
 const precDir    = path.join(baseDir, 'PrecificacaoNFs');
 
+// ── BLINDAGEM (Dia 1): triple write + snapshots + journal ──
+const backupFile     = path.join(baseDir, 'dados.backup.json');
+const emergenciaDir  = path.join(app.getPath('userData'), 'emergencia');
+const emergenciaFile = path.join(emergenciaDir, 'dados.emergencia.json');
+const snapshotsDir   = path.join(baseDir, 'snapshots');
+const journalFile    = path.join(baseDir, 'journal.log');
+
 // Garante que todas as pastas existem ao iniciar
-[baseDir, backupDir, faturasDir, precDir].forEach(p => {
+[baseDir, backupDir, faturasDir, precDir, emergenciaDir, snapshotsDir].forEach(p => {
   if(!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+});
+
+// Inicializa módulo de blindagem
+blindagem.inicializar({
+  saveFile,
+  backupFile,
+  emergenciaFile,
+  snapshotsDir,
+  journalFile,
 });
 
 /* ── MONGODB ─────────────────────────────────────────────────── */
@@ -238,17 +255,21 @@ async function backupDoVPS(motivo = 'auto') {
 }
 
 /* ── CARREGAR DADOS ──────────────────────────────────────────── */
+// Valida se os dados não estão corrompidos (páginas com tamanho muito anormal)
+function dadosValidos(raw) {
+  const arr = Array.isArray(raw) ? raw : (raw.dados || []);
+  const corrompido = arr.length > 0 && arr.some(
+    p => Array.isArray(p) && p.length > 0 && Math.abs(p.length - INPUTS_POR_PAGINA) > 10
+  );
+  return !corrompido;
+}
+
 function carregarDadosLocal() {
-  if (fs.existsSync(saveFile)) {
-    try {
-      const raw = JSON.parse(fs.readFileSync(saveFile, { encoding: 'utf8' }));
-      const arr = Array.isArray(raw) ? raw : (raw.dados || []);
-      const corrompido = arr.length > 0 && arr.some(
-        p => Array.isArray(p) && p.length > 0 && Math.abs(p.length - INPUTS_POR_PAGINA) > 10
-      );
-      if (!corrompido) return raw;
-    } catch { }
-  }
+  // 1. Tenta pelas 3 cópias do triple write (principal → backup → emergência)
+  const dadosBlindagem = blindagem.carregarDadosSeguro();
+  if (dadosBlindagem && dadosValidos(dadosBlindagem)) return dadosBlindagem;
+
+  // 2. Se todas as 3 falharem, tenta os backups antigos da pasta FaturasBackup
   if (fs.existsSync(backupDir)) {
     const backups = fs.readdirSync(backupDir)
       .filter(f => f.startsWith('dados_') && f.endsWith('.json'))
@@ -256,14 +277,17 @@ function carregarDadosLocal() {
     for (const bk of backups) {
       try {
         const raw = JSON.parse(fs.readFileSync(path.join(backupDir, bk), 'utf8'));
-        const arr = Array.isArray(raw) ? raw : (raw.dados || []);
-        const corrompido = arr.length > 0 && arr.some(
-          p => Array.isArray(p) && p.length > 0 && Math.abs(p.length - INPUTS_POR_PAGINA) > 10
-        );
-        if (!corrompido) { fs.writeFileSync(saveFile, JSON.stringify(raw)); return raw; }
+        if (dadosValidos(raw)) {
+          console.log(`[Blindagem] Recuperado de backup antigo: ${bk}`);
+          blindagem.tripleWrite(raw).catch(e => console.error('Erro ao re-gravar:', e));
+          return raw;
+        }
       } catch { continue; }
     }
   }
+
+  // 3. Se absolutamente tudo falhar, retorna vazio
+  console.warn('[Blindagem] Nenhum backup recuperável — iniciando vazio.');
   return {};
 }
 
@@ -335,6 +359,15 @@ async function createWindow() {
   await conectarMongo();
   const mongoData = await carregarDoMongo();
   dados = mongoData || carregarDadosLocal();
+
+  // Snapshot automático a cada 5 min (mantém 48h de histórico)
+  blindagem.iniciarSnapshotAutomatico(5);
+  blindagem.escreverJournal('app-start', {
+    versao: app.getVersion(),
+    mongoConectado: !!db,
+    origem: mongoData ? 'mongo' : 'local',
+  });
+
   // Backup inicial baixando do VPS + a cada 5 minutos
   backupDoVPS('abertura');
   setInterval(() => backupDoVPS('auto'), 5 * 60 * 1000);
@@ -456,20 +489,31 @@ async function createWindow() {
   /* ── Socket.io ── */
   io.on('connection', (socket) => {
     socket.emit('load-data', dados);
+    blindagem.escreverJournal('socket-connect', { socketId: socket.id });
+
     socket.on('update-data', (payload) => {
       dados = payload;
-      // Salva local
-      try { fs.writeFileSync(saveFile, JSON.stringify(dados), { encoding: 'utf8' }); }
-      catch (err) { console.error('Erro ao salvar dados local:', err); }
+      // Triple write (local + backup + emergência) — escrita atômica
+      blindagem.tripleWrite(dados).catch(err => {
+        console.error('[Blindagem] Triple write falhou:', err.message);
+      });
+      blindagem.escreverJournal('update-data', {
+        socketId: socket.id,
+        qtdFaturas: Array.isArray(dados?.dados) ? dados.dados.length : 0,
+      });
       // Salva no MongoDB
       salvarNoMongo(dados);
       io.emit('load-data', dados);
     });
+
     socket.on('reset-all', () => {
       fazerBackup('antes-do-reset');
+      blindagem.tirarSnapshot(); // snapshot de segurança antes de zerar
+      blindagem.escreverJournal('reset-all', { socketId: socket.id });
       dados = {};
-      try { fs.writeFileSync(saveFile, JSON.stringify(dados), { encoding: 'utf8' }); }
-      catch (err) { console.error('Erro ao zerar dados:', err); }
+      blindagem.tripleWrite(dados).catch(err => {
+        console.error('[Blindagem] Triple write (reset) falhou:', err.message);
+      });
       salvarNoMongo(dados);
       io.emit('reset-all');
     });
@@ -622,7 +666,12 @@ Baixando automaticamente...`);
 
 app.whenReady().then(() => createWindow().catch(console.error));
 
-app.on('before-quit', () => backupDoVPS('fechamento'));
+app.on('before-quit', () => {
+  blindagem.escreverJournal('app-quit', { motivo: 'fechamento' });
+  blindagem.pararSnapshotAutomatico();
+  blindagem.tirarSnapshot(); // snapshot final antes de fechar
+  backupDoVPS('fechamento');
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
