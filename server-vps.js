@@ -6,6 +6,7 @@ const http       = require('http');
 const compression = require('compression');
 const { Server } = require('socket.io');
 const { MongoClient } = require('mongodb');
+const saude     = require('./saude');
 
 const MONGO_URI = 'mongodb+srv://renanalbanojr0_db_user:C6HBx39A4MkRBTfl@cluster0.h4o2rnn.mongodb.net/?appName=Cluster0';
 const PORT = 3000;
@@ -118,6 +119,18 @@ expressApp.use((req, res, next) => {
 // Ping para identificação na rede
 expressApp.get('/ping', (req, res) => {
   res.json({ servidor: 'caus-faturas', ok: true, version: '1.0' });
+});
+
+// Endpoint de saúde simples (pra UptimeRobot e curl)
+// HTTP 200 se tudo ok/warn; HTTP 500 se algum check crítico falhou
+expressApp.get('/saude', saude.handlerSaude);
+
+// Endpoint detalhado (JSON completo pro dashboard)
+expressApp.get('/saude/detalhe', saude.handlerDetalhe);
+
+// Dashboard HTML de saúde
+expressApp.get('/admin/saude', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-saude.html'));
 });
 
 // Retorna dados atuais para backup nos PCs
@@ -321,6 +334,14 @@ conectarMongo().then(() => {
       }
     }).catch(e => console.error('[Dados] Erro MongoDB:', e.message));
   }
+
+  // Inicializa módulo de saúde (depois do Mongo pra passar a referência)
+  saude.inicializar({
+    db,
+    io,
+    saveFile,
+    backupDir,
+  });
 });
 
 const porta = PORT;

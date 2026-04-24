@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAUS — Saúde do Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #0d0f0d;
+  --bg-card:    #14181a;
+  --bg-hover:   #1a1f22;
+  --border:     #2a3038;
+  --text:       #e8eaed;
+  --text-dim:   #8b9299;
+  --text-mute:  #5c6370;
+  --accent:     #c8f060;
+  --ok:         #5dd38a;
+  --warn:       #f4c14a;
+  --erro:       #e86060;
+  --mono:       'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+  --sans:       'Space Grotesk', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grão sutil no fundo pra dar profundidade */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(200, 240, 96, 0.04), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(200, 240, 96, 0.03), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo {
+  width: 40px; height: 40px;
+  background: var(--accent);
+  color: #000;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -1px;
+}
+
+.brand h1 {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+}
+
+.brand-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+.refresh-info {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.refresh-info .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* ── STATUS GERAL (banner grande) ── */
+.status-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-banner::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--text-mute);
+  transition: background 0.3s;
+}
+
+.status-banner[data-status="ok"]::before   { background: var(--ok); }
+.status-banner[data-status="warn"]::before { background: var(--warn); }
+.status-banner[data-status="erro"]::before { background: var(--erro); }
+
+.status-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.status-valor {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.status-banner[data-status="ok"]   .status-valor { color: var(--ok); }
+.status-banner[data-status="warn"] .status-valor { color: var(--warn); }
+.status-banner[data-status="erro"] .status-valor { color: var(--erro); }
+
+.status-timestamp {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.status-timestamp strong {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ── GRID DOS CHECKS ── */
+.checks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.check-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.check-card:hover {
+  transform: translateY(-2px);
+  border-color: #3a434d;
+}
+
+.check-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.check-nome {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.check-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.check-badge[data-status="ok"] {
+  background: rgba(93, 211, 138, 0.15);
+  color: var(--ok);
+  border: 1px solid rgba(93, 211, 138, 0.3);
+}
+.check-badge[data-status="warn"] {
+  background: rgba(244, 193, 74, 0.15);
+  color: var(--warn);
+  border: 1px solid rgba(244, 193, 74, 0.3);
+}
+.check-badge[data-status="erro"] {
+  background: rgba(232, 96, 96, 0.15);
+  color: var(--erro);
+  border: 1px solid rgba(232, 96, 96, 0.3);
+}
+
+.check-detalhes {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.check-detalhes .linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.check-detalhes .chave {
+  color: var(--text-mute);
+}
+
+.check-detalhes .valor {
+  color: var(--text);
+  text-align: right;
+  word-break: break-all;
+}
+
+.check-detalhes .valor.alerta { color: var(--warn); }
+.check-detalhes .valor.erro   { color: var(--erro); }
+
+/* ── FOOTER ── */
+footer {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 14px;
+}
+
+.footer-actions button,
+.footer-actions a {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.footer-actions button:hover,
+.footer-actions a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── LOADING / ERRO ── */
+.msg-loading, .msg-erro {
+  text-align: center;
+  padding: 80px 20px;
+  font-family: var(--mono);
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.msg-loading::before {
+  content: "";
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 10px;
+  animation: pulse 1s infinite;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .container { padding: 20px 14px 40px; }
+  .status-banner { padding: 20px; flex-direction: column; align-items: flex-start; }
+  .status-timestamp { text-align: left; }
+  .status-valor { font-size: 22px; }
+  .checks-grid { grid-template-columns: 1fr; }
+  .brand h1 { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="brand-logo">CF</div>
+      <div>
+        <h1>CAUS Faturas</h1>
+        <div class="brand-sub">system health monitor</div>
+      </div>
+    </div>
+    <div class="refresh-info">
+      <span class="dot"></span>
+      <span>Atualiza a cada <strong id="refresh-seconds">30</strong>s</span>
+    </div>
+  </header>
+
+  <div id="conteudo">
+    <div class="msg-loading">Carregando status do sistema...</div>
+  </div>
+</div>
+
+<script>
+// ── Nomes amigáveis dos checks ──
+const LABELS = {
+  servidor:      'Servidor Node',
+  mongodb:       'MongoDB Atlas',
+  disco:         'Disco do VPS',
+  dadosArquivo:  'Arquivo de Dados',
+  backupsLocais: 'Backups Locais (VPS)',
+  backupGoogle:  'Backup Google Drive',
+  socketClients: 'Clientes Socket.io',
+};
+
+// ── Formatadores por check (transformam chaves em labels legíveis) ──
+const FORMATTERS = {
+  servidor: (d) => [
+    ['Uptime', d.uptime],
+    ['Node', d.nodeVersion],
+    ['PID', d.pid],
+    ['RAM (RSS)', d.memoria?.rss],
+    ['Heap', `${d.memoria?.heapUsed} / ${d.memoria?.heapTotal}`],
+  ],
+  mongodb: (d) => [
+    ['Conectado', d.conectado ? 'sim' : 'não'],
+    ['Latência', d.latenciaMs != null ? d.latenciaMs + 'ms' : '—'],
+    d.erro ? ['Erro', d.erro, 'erro'] : null,
+  ],
+  disco: (d) => [
+    ['Total', d.total],
+    ['Usado', d.usado],
+    ['Livre', d.livre],
+    ['% Usado', d.percentUsado != null ? d.percentUsado + '%' : '—',
+      d.percentUsado >= 90 ? 'erro' : d.percentUsado >= 75 ? 'alerta' : null],
+    d.erro ? ['Erro', d.erro, 'erro'] : null,
+  ],
+  dadosArquivo: (d) => [
+    ['Tamanho', d.tamanho],
+    ['Faturas', d.qtdFaturas != null ? d.qtdFaturas + ' páginas' : '—'],
+    ['Conferidas', d.qtdConferidas != null ? d.qtdConferidas + ' faturas' : '—'],
+    ['Vias de cliente', d.qtdViasCliente != null ? d.qtdViasCliente + ' registros' : '—'],
+    ['Última modif.', d.horasDesdeModificacao != null ? d.horasDesdeModificacao + 'h atrás' : '—'],
+    d.erro ? ['Erro', d.erro, 'erro'] : null,
+  ],
+  backupsLocais: (d) => [
+    ['Quantidade', d.quantidade != null ? d.quantidade + ' arquivos' : '—'],
+    ['Mais recente', d.maisRecente],
+    ['Idade', d.horasDesdeUltimo != null ? d.horasDesdeUltimo + 'h atrás' : '—',
+      d.horasDesdeUltimo > 72 ? 'erro' : d.horasDesdeUltimo > 24 ? 'alerta' : null],
+    d.erro ? ['Erro', d.erro, 'erro'] : null,
+  ],
+  backupGoogle: (d) => [
+    ['Último run', d.ultimoRun ? new Date(d.ultimoRun).toLocaleString('pt-BR') : '—'],
+    ['Idade', d.horasDesdeUltimo != null ? d.horasDesdeUltimo + 'h atrás' : '—',
+      d.horasDesdeUltimo > 60 ? 'erro' : d.horasDesdeUltimo > 36 ? 'alerta' : null],
+    ['Sucesso', d.sucesso != null ? (d.sucesso ? 'sim' : 'não') : '—'],
+    d.erro ? ['Aviso', d.erro, 'alerta'] : null,
+  ],
+  socketClients: (d) => [
+    ['Conectados', d.conectados != null ? d.conectados + ' cliente(s)' : '—'],
+    d.erro ? ['Erro', d.erro, 'erro'] : null,
+  ],
+};
+
+const STATUS_TXT = {
+  ok:   'Todos os sistemas operacionais',
+  warn: 'Atenção necessária',
+  erro: 'Falha crítica detectada',
+};
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+
+function renderCheck(nome, check) {
+  const label = LABELS[nome] || nome;
+  const formatter = FORMATTERS[nome];
+  const linhas = formatter
+    ? formatter(check.detalhes || {}).filter(Boolean)
+    : Object.entries(check.detalhes || {}).map(([k, v]) => [k, v]);
+
+  const linhasHtml = linhas.map(([chave, valor, classe]) => `
+    <div class="linha">
+      <span class="chave">${escapeHtml(chave)}</span>
+      <span class="valor ${classe || ''}">${escapeHtml(valor ?? '—')}</span>
+    </div>`).join('');
+
+  return `
+    <div class="check-card">
+      <div class="check-header">
+        <div class="check-nome">${escapeHtml(label)}</div>
+        <div class="check-badge" data-status="${check.status}">${check.status}</div>
+      </div>
+      <div class="check-detalhes">${linhasHtml}</div>
+    </div>`;
+}
+
+function render(data) {
+  const banner = `
+    <div class="status-banner" data-status="${data.statusGeral}">
+      <div>
+        <div class="status-label">Status Geral</div>
+        <div class="status-valor">${STATUS_TXT[data.statusGeral] || data.statusGeral}</div>
+      </div>
+      <div class="status-timestamp">
+        <strong>${new Date(data.verificadoEm).toLocaleTimeString('pt-BR')}</strong>
+        ${new Date(data.verificadoEm).toLocaleDateString('pt-BR')}
+      </div>
+    </div>`;
+
+  const ordemChecks = ['servidor', 'mongodb', 'disco', 'dadosArquivo',
+                       'backupsLocais', 'backupGoogle', 'socketClients'];
+
+  const cards = ordemChecks
+    .filter(k => data.checks[k])
+    .map(k => renderCheck(k, data.checks[k]))
+    .join('');
+
+  const grid = `<div class="checks-grid">${cards}</div>`;
+
+  const footer = `
+    <footer>
+      <div>CAUS Faturas // Health Monitor v1.0</div>
+      <div class="footer-actions">
+        <button onclick="atualizar()">Atualizar agora</button>
+        <a href="/saude" target="_blank">JSON /saude</a>
+        <a href="/saude/detalhe" target="_blank">JSON detalhado</a>
+      </div>
+    </footer>`;
+
+  document.getElementById('conteudo').innerHTML = banner + grid + footer;
+}
+
+async function atualizar() {
+  try {
+    const r = await fetch('/saude/detalhe', { cache: 'no-store' });
+    const data = await r.json();
+    render(data);
+  } catch (e) {
+    document.getElementById('conteudo').innerHTML = `
+      <div class="msg-erro">
+        <div style="color:var(--erro);font-weight:700;margin-bottom:8px;">ERRO AO CONSULTAR</div>
+        <div>${escapeHtml(e.message)}</div>
+      </div>`;
+  }
+}
+
+// Auto-refresh a cada 30s
+atualizar();
+setInterval(atualizar, 30000);
+</script>
+</body>
+</html>
