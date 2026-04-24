@@ -343,7 +343,7 @@ function sendJSON(res, code, obj) {
 }
 
 /* ── CRIAR JANELA PRINCIPAL ──────────────────────────────────── */
-const VPS_URL = 'http://187.124.93.190:3000';
+const VPS_URL = 'https://appcaus.com.br';
 
 async function createWindow() {
   // Limpa cache do Electron ao abrir - evita ter que dar Ctrl+Shift+R pra ver atualizações do VPS

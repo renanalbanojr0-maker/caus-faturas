@@ -1,2 +1,11 @@
-﻿node_modules/
+node_modules/
 dist/
+backup-backblaze.js
+.env
+.env.local
+oauth-credentials.json
+token-drive.json
+google-credentials.json
+*.log
+.DS_Store
+Thumbs.db
