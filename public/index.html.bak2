@@ -753,288 +753,6 @@ margin-bottom:14px;outline:none;font-family:inherit;
 .modal-confirmar{background:#0d6efd;}
 .modal-cancelar{background:#888;}
 
-/* ════════════════════════════════════════════════════════════════
-   ESTILOS DEDICADOS — USUÁRIOS (modal + indicador na topbar)
-   ════════════════════════════════════════════════════════════════ */
-
-/* Modal de gestão de usuários — maior, com tipografia melhor */
-.modal-usuarios-box{
-  background:#fff;
-  border-radius:16px;
-  padding:32px 32px 24px;
-  width:620px;
-  max-width:96vw;
-  box-shadow:0 24px 64px rgba(0,0,0,.35);
-  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-}
-.modal-usuarios-box h3{
-  margin:0 0 6px;
-  font-size:22px;
-  color:#1a1a1a;
-  font-weight:700;
-  letter-spacing:-0.02em;
-  display:flex;align-items:center;gap:10px;
-}
-.modal-usuarios-sub{
-  font-size:13px;
-  color:#666;
-  margin-bottom:20px;
-}
-
-/* Tabela de usuários */
-.tabela-usuarios{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  font-size:14px;
-  font-family:inherit;
-}
-.tabela-usuarios thead tr{
-  background:#f8fafc;
-}
-.tabela-usuarios th{
-  text-align:left;
-  padding:14px 18px;
-  font-size:13px;
-  font-weight:700;
-  color:#475569;
-  text-transform:uppercase;
-  letter-spacing:0.05em;
-  border-bottom:1px solid #e2e8f0;
-}
-.tabela-usuarios th:last-child{text-align:right;}
-.tabela-usuarios td{
-  padding:16px 18px;
-  border-bottom:1px solid #f1f5f9;
-  color:#1f2937;
-  vertical-align:middle;
-}
-.tabela-usuarios tbody tr:last-child td{border-bottom:none;}
-.tabela-usuarios tbody tr:hover{background:#fafbfc;}
-
-.user-nome{
-  font-weight:600;
-  color:#0f172a;
-  font-size:15px;
-  text-transform:capitalize;
-}
-.user-tag{
-  display:inline-block;
-  margin-left:6px;
-  padding:3px 10px;
-  border-radius:99px;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:0.03em;
-  vertical-align:middle;
-}
-.user-tag.eu{background:#dbeafe;color:#1e40af;}
-.user-tag.master{background:#f3e8ff;color:#7c3aed;}
-
-.user-role{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 12px;
-  border-radius:8px;
-  font-size:13px;
-  font-weight:600;
-  letter-spacing:0.01em;
-}
-.user-role.admin{background:#f3e8ff;color:#7c3aed;}
-.user-role.comum{background:#f1f5f9;color:#475569;}
-
-.user-data{color:#64748b;font-size:14px;}
-
-.btn-excluir-user{
-  background:#fee2e2;
-  color:#dc2626;
-  border:1px solid #fecaca;
-  border-radius:8px;
-  padding:7px 14px;
-  cursor:pointer;
-  font-size:13px;
-  font-weight:600;
-  font-family:inherit;
-  transition:all .15s;
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-}
-.btn-excluir-user:hover{background:#fca5a5;color:#fff;border-color:#fca5a5;}
-.user-protegido{
-  color:#94a3b8;
-  font-size:13px;
-  font-style:italic;
-}
-
-.lista-usuarios-vazia{
-  padding:48px 20px;
-  text-align:center;
-  color:#94a3b8;
-  font-size:14px;
-  font-family:inherit;
-}
-.lista-usuarios-loading{
-  padding:48px 20px;
-  text-align:center;
-  color:#64748b;
-  font-size:13px;
-  font-family:inherit;
-}
-
-/* Container da lista — borda externa */
-.lista-usuarios-wrap{
-  border:1px solid #e2e8f0;
-  border-radius:12px;
-  overflow:hidden;
-  margin-bottom:18px;
-  max-height:340px;
-  overflow-y:auto;
-}
-
-/* Form de criar usuário */
-.form-novo-usuario{
-  background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border:1px solid #e2e8f0;
-  padding:20px 22px;
-  border-radius:12px;
-  margin-bottom:18px;
-  font-family:inherit;
-}
-.form-novo-usuario h4{
-  margin:0 0 14px;
-  font-size:15px;
-  color:#1e293b;
-  font-weight:700;
-  display:flex;align-items:center;gap:8px;
-}
-.form-novo-usuario label{
-  display:block;
-  font-size:12px;
-  font-weight:600;
-  color:#475569;
-  margin-bottom:5px;
-  text-transform:uppercase;
-  letter-spacing:0.04em;
-}
-.form-novo-usuario input,
-.form-novo-usuario select{
-  width:100%;
-  box-sizing:border-box;
-  padding:10px 12px;
-  border:1.5px solid #cbd5e1;
-  border-radius:8px;
-  font-size:14px;
-  margin-bottom:14px;
-  outline:none;
-  font-family:inherit;
-  background:#fff;
-  transition:border-color .15s;
-}
-.form-novo-usuario input:focus,
-.form-novo-usuario select:focus{
-  border-color:#7c3aed;
-  box-shadow:0 0 0 3px rgba(124,58,237,.1);
-}
-.form-novo-usuario .erro-form{
-  color:#dc2626;
-  font-size:13px;
-  font-weight:600;
-  margin-bottom:10px;
-  display:none;
-  padding:8px 12px;
-  background:#fef2f2;
-  border-radius:6px;
-  border-left:3px solid #dc2626;
-}
-.form-novo-usuario .form-btns{
-  display:flex;
-  gap:10px;
-}
-.form-novo-usuario .form-btns button{
-  flex:1;
-  padding:10px 14px;
-  border:none;
-  border-radius:8px;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  font-family:inherit;
-  transition:all .15s;
-}
-.btn-criar-user{background:#7c3aed;color:#fff;}
-.btn-criar-user:hover{background:#6d28d9;}
-.btn-cancelar-form{background:#fff;color:#64748b;border:1px solid #cbd5e1!important;}
-.btn-cancelar-form:hover{background:#f1f5f9;}
-
-/* Botões do modal */
-.modal-usuarios-actions{
-  display:flex;
-  gap:10px;
-  justify-content:space-between;
-  padding-top:6px;
-}
-.modal-usuarios-actions button{
-  padding:10px 18px;
-  border:none;
-  border-radius:8px;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  font-family:inherit;
-  transition:all .15s;
-}
-.btn-fechar-modal{background:#f1f5f9;color:#475569;}
-.btn-fechar-modal:hover{background:#e2e8f0;}
-.btn-novo-user{background:#7c3aed;color:#fff;display:flex;align-items:center;gap:6px;}
-.btn-novo-user:hover{background:#6d28d9;}
-
-/* Indicador de usuário logado na topbar (topbar é escura) */
-.user-indicador{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-left:auto;
-  padding:6px 14px;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:99px;
-  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-}
-.user-indicador-nome{
-  font-size:14px;
-  font-weight:600;
-  color:#fff;
-  text-transform:capitalize;
-}
-.user-indicador-role{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  padding:4px 10px;
-  border-radius:99px;
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:0.02em;
-}
-.user-indicador-role.admin{background:#f3e8ff;color:#7c3aed;}
-.user-indicador-role.comum{background:#dbeafe;color:#1e40af;}
-
-.btn-sair{
-  background:rgba(254,226,226,.95);
-  color:#dc2626;
-  border:1px solid rgba(254,202,202,.5);
-  border-radius:99px;
-  padding:6px 14px;
-  font-size:12px;
-  font-weight:700;
-  cursor:pointer;
-  font-family:inherit;
-  transition:all .15s;
-}
-.btn-sair:hover{background:#dc2626;color:#fff;border-color:#dc2626;}
-
 @media print{
 .topbar{display:none!important;}
 .lista-clientes{display:none!important;}
@@ -1472,12 +1190,7 @@ input:focus, textarea:focus{
 <button class="btnGreen" onclick="gerarPDF()">Gerar PDF</button>
 <button class="btnBlue" onclick="abrirModalEditar()" id="btnEditar" style="background:#e67e22;">✏️ Editar</button>
 <button class="btnGreen" onclick="abrirModalConferencia()" id="btnConferencia" style="background:#198754;">🔍 Conferência</button>
-<button class="btnBlue" onclick="abrirModalUsuarios()" id="btnUsuarios" style="background:#6f42c1;">👥 Usuários</button>
-<button class="btnGray" onclick="abrirModalReset()" id="btnZerar" style="background:#c0392b;">🗑 Zerar Tudo</button>
-<span id="usuarioLogadoIndic" class="user-indicador">
-  <span id="usuarioLogadoTexto"></span>
-  <button class="btn-sair" onclick="fazerLogout()" id="btnLogout">🚪 Sair</button>
-</span>
+<button class="btnGray" onclick="abrirModalReset()" style="background:#c0392b;">🗑 Zerar Tudo</button>
 <div class="status" id="statusFatura"></div>
 <div class="sync-indicator">
   <div class="sync-dot disconnected" id="syncDot"></div>
@@ -1615,43 +1328,6 @@ input:focus, textarea:focus{
     <div class="modal-btns">
       <button class="modal-cancelar" onclick="fecharModalReset()">Cancelar</button>
       <button class="modal-confirmar" style="background:#c0392b;" onclick="confirmarReset()">Zerar Tudo</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de gestão de usuários (só admin) -->
-<div class="modal-overlay" id="modalUsuarios">
-  <div class="modal-usuarios-box">
-    <h3>👥 Gerenciar Usuários</h3>
-    <p class="modal-usuarios-sub">Crie, visualize e remova usuários do sistema. Apenas admins têm acesso a esta tela.</p>
-
-    <!-- Tabela de usuários cadastrados -->
-    <div class="lista-usuarios-wrap" id="usuariosLista">
-      <div class="lista-usuarios-loading">Carregando...</div>
-    </div>
-
-    <!-- Formulário de novo usuário (colapsável) -->
-    <div class="form-novo-usuario" id="formNovoUsuario" style="display:none;">
-      <h4>➕ Criar novo usuário</h4>
-      <label>Usuário</label>
-      <input type="text" id="novoUsuario" placeholder="ex: funcionario1" autocomplete="off">
-      <label>Senha (mín. 4 caracteres)</label>
-      <input type="password" id="novoSenha" placeholder="senha" autocomplete="new-password">
-      <label>Permissão</label>
-      <select id="novoRole">
-        <option value="comum">Comum</option>
-        <option value="admin">Admin</option>
-      </select>
-      <div class="erro-form" id="novoErro"></div>
-      <div class="form-btns">
-        <button class="btn-cancelar-form" onclick="fecharFormNovoUsuario()">Cancelar</button>
-        <button class="btn-criar-user" onclick="criarUsuario()">Criar usuário</button>
-      </div>
-    </div>
-
-    <div class="modal-usuarios-actions">
-      <button class="btn-fechar-modal" onclick="fecharModalUsuarios()">Fechar</button>
-      <button class="btn-novo-user" id="btnAbrirFormUsuario" onclick="abrirFormNovoUsuario()">+ Novo usuário</button>
     </div>
   </div>
 </div>
@@ -2191,8 +1867,7 @@ function confirmarReset(){
     if(u === USUARIO_EDIT && s === SENHA_EDIT){
         fecharModalReset();
         // Envia reset para o servidor — propaga para TODOS os dispositivos
-        // Inclui o usuário logado pra auditoria saber quem zerou
-        socket.emit("reset-all", { usuario: sessaoAtual?.usuario || u });
+        socket.emit("reset-all");
     } else {
         document.getElementById("resetErro").style.display = "block";
         document.getElementById("resetSenha").value = "";
@@ -2246,11 +1921,9 @@ function confirmarConferencia(){
         return;
     }
     const jaConferida = conferidas.find(c => c.indice === faturaAtual);
-    const numeroFatura = String(faturaInicial + faturaAtual).padStart(6,"0");
     if(jaConferida){
         // Desconferir → remove do array
         conferidas = conferidas.filter(c => c.indice !== faturaAtual);
-        registrarAuditoriaFront("desconferir-fatura", { numero: numeroFatura, indice: faturaAtual });
     } else {
         // Conferir → adiciona ao array com data atual
         const hoje = new Date();
@@ -2260,7 +1933,6 @@ function confirmarConferencia(){
             usuario: u,
             data: dataStr
         });
-        registrarAuditoriaFront("conferir-fatura", { numero: numeroFatura, indice: faturaAtual });
     }
     // Atualiza a marca visual na página
     atualizarMarcaConferencia(faturaAtual);
@@ -4544,8 +4216,6 @@ async function finalizarFatura(){
     }
 
     finalizadas.push(faturaAtual);
-    // Registra na auditoria
-    registrarAuditoriaFront("finalizar-fatura", { numero, indice: faturaAtual });
     // Se estiver em modo Via de Cliente, garante que os valores estão salvos
     if(isViaClienteAtiva(faturaAtual)){
         atualizarDadosViaClienteAtual();
@@ -5150,9 +4820,6 @@ function ativarEdicao(){
     modoEdicao = true;
     document.getElementById("btnEditar").textContent = "🔓 Bloqueando...";
     document.getElementById("btnEditar").style.background = "#27ae60";
-    // Registra na auditoria
-    const numeroFatura = String(faturaInicial + faturaAtual).padStart(6,"0");
-    registrarAuditoriaFront("editar-fatura", { numero: numeroFatura, indice: faturaAtual });
     // Libera inputs apenas de fatura finalizada
     const campos = pages[faturaAtual].querySelectorAll("input, textarea.discArea");
     campos.forEach(inp => {
@@ -5301,49 +4968,9 @@ function abrirCalculadora(){
   window.open('/calculadora-nf.html', '_blank');
 }
 
-/* ════════════════════════════════════════════════════════════════
-   SISTEMA DE LOGIN E SESSÃO
-   ════════════════════════════════════════════════════════════════
-   Versão nova: chama /auth/login no servidor (banco MongoDB com bcrypt).
-   Mantém site/dev como FALLBACK por 30 dias pra transição segura.
-   Sessão salva em localStorage (não expira até logout manual).
-   ════════════════════════════════════════════════════════════════ */
-
-// Chave do localStorage onde guardamos a sessão
-const SESSAO_KEY = "caus_sessao";
-
-// Fallback: aceita site/dev se o backend não responder ou rejeitar
-// Remover depois de 30 dias quando todos os usuários migrarem
-const FALLBACK_USUARIO = "site";
-const FALLBACK_SENHA   = "dev";
-
-// Estado da sessão atual (carregado do localStorage)
-let sessaoAtual = null;
-
-function carregarSessao() {
-  try {
-    const raw = localStorage.getItem(SESSAO_KEY);
-    if(!raw) return null;
-    return JSON.parse(raw);
-  } catch(e) {
-    return null;
-  }
-}
-
-function salvarSessao(sessao) {
-  try {
-    localStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
-    sessaoAtual = sessao;
-  } catch(e) {
-    console.warn("[Sessão] Falha ao salvar:", e);
-  }
-}
-
-function limparSessao() {
-  localStorage.removeItem(SESSAO_KEY);
-  sessionStorage.removeItem("logado"); // limpa fallback antigo também
-  sessaoAtual = null;
-}
+/* ── LOGIN DE ACESSO ── */
+const LOGIN_USUARIO = "site";
+const LOGIN_SENHA   = "dev";
 
 function entrarNoSistema(){
   document.getElementById("telaLogin").style.display = "none";
@@ -5362,347 +4989,25 @@ function entrarNoSistema(){
   renderizarTodasMarcas();
   aplicarViaClienteEmTodasPaginas();
   mostrarFatura();
-  // Aplica permissões da role do usuário (esconde botões pro funcionário comum)
-  if(typeof aplicarPermissoesUI === "function") aplicarPermissoesUI();
 }
 
-async function fazerLogin(){
+function fazerLogin(){
   const u = document.getElementById("loginUser").value.trim();
   const s = document.getElementById("loginPass").value.trim();
   const erro = document.getElementById("loginErroMsg");
-  const btn = document.querySelector("#telaLogin button[onclick*='fazerLogin']");
-
-  if(!u || !s){
-    if(erro){ erro.textContent = "Digite usuário e senha"; erro.style.display = "block"; }
-    return;
-  }
-
-  // Desabilita botão durante o login pra evitar duplo-clique
-  if(btn){ btn.disabled = true; btn.dataset.originalText = btn.textContent; btn.textContent = "Entrando..."; }
-
-  try {
-    // Tenta login no servidor
-    let loginOk = false;
-    let sessaoNova = null;
-
-    try {
-      const resp = await fetch("/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario: u, senha: s })
-      });
-      const j = await resp.json();
-      if(j.ok && j.token){
-        loginOk = true;
-        sessaoNova = {
-          token: j.token,
-          usuario: j.usuario,
-          role: j.role,
-          loginEm: new Date().toISOString(),
-        };
-      }
-    } catch(e) {
-      // Servidor offline ou erro de rede — vamos pro fallback
-      console.warn("[Login] Servidor indisponível, tentando fallback:", e.message);
-    }
-
-    // Fallback: aceita site/dev por 30 dias durante transição
-    if(!loginOk && u === FALLBACK_USUARIO && s === FALLBACK_SENHA){
-      loginOk = true;
-      sessaoNova = {
-        token: null, // sem token de servidor
-        usuario: "site",
-        role: "admin", // fallback é admin pra não trancar ninguém
-        loginEm: new Date().toISOString(),
-        fallback: true,
-      };
-    }
-
-    if(loginOk && sessaoNova){
-      salvarSessao(sessaoNova);
-      sessionStorage.setItem("logado", "1"); // mantém compat
-      if(erro) erro.style.display = "none";
-      entrarNoSistema();
-    } else {
-      if(erro){
-        erro.textContent = "Usuário ou senha inválidos";
-        erro.style.display = "block";
-      }
-      document.getElementById("loginPass").value = "";
-      document.getElementById("loginPass").focus();
-    }
-  } finally {
-    // Reabilita o botão sempre
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = btn.dataset.originalText || "Entrar";
-    }
-  }
-}
-
-/* Faz logout: limpa sessão e volta pra tela de login */
-async function fazerLogout(){
-  if(!confirm("Tem certeza que deseja sair?")) return;
-  // Tenta avisar o servidor (opcional, não bloqueia se falhar)
-  if(sessaoAtual?.token){
-    try {
-      await fetch("/auth/logout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: sessaoAtual.token })
-      });
-    } catch(e) {
-      // Ignora — logout local sempre funciona
-    }
-  }
-  limparSessao();
-  // Recarrega pra ir limpo pra tela de login
-  location.reload();
-}
-
-/* Retorna true se o usuário logado tem permissão pra ação X.
-   Hoje só temos 2 roles: admin (tudo) e comum (limitado). */
-function temPermissao(acao){
-  const role = sessaoAtual?.role || "comum";
-  // Admin pode tudo
-  if(role === "admin") return true;
-  // Funcionário comum NÃO pode: zerar, conferência, editar arquivada
-  const acoesAdminOnly = ["zerar", "conferencia", "editar"];
-  return !acoesAdminOnly.includes(acao);
-}
-
-/* Registra evento de auditoria no servidor.
-   Falha silenciosa — não bloqueia a UI se o servidor não responder. */
-async function registrarAuditoriaFront(acao, detalhes = {}){
-  try {
-    await fetch("/auditoria/registrar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: sessaoAtual?.token,
-        usuarioFallback: sessaoAtual?.usuario || "desconhecido",
-        acao: acao,
-        detalhes: detalhes,
-      })
-    });
-  } catch(e) {
-    // Falha silenciosa — auditoria não bloqueia a operação principal
-    console.warn("[Auditoria] Falha ao registrar:", e.message);
-  }
-}
-
-/* ════════════════════════════════════════════════════════════════
-   MODAL DE GESTÃO DE USUÁRIOS (apenas admin)
-   ════════════════════════════════════════════════════════════════ */
-
-async function abrirModalUsuarios(){
-  // Só admin pode abrir
-  if(!sessaoAtual || sessaoAtual.role !== "admin"){
-    alert("Apenas administradores podem gerenciar usuários.");
-    return;
-  }
-  document.getElementById("modalUsuarios").classList.add("ativo");
-  document.getElementById("formNovoUsuario").style.display = "none";
-  document.getElementById("btnAbrirFormUsuario").style.display = "inline-block";
-  await listarUsuarios();
-}
-
-function fecharModalUsuarios(){
-  document.getElementById("modalUsuarios").classList.remove("ativo");
-}
-
-function abrirFormNovoUsuario(){
-  document.getElementById("formNovoUsuario").style.display = "block";
-  document.getElementById("btnAbrirFormUsuario").style.display = "none";
-  document.getElementById("novoUsuario").value = "";
-  document.getElementById("novoSenha").value = "";
-  document.getElementById("novoRole").value = "comum";
-  document.getElementById("novoErro").style.display = "none";
-  setTimeout(() => document.getElementById("novoUsuario").focus(), 100);
-}
-
-function fecharFormNovoUsuario(){
-  document.getElementById("formNovoUsuario").style.display = "none";
-  document.getElementById("btnAbrirFormUsuario").style.display = "inline-block";
-}
-
-async function listarUsuarios(){
-  const lista = document.getElementById("usuariosLista");
-  lista.innerHTML = `<div class="lista-usuarios-loading">⏳ Carregando usuários...</div>`;
-
-  try {
-    const resp = await fetch("/auth/listar-usuarios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: sessaoAtual?.token })
-    });
-    const j = await resp.json();
-    if(!j.ok){
-      lista.innerHTML = `<div class="lista-usuarios-vazia" style="color:#dc2626;">⚠️ Erro: ${escapeHtmlSimples(j.erro || "desconhecido")}</div>`;
-      return;
-    }
-    const usuarios = j.usuarios || [];
-    if(usuarios.length === 0){
-      lista.innerHTML = `<div class="lista-usuarios-vazia">Nenhum usuário cadastrado.</div>`;
-      return;
-    }
-
-    let html = `<table class="tabela-usuarios">
-      <thead>
-        <tr>
-          <th>Usuário</th>
-          <th>Permissão</th>
-          <th>Criado em</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-    for(const u of usuarios){
-      const isAdmin = u.role === "admin";
-      const isMaster = u.usuario === "renan";
-      const isMe = u.usuario === sessaoAtual?.usuario;
-      const dataStr = u.criadoEm ? new Date(u.criadoEm).toLocaleDateString("pt-BR") : "—";
-
-      let tags = "";
-      if(isMe) tags += `<span class="user-tag eu">você</span>`;
-      if(isMaster) tags += `<span class="user-tag master">master</span>`;
-
-      html += `<tr>
-        <td>
-          <span class="user-nome">${escapeHtmlSimples(u.usuario)}</span>${tags}
-        </td>
-        <td>
-          <span class="user-role ${isAdmin ? 'admin' : 'comum'}">
-            ${isAdmin ? '👑 Admin' : '👤 Comum'}
-          </span>
-        </td>
-        <td><span class="user-data">${dataStr}</span></td>
-        <td style="text-align:right;">`;
-      if(isMaster || isMe){
-        html += `<span class="user-protegido">protegido</span>`;
-      } else {
-        html += `<button class="btn-excluir-user" onclick="excluirUsuario('${escapeHtmlSimples(u.usuario)}')">
-          🗑 Excluir
-        </button>`;
-      }
-      html += `</td></tr>`;
-    }
-    html += `</tbody></table>`;
-    lista.innerHTML = html;
-  } catch(e) {
-    lista.innerHTML = `<div class="lista-usuarios-vazia" style="color:#dc2626;">⚠️ Erro de rede: ${escapeHtmlSimples(e.message)}</div>`;
-  }
-}
-
-async function criarUsuario(){
-  const usuario = document.getElementById("novoUsuario").value.trim();
-  const senha = document.getElementById("novoSenha").value.trim();
-  const role = document.getElementById("novoRole").value;
-  const erro = document.getElementById("novoErro");
-
-  if(!usuario || !senha){
-    erro.textContent = "Usuário e senha são obrigatórios";
+  if(u === LOGIN_USUARIO && s === LOGIN_SENHA){
+    sessionStorage.setItem("logado", "1");
+    entrarNoSistema();
+  } else {
     erro.style.display = "block";
-    return;
-  }
-  if(senha.length < 4){
-    erro.textContent = "Senha precisa ter no mínimo 4 caracteres";
-    erro.style.display = "block";
-    return;
-  }
-
-  try {
-    const resp = await fetch("/auth/criar-usuario", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: sessaoAtual?.token,
-        usuario, senha, role
-      })
-    });
-    const j = await resp.json();
-    if(!j.ok){
-      erro.textContent = j.erro || "Erro ao criar";
-      erro.style.display = "block";
-      return;
-    }
-    fecharFormNovoUsuario();
-    await listarUsuarios();
-  } catch(e) {
-    erro.textContent = "Erro de rede: " + e.message;
-    erro.style.display = "block";
-  }
-}
-
-async function excluirUsuario(usuario){
-  if(!confirm(`Excluir o usuário "${usuario}"?\n\nTodas as sessões ativas dele serão invalidadas.`)) return;
-  try {
-    const resp = await fetch("/auth/excluir-usuario", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token: sessaoAtual?.token,
-        usuario
-      })
-    });
-    const j = await resp.json();
-    if(!j.ok){
-      alert("Erro: " + (j.erro || "desconhecido"));
-      return;
-    }
-    await listarUsuarios();
-  } catch(e) {
-    alert("Erro de rede: " + e.message);
-  }
-}
-
-/* Helper simples pra escape de HTML (evita injeção) */
-function escapeHtmlSimples(s){
-  if(s == null) return "";
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-}
-
-/* ════════════════════════════════════════════════════════════════
-   APLICAR PERMISSÕES NA UI (esconder botões pro usuário comum)
-   ════════════════════════════════════════════════════════════════ */
-function aplicarPermissoesUI(){
-  const role = sessaoAtual?.role || "comum";
-  const usuario = sessaoAtual?.usuario || "?";
-
-  // Atualiza indicador de usuário logado (usa classes CSS dedicadas)
-  const indic = document.getElementById("usuarioLogadoTexto");
-  if(indic){
-    const roleLabel = role === "admin" ? "👑 Admin" : "👤 Comum";
-    const roleClass = role === "admin" ? "admin" : "comum";
-    indic.innerHTML =
-      `<span class="user-indicador-nome">${escapeHtmlSimples(usuario)}</span>` +
-      `<span class="user-indicador-role ${roleClass}">${roleLabel}</span>`;
-  }
-
-  // Botões só pro admin: Zerar, Conferência, Editar, Usuários
-  const apenasAdmin = ["btnZerar", "btnConferencia", "btnEditar", "btnUsuarios"];
-  const ehAdmin = (role === "admin");
-  for(const id of apenasAdmin){
-    const el = document.getElementById(id);
-    if(el) el.style.display = ehAdmin ? "" : "none";
+    document.getElementById("loginPass").value = "";
+    document.getElementById("loginPass").focus();
   }
 }
 
 /* ── START ───────────────────────────────────────────────────── */
-// Carrega sessão existente do localStorage (sobrevive a reload)
-sessaoAtual = carregarSessao();
-
-if(sessaoAtual){
-  // Já estava logado — entra direto
-  entrarNoSistema();
-} else if(sessionStorage.getItem("logado") === "1"){
-  // Compat com sistema antigo (sessão de browser ainda ativa)
-  // Cria uma sessão fallback retroativa
-  sessaoAtual = { usuario: "site", role: "admin", fallback: true, loginEm: new Date().toISOString() };
-  salvarSessao(sessaoAtual);
+// Verifica se já estava logado antes do redirecionamento
+if(sessionStorage.getItem("logado") === "1"){
   entrarNoSistema();
 } else {
   document.getElementById("loginUser").focus();

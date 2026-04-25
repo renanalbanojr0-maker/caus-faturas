@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAUS — Auditoria do Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #0d0f0d;
+  --bg-card:    #14181a;
+  --bg-hover:   #1a1f22;
+  --border:     #2a3038;
+  --text:       #e8eaed;
+  --text-dim:   #8b9299;
+  --text-mute:  #5c6370;
+  --accent:     #c8f060;
+  --accent-2:   #a78bfa;
+  --ok:         #5dd38a;
+  --warn:       #f4c14a;
+  --erro:       #e86060;
+  --info:       #6dabd5;
+  --mono:       'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+  --sans:       'Space Grotesk', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(167, 139, 250, 0.04), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(200, 240, 96, 0.03), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo {
+  width: 40px; height: 40px;
+  background: var(--accent-2);
+  color: #000;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -1px;
+}
+
+.brand h1 {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+}
+
+.brand-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.user-info .user-name { color: var(--text); font-weight: 500; }
+.user-info button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.user-info button:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── LOGIN BOX ── */
+#tela-login {
+  max-width: 360px;
+  margin: 80px auto 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+}
+#tela-login h2 {
+  font-family: var(--mono);
+  font-size: 18px;
+  margin-bottom: 18px;
+  text-align: center;
+  color: var(--accent-2);
+}
+#tela-login label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+#tela-login input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  outline: none;
+}
+#tela-login input:focus { border-color: var(--accent-2); }
+#tela-login button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px;
+  background: var(--accent-2);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+#tela-login button:hover { background: #c4a4ff; }
+#login-erro {
+  display: none;
+  margin-top: 12px;
+  color: var(--erro);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ── FILTROS ── */
+.filtros-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 18px;
+}
+.filtros-titulo {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.filtros-grid label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.filtros-grid input,
+.filtros-grid select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  outline: none;
+}
+.filtros-grid input:focus,
+.filtros-grid select:focus { border-color: var(--accent-2); }
+.filtros-acoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.filtros-acoes button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.filtros-acoes button:hover { color: var(--accent-2); border-color: var(--accent-2); }
+.filtros-acoes .btn-aplicar { background: var(--accent-2); color: #000; border-color: var(--accent-2); font-weight: 700; }
+.filtros-acoes .btn-aplicar:hover { background: #c4a4ff; }
+
+/* ── CARDS DE RESUMO ── */
+.resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.resumo-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.resumo-num {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.resumo-lbl {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+.resumo-card.ok .resumo-num { color: var(--ok); }
+.resumo-card.warn .resumo-num { color: var(--warn); }
+.resumo-card.erro .resumo-num { color: var(--erro); }
+.resumo-card.info .resumo-num { color: var(--info); }
+.resumo-card.accent .resumo-num { color: var(--accent-2); }
+
+/* ── TABELA DE EVENTOS ── */
+.tabela-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tabela-eventos {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.tabela-eventos thead {
+  background: var(--bg-hover);
+}
+.tabela-eventos th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  border-bottom: 1px solid var(--border);
+}
+.tabela-eventos td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+.tabela-eventos tbody tr:last-child td { border-bottom: none; }
+.tabela-eventos tbody tr:hover { background: rgba(255,255,255,.02); }
+
+.col-ts { white-space: nowrap; color: var(--text-dim); width: 165px; }
+.col-user { font-weight: 500; width: 130px; text-transform: capitalize; }
+.col-acao { width: 180px; }
+.col-detalhes { color: var(--text-dim); font-size: 11px; }
+
+.acao-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.acao-badge.login   { background: rgba(109,171,213,.2); color: var(--info); }
+.acao-badge.logout  { background: rgba(139,146,153,.2); color: var(--text-dim); }
+.acao-badge.criar   { background: rgba(93,211,138,.2); color: var(--ok); }
+.acao-badge.editar  { background: rgba(244,193,74,.2); color: var(--warn); }
+.acao-badge.confer  { background: rgba(93,211,138,.2); color: var(--ok); }
+.acao-badge.descon  { background: rgba(244,193,74,.2); color: var(--warn); }
+.acao-badge.zerar   { background: rgba(232,96,96,.2); color: var(--erro); }
+.acao-badge.user    { background: rgba(167,139,250,.2); color: var(--accent-2); }
+.acao-badge.outro   { background: rgba(255,255,255,.08); color: var(--text-dim); }
+
+.lista-vazia {
+  padding: 60px 20px;
+  text-align: center;
+  font-family: var(--mono);
+  color: var(--text-mute);
+  font-size: 13px;
+}
+
+.paginacao {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.paginacao button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.paginacao button:hover:not(:disabled) { color: var(--accent-2); border-color: var(--accent-2); }
+.paginacao button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.footer-actions {
+  display: flex;
+  gap: 10px;
+}
+.footer-actions button,
+.footer-actions a {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.footer-actions button:hover,
+.footer-actions a:hover { color: var(--accent-2); border-color: var(--accent-2); }
+
+@media (max-width: 700px) {
+  .container { padding: 20px 14px 40px; }
+  .col-ts { width: auto; }
+  .tabela-eventos { font-size: 11px; }
+  .tabela-eventos th, .tabela-eventos td { padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="brand-logo">CF</div>
+      <div>
+        <h1>CAUS Faturas</h1>
+        <div class="brand-sub">audit log monitor</div>
+      </div>
+    </div>
+    <div class="user-info" id="user-info" style="display:none;">
+      <span>Logado: <span class="user-name" id="user-name"></span></span>
+      <button onclick="fazerLogout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- TELA DE LOGIN -->
+  <div id="tela-login">
+    <h2>🔒 Auditoria — Acesso Admin</h2>
+    <label>Usuário</label>
+    <input type="text" id="loginUser" autocomplete="off" placeholder="seu usuário">
+    <label>Senha</label>
+    <input type="password" id="loginPass" autocomplete="current-password" placeholder="senha">
+    <button onclick="fazerLogin()">Entrar</button>
+    <div id="login-erro"></div>
+  </div>
+
+  <!-- TELA PRINCIPAL -->
+  <div id="tela-principal" style="display:none;">
+
+    <!-- Cards de resumo -->
+    <div class="resumo-grid" id="resumo-grid"></div>
+
+    <!-- Filtros -->
+    <div class="filtros-card">
+      <div class="filtros-titulo">🔍 Filtros</div>
+      <div class="filtros-grid">
+        <div>
+          <label>Usuário</label>
+          <input type="text" id="f-usuario" placeholder="Todos">
+        </div>
+        <div>
+          <label>Ação</label>
+          <select id="f-acao">
+            <option value="">Todas</option>
+            <option value="login">login</option>
+            <option value="logout">logout</option>
+            <option value="finalizar-fatura">finalizar-fatura</option>
+            <option value="conferir-fatura">conferir-fatura</option>
+            <option value="desconferir-fatura">desconferir-fatura</option>
+            <option value="editar-fatura">editar-fatura</option>
+            <option value="zerar-tudo">zerar-tudo</option>
+            <option value="criar-usuario">criar-usuario</option>
+            <option value="excluir-usuario">excluir-usuario</option>
+            <option value="trocar-senha">trocar-senha</option>
+          </select>
+        </div>
+        <div>
+          <label>Data início</label>
+          <input type="date" id="f-data-inicio">
+        </div>
+        <div>
+          <label>Data fim</label>
+          <input type="date" id="f-data-fim">
+        </div>
+      </div>
+      <div class="filtros-acoes">
+        <button class="btn-aplicar" onclick="aplicarFiltros()">Aplicar</button>
+        <button onclick="limparFiltros()">Limpar</button>
+        <button onclick="atualizar()">↻ Atualizar</button>
+      </div>
+    </div>
+
+    <!-- Tabela de eventos -->
+    <div class="tabela-wrap">
+      <table class="tabela-eventos">
+        <thead>
+          <tr>
+            <th>Quando</th>
+            <th>Usuário</th>
+            <th>Ação</th>
+            <th>Detalhes</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-eventos-body">
+          <tr><td colspan="4" class="lista-vazia">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    <div class="paginacao">
+      <span id="info-paginacao">—</span>
+      <div>
+        <button id="btn-anterior" onclick="paginaAnterior()" disabled>← Anterior</button>
+        <button id="btn-proximo" onclick="paginaProxima()" disabled>Próximo →</button>
+      </div>
+    </div>
+
+    <footer>
+      <div>CAUS Faturas // Audit Monitor v1.0</div>
+      <div class="footer-actions">
+        <button onclick="exportarCSV()">📥 Exportar CSV</button>
+        <a href="/admin/saude" target="_blank">Saúde do Sistema</a>
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+/* ── ESTADO ── */
+const SESSAO_KEY = "caus_sessao_audit";
+let sessao = null;
+let paginaAtual = 0;
+const TAMANHO_PAGINA = 50;
+let totalEventos = 0;
+let eventosCarregados = []; // pra exportar CSV
+
+/* ── SESSÃO ── */
+function carregarSessao() {
+  try {
+    const raw = localStorage.getItem(SESSAO_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function salvarSessao(s) {
+  localStorage.setItem(SESSAO_KEY, JSON.stringify(s));
+  sessao = s;
+}
+function limparSessao() {
+  localStorage.removeItem(SESSAO_KEY);
+  sessao = null;
+}
+
+/* ── LOGIN ── */
+async function fazerLogin() {
+  const u = document.getElementById("loginUser").value.trim();
+  const s = document.getElementById("loginPass").value.trim();
+  const erro = document.getElementById("login-erro");
+  if(!u || !s) {
+    erro.textContent = "Usuário e senha obrigatórios";
+    erro.style.display = "block";
+    return;
+  }
+  try {
+    const r = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: u, senha: s })
+    });
+    const j = await r.json();
+    if(!j.ok) {
+      erro.textContent = j.erro || "Erro ao logar";
+      erro.style.display = "block";
+      return;
+    }
+    if(j.role !== "admin") {
+      erro.textContent = "Apenas administradores têm acesso a esta página";
+      erro.style.display = "block";
+      return;
+    }
+    salvarSessao({ token: j.token, usuario: j.usuario, role: j.role });
+    mostrarTelaPrincipal();
+  } catch(e) {
+    erro.textContent = "Erro de rede: " + e.message;
+    erro.style.display = "block";
+  }
+}
+
+async function fazerLogout() {
+  if(!confirm("Deseja sair?")) return;
+  if(sessao?.token) {
+    try {
+      await fetch("/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: sessao.token })
+      });
+    } catch(e) {}
+  }
+  limparSessao();
+  location.reload();
+}
+
+function mostrarTelaPrincipal() {
+  document.getElementById("tela-login").style.display = "none";
+  document.getElementById("tela-principal").style.display = "block";
+  document.getElementById("user-info").style.display = "flex";
+  document.getElementById("user-name").textContent = sessao.usuario;
+  atualizar();
+}
+
+/* ── ATUALIZAR ── */
+async function atualizar() {
+  await Promise.all([carregarResumo(), carregarEventos()]);
+}
+
+async function carregarResumo() {
+  try {
+    const r = await fetch("/auditoria/contagem-acoes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: sessao.token, dias: 30 })
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.erro);
+    renderResumo(j.contagem, j.total, j.dias);
+  } catch(e) {
+    document.getElementById("resumo-grid").innerHTML =
+      `<div class="resumo-card erro"><div class="resumo-num">!</div><div class="resumo-lbl">Erro: ${escapeHtml(e.message)}</div></div>`;
+  }
+}
+
+function renderResumo(contagem, total, dias) {
+  // Pega top 5 ações + total
+  const top = contagem.slice(0, 5);
+  let html = `<div class="resumo-card accent">
+    <div class="resumo-num">${total}</div>
+    <div class="resumo-lbl">Total (${dias}d)</div>
+  </div>`;
+  for(const c of top) {
+    const cls = classeAcao(c._id);
+    html += `<div class="resumo-card ${cls}">
+      <div class="resumo-num">${c.count}</div>
+      <div class="resumo-lbl">${escapeHtml(c._id)}</div>
+    </div>`;
+  }
+  document.getElementById("resumo-grid").innerHTML = html;
+}
+
+function classeAcao(acao) {
+  if(acao === "login" || acao === "logout") return "info";
+  if(acao === "zerar-tudo") return "erro";
+  if(acao.includes("editar") || acao.includes("desconferir")) return "warn";
+  if(acao.includes("conferir") || acao.includes("finalizar") || acao.includes("criar")) return "ok";
+  return "";
+}
+
+async function carregarEventos() {
+  const tbody = document.getElementById("tabela-eventos-body");
+  tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia">⏳ Carregando...</td></tr>`;
+  try {
+    const filtros = {};
+    const fu = document.getElementById("f-usuario").value.trim();
+    const fa = document.getElementById("f-acao").value;
+    const fdi = document.getElementById("f-data-inicio").value;
+    const fdf = document.getElementById("f-data-fim").value;
+    if(fu) filtros.usuario = fu;
+    if(fa) filtros.acao = fa;
+    if(fdi) filtros.dataInicio = fdi + "T00:00:00";
+    if(fdf) filtros.dataFim = fdf + "T23:59:59";
+
+    const r = await fetch("/auditoria/listar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: sessao.token,
+        filtros,
+        limite: TAMANHO_PAGINA,
+        skip: paginaAtual * TAMANHO_PAGINA,
+      })
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.erro);
+    totalEventos = j.total;
+    eventosCarregados = j.eventos;
+    renderEventos(j.eventos);
+    atualizarPaginacao();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia" style="color:var(--erro);">⚠️ ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+function renderEventos(eventos) {
+  const tbody = document.getElementById("tabela-eventos-body");
+  if(!eventos || eventos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia">Nenhum evento encontrado.</td></tr>`;
+    return;
+  }
+  let html = "";
+  for(const ev of eventos) {
+    const ts = new Date(ev.timestamp);
+    const tsStr = ts.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "medium" });
+    const cls = badgeClasse(ev.acao);
+    const detalhes = formatDetalhes(ev.detalhes);
+    html += `<tr>
+      <td class="col-ts">${tsStr}</td>
+      <td class="col-user">${escapeHtml(ev.usuario || "—")}</td>
+      <td class="col-acao"><span class="acao-badge ${cls}">${escapeHtml(ev.acao)}</span></td>
+      <td class="col-detalhes">${detalhes}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+function badgeClasse(acao) {
+  if(acao === "login") return "login";
+  if(acao === "logout") return "logout";
+  if(acao === "finalizar-fatura") return "criar";
+  if(acao === "conferir-fatura") return "confer";
+  if(acao === "desconferir-fatura") return "descon";
+  if(acao === "editar-fatura") return "editar";
+  if(acao === "zerar-tudo") return "zerar";
+  if(acao.includes("usuario") || acao === "trocar-senha") return "user";
+  return "outro";
+}
+
+function formatDetalhes(d) {
+  if(!d || Object.keys(d).length === 0) return "—";
+  const partes = [];
+  for(const k in d) {
+    partes.push(`<span style="color:var(--text-mute);">${escapeHtml(k)}:</span> ${escapeHtml(JSON.stringify(d[k]))}`);
+  }
+  return partes.join("&nbsp;&nbsp;");
+}
+
+/* ── FILTROS ── */
+function aplicarFiltros() {
+  paginaAtual = 0;
+  carregarEventos();
+}
+
+function limparFiltros() {
+  document.getElementById("f-usuario").value = "";
+  document.getElementById("f-acao").value = "";
+  document.getElementById("f-data-inicio").value = "";
+  document.getElementById("f-data-fim").value = "";
+  paginaAtual = 0;
+  carregarEventos();
+}
+
+/* ── PAGINAÇÃO ── */
+function atualizarPaginacao() {
+  const inicio = paginaAtual * TAMANHO_PAGINA + 1;
+  const fim = Math.min(inicio + TAMANHO_PAGINA - 1, totalEventos);
+  document.getElementById("info-paginacao").textContent =
+    totalEventos === 0 ? "0 resultados" : `${inicio}–${fim} de ${totalEventos}`;
+  document.getElementById("btn-anterior").disabled = paginaAtual === 0;
+  document.getElementById("btn-proximo").disabled = (fim >= totalEventos);
+}
+function paginaAnterior() {
+  if(paginaAtual > 0) { paginaAtual--; carregarEventos(); }
+}
+function paginaProxima() {
+  paginaAtual++;
+  carregarEventos();
+}
+
+/* ── EXPORTAR CSV ── */
+function exportarCSV() {
+  if(!eventosCarregados || eventosCarregados.length === 0) {
+    alert("Nada pra exportar nesta página.");
+    return;
+  }
+  const linhas = [["timestamp", "usuario", "acao", "detalhes"]];
+  for(const ev of eventosCarregados) {
+    linhas.push([
+      new Date(ev.timestamp).toISOString(),
+      ev.usuario || "",
+      ev.acao || "",
+      JSON.stringify(ev.detalhes || {}),
+    ]);
+  }
+  const csv = "\uFEFF" + linhas.map(l => l.map(c => `"${String(c).replace(/"/g,'""')}"`).join(";")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `auditoria-pagina-${paginaAtual+1}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ── HELPERS ── */
+function escapeHtml(s) {
+  if(s == null) return "";
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+
+/* ── ENTER NO LOGIN ── */
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Enter" && document.getElementById("tela-login").style.display !== "none") {
+    fazerLogin();
+  }
+});
+
+/* ── START ── */
+sessao = carregarSessao();
+if(sessao && sessao.role === "admin") {
+  mostrarTelaPrincipal();
+} else {
+  document.getElementById("loginUser").focus();
+}
+</script>
+</body>
+</html>
