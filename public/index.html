@@ -5496,9 +5496,14 @@ async function registrarAuditoriaFront(acao, detalhes = {}){
    ════════════════════════════════════════════════════════════════ */
 
 async function abrirModalUsuarios(){
-  // Só admin pode abrir
+  // Bloqueia se não for admin
   if(!sessaoAtual || sessaoAtual.role !== "admin"){
     alert("Apenas administradores podem gerenciar usuários.");
+    return;
+  }
+  // Bloqueia se for sessão fallback (site/dev) — não tem token válido pra autenticar no servidor
+  if(sessaoAtual.fallback || !sessaoAtual.token){
+    alert("Você está logado em modo de emergência (site/dev).\n\nPara gerenciar usuários, faça logout e entre com seu usuário individual (ex: renan).");
     return;
   }
   document.getElementById("modalUsuarios").classList.add("ativo");
@@ -5671,23 +5676,38 @@ function escapeHtmlSimples(s){
 function aplicarPermissoesUI(){
   const role = sessaoAtual?.role || "comum";
   const usuario = sessaoAtual?.usuario || "?";
+  const isFallback = sessaoAtual?.fallback === true;
 
   // Atualiza indicador de usuário logado (usa classes CSS dedicadas)
   const indic = document.getElementById("usuarioLogadoTexto");
   if(indic){
-    const roleLabel = role === "admin" ? "👑 Admin" : "👤 Comum";
-    const roleClass = role === "admin" ? "admin" : "comum";
+    let roleLabel, roleClass;
+    if(isFallback){
+      // Modo emergência (site/dev) — mostra alerta amarelo
+      roleLabel = "⚠️ Emergência";
+      roleClass = "comum";
+    } else {
+      roleLabel = role === "admin" ? "👑 Admin" : "👤 Comum";
+      roleClass = role === "admin" ? "admin" : "comum";
+    }
     indic.innerHTML =
       `<span class="user-indicador-nome">${escapeHtmlSimples(usuario)}</span>` +
       `<span class="user-indicador-role ${roleClass}">${roleLabel}</span>`;
   }
 
   // Botões só pro admin: Zerar, Conferência, Editar, Usuários
+  // Em modo fallback, esconde Usuários (não tem token pra chamar API)
   const apenasAdmin = ["btnZerar", "btnConferencia", "btnEditar", "btnUsuarios"];
   const ehAdmin = (role === "admin");
   for(const id of apenasAdmin){
     const el = document.getElementById(id);
-    if(el) el.style.display = ehAdmin ? "" : "none";
+    if(!el) continue;
+    if(id === "btnUsuarios" && isFallback){
+      // Esconde botão de Usuários em modo fallback (não funciona sem token)
+      el.style.display = "none";
+    } else {
+      el.style.display = ehAdmin ? "" : "none";
+    }
   }
 }
 
