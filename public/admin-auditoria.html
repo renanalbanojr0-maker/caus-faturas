@@ -4,26 +4,73 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CAUS — Auditoria do Sistema</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* ════════════════════════════════════════════════════════════════
+   AUDITORIA — tema CLARO AZUL (Design System unificado)
+   Mesma paleta do index.html e calculadora-nf.html
+   ════════════════════════════════════════════════════════════════ */
 :root {
-  --bg:         #0d0f0d;
-  --bg-card:    #14181a;
-  --bg-hover:   #1a1f22;
-  --border:     #2a3038;
-  --text:       #e8eaed;
-  --text-dim:   #8b9299;
-  --text-mute:  #5c6370;
-  --accent:     #c8f060;
-  --accent-2:   #a78bfa;
-  --ok:         #5dd38a;
-  --warn:       #f4c14a;
-  --erro:       #e86060;
-  --info:       #6dabd5;
-  --mono:       'JetBrains Mono', ui-monospace, 'Courier New', monospace;
-  --sans:       'Space Grotesk', system-ui, sans-serif;
+  /* Paleta neutra */
+  --c-bg:        #f5f6f8;
+  --c-surface:   #ffffff;
+  --c-surface-2: #fafbfc;
+  --c-border:    #e1e4e8;
+  --c-border-2:  #d4d8dd;
+  --c-text:      #1f2328;
+  --c-text-2:    #57606a;
+  --c-text-3:    #8b949e;
+
+  /* Cor primária (azul) */
+  --c-primary:        #0969da;
+  --c-primary-hover:  #0860c7;
+  --c-primary-soft:   #ddf4ff;
+
+  /* Acento secundário */
+  --c-neutral:        #f6f8fa;
+  --c-neutral-hover:  #eaeef2;
+  --c-neutral-border: #d0d7de;
+
+  /* Cores funcionais */
+  --c-success:        #1a7f37;
+  --c-success-soft:   #dafbe1;
+  --c-warning:        #9a6700;
+  --c-warning-soft:   #fff8c5;
+  --c-danger:         #cf222e;
+  --c-danger-soft:    #ffebe9;
+  --c-info:           #0969da;
+  --c-info-soft:      #ddf4ff;
+
+  /* Aliases legados (compatibilidade) */
+  --bg:        var(--c-bg);
+  --bg-card:   var(--c-surface);
+  --bg-hover:  var(--c-surface-2);
+  --border:    var(--c-border);
+  --text:      var(--c-text);
+  --text-dim:  var(--c-text-2);
+  --text-mute: var(--c-text-3);
+  --accent:    var(--c-primary);
+  --accent-2:  var(--c-primary);
+  --ok:        var(--c-success);
+  --warn:      var(--c-warning);
+  --erro:      var(--c-danger);
+  --info:      var(--c-info);
+
+  /* Tipografia */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, monospace;
+  --sans:      var(--font-sans);
+  --mono:      var(--font-mono);
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.04);
+  --shadow-md: 0 3px 6px rgba(31, 35, 40, 0.08), 0 1px 2px rgba(31, 35, 40, 0.04);
+  --shadow-lg: 0 8px 24px rgba(31, 35, 40, 0.12);
+
+  /* Bordas arredondadas */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-pill: 999px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,22 +85,11 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-body::before {
-  content: "";
-  position: fixed; inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 10%, rgba(167, 139, 250, 0.04), transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(200, 240, 96, 0.03), transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 .container {
   position: relative;
-  z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 20px 64px;
+  padding: 28px 24px 56px;
 }
 
 /* ── HEADER ── */
@@ -61,8 +97,8 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 24px;
-  margin-bottom: 32px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
   gap: 16px;
@@ -71,118 +107,134 @@ header {
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .brand-logo {
-  width: 40px; height: 40px;
-  background: var(--accent-2);
-  color: #000;
-  border-radius: 8px;
+  width: 38px; height: 38px;
+  background: var(--c-primary);
+  color: #fff;
+  border-radius: var(--r-md);
   display: grid; place-items: center;
   font-family: var(--mono);
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: -1px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.5px;
 }
 
 .brand h1 {
-  font-family: var(--mono);
   font-size: 16px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .brand-sub {
-  font-family: var(--mono);
   font-size: 11px;
   color: var(--text-mute);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.06em;
   margin-top: 2px;
+  font-weight: 500;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-dim);
 }
-.user-info .user-name { color: var(--text); font-weight: 500; }
+.user-info .user-name {
+  color: var(--text);
+  font-weight: 600;
+}
 .user-info button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: var(--c-neutral);
+  border: 1px solid var(--c-neutral-border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all .12s;
 }
-.user-info button:hover { color: var(--accent); border-color: var(--accent); }
+.user-info button:hover {
+  background: var(--c-neutral-hover);
+}
 
 /* ── LOGIN BOX ── */
 #tela-login {
-  max-width: 360px;
+  max-width: 380px;
   margin: 80px auto 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 32px;
+  box-shadow: var(--shadow-md);
 }
 #tela-login h2 {
-  font-family: var(--mono);
-  font-size: 18px;
-  margin-bottom: 18px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
   text-align: center;
-  color: var(--accent-2);
+  letter-spacing: -0.01em;
 }
 #tela-login label {
   display: block;
-  font-family: var(--mono);
   font-size: 11px;
   color: var(--text-mute);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.05em;
   margin-bottom: 6px;
-  margin-top: 12px;
+  margin-top: 14px;
+  font-weight: 600;
 }
 #tela-login input {
   width: 100%;
-  padding: 10px 14px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 9px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--c-neutral-border);
+  border-radius: var(--r-md);
   color: var(--text);
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 14px;
   outline: none;
+  transition: border-color .12s, box-shadow .12s;
 }
-#tela-login input:focus { border-color: var(--accent-2); }
+#tela-login input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(9,105,218,.12);
+}
 #tela-login button {
   width: 100%;
-  margin-top: 18px;
-  padding: 12px;
-  background: var(--accent-2);
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  margin-top: 20px;
+  padding: 11px;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background .12s;
 }
-#tela-login button:hover { background: #c4a4ff; }
+#tela-login button:hover {
+  background: var(--c-primary-hover);
+  border-color: var(--c-primary-hover);
+}
 #login-erro {
   display: none;
   margin-top: 12px;
   color: var(--erro);
+  background: var(--c-danger-soft);
+  border: 1px solid #ffcdd2;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
   font-size: 12px;
   text-align: center;
 }
@@ -191,233 +243,277 @@ header {
 .filtros-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 18px 22px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
 }
 .filtros-titulo {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-mute);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
 }
 .filtros-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   align-items: end;
 }
 .filtros-grid label {
   display: block;
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-mute);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
+  letter-spacing: 0.04em;
+  margin-bottom: 5px;
+  font-weight: 600;
 }
 .filtros-grid input,
 .filtros-grid select {
   width: 100%;
   padding: 8px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--c-neutral-border);
+  border-radius: var(--r-md);
   color: var(--text);
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 13px;
   outline: none;
+  transition: border-color .12s, box-shadow .12s;
 }
 .filtros-grid input:focus,
-.filtros-grid select:focus { border-color: var(--accent-2); }
+.filtros-grid select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(9,105,218,.12);
+}
 .filtros-acoes {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
 }
 .filtros-acoes button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 7px 14px;
-  border-radius: 6px;
+  background: var(--c-neutral);
+  border: 1px solid var(--c-neutral-border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all .12s;
 }
-.filtros-acoes button:hover { color: var(--accent-2); border-color: var(--accent-2); }
-.filtros-acoes .btn-aplicar { background: var(--accent-2); color: #000; border-color: var(--accent-2); font-weight: 700; }
-.filtros-acoes .btn-aplicar:hover { background: #c4a4ff; }
+.filtros-acoes button:hover {
+  background: var(--c-neutral-hover);
+}
+.filtros-acoes .btn-aplicar {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.filtros-acoes .btn-aplicar:hover {
+  background: var(--c-primary-hover);
+  border-color: var(--c-primary-hover);
+}
 
 /* ── CARDS DE RESUMO ── */
 .resumo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .resumo-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--c-text-3);
 }
 .resumo-num {
   font-family: var(--mono);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 4px;
+  letter-spacing: -0.02em;
 }
 .resumo-lbl {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-mute);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.04em;
+  font-weight: 600;
 }
-.resumo-card.ok .resumo-num { color: var(--ok); }
-.resumo-card.warn .resumo-num { color: var(--warn); }
-.resumo-card.erro .resumo-num { color: var(--erro); }
-.resumo-card.info .resumo-num { color: var(--info); }
-.resumo-card.accent .resumo-num { color: var(--accent-2); }
+.resumo-card.ok      { border-left-color: var(--ok); }
+.resumo-card.ok .resumo-num    { color: var(--ok); }
+.resumo-card.warn    { border-left-color: var(--warn); }
+.resumo-card.warn .resumo-num  { color: var(--warn); }
+.resumo-card.erro    { border-left-color: var(--erro); }
+.resumo-card.erro .resumo-num  { color: var(--erro); }
+.resumo-card.info    { border-left-color: var(--info); }
+.resumo-card.info .resumo-num  { color: var(--info); }
+.resumo-card.accent  { border-left-color: var(--accent); }
+.resumo-card.accent .resumo-num{ color: var(--accent); }
 
 /* ── TABELA DE EVENTOS ── */
 .tabela-wrap {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 .tabela-eventos {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
 }
 .tabela-eventos thead {
   background: var(--bg-hover);
 }
 .tabela-eventos th {
   text-align: left;
-  padding: 12px 16px;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-mute);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border);
+  font-family: var(--sans);
 }
 .tabela-eventos td {
-  padding: 12px 16px;
+  padding: 11px 16px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: top;
 }
 .tabela-eventos tbody tr:last-child td { border-bottom: none; }
-.tabela-eventos tbody tr:hover { background: rgba(255,255,255,.02); }
+.tabela-eventos tbody tr:hover td { background: var(--bg-hover); }
 
-.col-ts { white-space: nowrap; color: var(--text-dim); width: 165px; }
-.col-user { font-weight: 500; width: 130px; text-transform: capitalize; }
+.col-ts {
+  white-space: nowrap;
+  color: var(--text-dim);
+  width: 165px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.col-user {
+  font-weight: 600;
+  width: 130px;
+  text-transform: capitalize;
+}
 .col-acao { width: 180px; }
-.col-detalhes { color: var(--text-dim); font-size: 11px; }
+.col-detalhes {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-family: var(--mono);
+}
 
+/* Badges de ação */
 .acao-badge {
   display: inline-block;
-  padding: 3px 9px;
-  border-radius: 99px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  border: 1px solid transparent;
 }
-.acao-badge.login   { background: rgba(109,171,213,.2); color: var(--info); }
-.acao-badge.logout  { background: rgba(139,146,153,.2); color: var(--text-dim); }
-.acao-badge.criar   { background: rgba(93,211,138,.2); color: var(--ok); }
-.acao-badge.editar  { background: rgba(244,193,74,.2); color: var(--warn); }
-.acao-badge.confer  { background: rgba(93,211,138,.2); color: var(--ok); }
-.acao-badge.descon  { background: rgba(244,193,74,.2); color: var(--warn); }
-.acao-badge.zerar   { background: rgba(232,96,96,.2); color: var(--erro); }
-.acao-badge.user    { background: rgba(167,139,250,.2); color: var(--accent-2); }
-.acao-badge.outro   { background: rgba(255,255,255,.08); color: var(--text-dim); }
+.acao-badge.login   { background: var(--c-info-soft);    color: var(--info); border-color: #a8d4f5; }
+.acao-badge.logout  { background: var(--c-neutral);      color: var(--text-dim); border-color: var(--c-neutral-border); }
+.acao-badge.criar   { background: var(--c-success-soft); color: var(--ok); border-color: #a3d9b1; }
+.acao-badge.editar  { background: var(--c-warning-soft); color: var(--warn); border-color: #fde68a; }
+.acao-badge.confer  { background: var(--c-success-soft); color: var(--ok); border-color: #a3d9b1; }
+.acao-badge.descon  { background: var(--c-warning-soft); color: var(--warn); border-color: #fde68a; }
+.acao-badge.zerar   { background: var(--c-danger-soft);  color: var(--erro); border-color: #ffcdd2; }
+.acao-badge.user    { background: var(--c-primary-soft); color: var(--accent); border-color: #a8d4f5; }
+.acao-badge.outro   { background: var(--c-neutral);      color: var(--text-dim); border-color: var(--c-neutral-border); }
 
 .lista-vazia {
   padding: 60px 20px;
   text-align: center;
-  font-family: var(--mono);
   color: var(--text-mute);
   font-size: 13px;
 }
 
 .paginacao {
-  margin-top: 18px;
+  margin-top: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-dim);
 }
 .paginacao button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: var(--mono);
-  font-size: 11px;
+  background: var(--c-neutral);
+  border: 1px solid var(--c-neutral-border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
   padding: 7px 14px;
-  border-radius: 6px;
+  border-radius: var(--r-md);
   cursor: pointer;
-  text-transform: uppercase;
+  transition: background .12s;
 }
-.paginacao button:hover:not(:disabled) { color: var(--accent-2); border-color: var(--accent-2); }
-.paginacao button:disabled { opacity: 0.3; cursor: not-allowed; }
+.paginacao button:hover:not(:disabled) {
+  background: var(--c-neutral-hover);
+}
+.paginacao button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 footer {
-  margin-top: 30px;
-  padding-top: 20px;
+  margin-top: 28px;
+  padding-top: 18px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-mute);
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 .footer-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 .footer-actions button,
 .footer-actions a {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 6px 14px;
-  border-radius: 6px;
+  background: var(--c-neutral);
+  border: 1px solid var(--c-neutral-border);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--r-md);
   cursor: pointer;
   text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  transition: background .12s;
 }
 .footer-actions button:hover,
-.footer-actions a:hover { color: var(--accent-2); border-color: var(--accent-2); }
+.footer-actions a:hover {
+  background: var(--c-neutral-hover);
+}
 
 @media (max-width: 700px) {
   .container { padding: 20px 14px 40px; }
   .col-ts { width: auto; }
-  .tabela-eventos { font-size: 11px; }
-  .tabela-eventos th, .tabela-eventos td { padding: 10px 12px; }
+  .tabela-eventos { font-size: 12px; }
+  .tabela-eventos th, .tabela-eventos td { padding: 9px 12px; }
 }
 </style>
+
 </head>
 <body>
 <div class="container">
@@ -426,7 +522,7 @@ footer {
       <div class="brand-logo">CF</div>
       <div>
         <h1>CAUS Faturas</h1>
-        <div class="brand-sub">audit log monitor</div>
+        <div class="brand-sub">Log de auditoria</div>
       </div>
     </div>
     <div class="user-info" id="user-info" style="display:none;">
@@ -437,7 +533,8 @@ footer {
 
   <!-- TELA DE LOGIN -->
   <div id="tela-login">
-    <h2>🔒 Auditoria — Acesso Admin</h2>
+    <h2>Auditoria do Sistema</h2>
+    <p style="text-align:center;color:var(--text-mute);font-size:12px;margin-top:4px;margin-bottom:8px;">Acesso restrito a administradores</p>
     <label>Usuário</label>
     <input type="text" id="loginUser" autocomplete="off" placeholder="seu usuário">
     <label>Senha</label>
@@ -454,7 +551,7 @@ footer {
 
     <!-- Filtros -->
     <div class="filtros-card">
-      <div class="filtros-titulo">🔍 Filtros</div>
+      <div class="filtros-titulo">Filtros</div>
       <div class="filtros-grid">
         <div>
           <label>Usuário</label>
@@ -488,7 +585,7 @@ footer {
       <div class="filtros-acoes">
         <button class="btn-aplicar" onclick="aplicarFiltros()">Aplicar</button>
         <button onclick="limparFiltros()">Limpar</button>
-        <button onclick="atualizar()">↻ Atualizar</button>
+        <button onclick="atualizar()">Atualizar</button>
       </div>
     </div>
 
@@ -504,7 +601,7 @@ footer {
           </tr>
         </thead>
         <tbody id="tabela-eventos-body">
-          <tr><td colspan="4" class="lista-vazia">Carregando...</td></tr>
+          <tr><td colspan="4" class="lista-vazia">Carregando…</td></tr>
         </tbody>
       </table>
     </div>
@@ -513,16 +610,16 @@ footer {
     <div class="paginacao">
       <span id="info-paginacao">—</span>
       <div>
-        <button id="btn-anterior" onclick="paginaAnterior()" disabled>← Anterior</button>
-        <button id="btn-proximo" onclick="paginaProxima()" disabled>Próximo →</button>
+        <button id="btn-anterior" onclick="paginaAnterior()" disabled>Anterior</button>
+        <button id="btn-proximo" onclick="paginaProxima()" disabled>Próximo</button>
       </div>
     </div>
 
     <footer>
-      <div>CAUS Faturas // Audit Monitor v1.0</div>
+      <div>CAUS Faturas · Auditoria v1.0</div>
       <div class="footer-actions">
-        <button onclick="exportarCSV()">📥 Exportar CSV</button>
-        <a href="/admin/saude" target="_blank">Saúde do Sistema</a>
+        <button onclick="exportarCSV()">Exportar CSV</button>
+        <a href="/admin/saude" target="_blank">Saúde do sistema</a>
       </div>
     </footer>
 
@@ -560,7 +657,7 @@ async function fazerLogin() {
   const s = document.getElementById("loginPass").value.trim();
   const erro = document.getElementById("login-erro");
   if(!u || !s) {
-    erro.textContent = "Usuário e senha obrigatórios";
+    erro.textContent = "Preencha usuário e senha";
     erro.style.display = "block";
     return;
   }
@@ -572,19 +669,19 @@ async function fazerLogin() {
     });
     const j = await r.json();
     if(!j.ok) {
-      erro.textContent = j.erro || "Erro ao logar";
+      erro.textContent = j.erro || "Não consegui fazer login";
       erro.style.display = "block";
       return;
     }
     if(j.role !== "admin") {
-      erro.textContent = "Apenas administradores têm acesso a esta página";
+      erro.textContent = "Esta tela é só pra administradores";
       erro.style.display = "block";
       return;
     }
     salvarSessao({ token: j.token, usuario: j.usuario, role: j.role });
     mostrarTelaPrincipal();
   } catch(e) {
-    erro.textContent = "Erro de rede: " + e.message;
+    erro.textContent = "Falha na conexão: " + e.message;
     erro.style.display = "block";
   }
 }
@@ -629,7 +726,7 @@ async function carregarResumo() {
     renderResumo(j.contagem, j.total, j.dias);
   } catch(e) {
     document.getElementById("resumo-grid").innerHTML =
-      `<div class="resumo-card erro"><div class="resumo-num">!</div><div class="resumo-lbl">Erro: ${escapeHtml(e.message)}</div></div>`;
+      `<div class="resumo-card erro"><div class="resumo-num">!</div><div class="resumo-lbl">${escapeHtml(e.message)}</div></div>`;
   }
 }
 
@@ -660,7 +757,7 @@ function classeAcao(acao) {
 
 async function carregarEventos() {
   const tbody = document.getElementById("tabela-eventos-body");
-  tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia">⏳ Carregando...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia">Carregando…</td></tr>`;
   try {
     const filtros = {};
     const fu = document.getElementById("f-usuario").value.trim();
@@ -689,14 +786,14 @@ async function carregarEventos() {
     renderEventos(j.eventos);
     atualizarPaginacao();
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia" style="color:var(--erro);">⚠️ ${escapeHtml(e.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia" style="color:var(--erro);">${escapeHtml(e.message)}</td></tr>`;
   }
 }
 
 function renderEventos(eventos) {
   const tbody = document.getElementById("tabela-eventos-body");
   if(!eventos || eventos.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia">Nenhum evento encontrado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="lista-vazia">Nenhum evento encontrado com esses filtros.</td></tr>`;
     return;
   }
   let html = "";

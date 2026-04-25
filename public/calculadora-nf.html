@@ -4,236 +4,537 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Precificação NF Entrada</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#0f0f0f;--surface:#181818;--surface2:#222222;--border:#2e2e2e;--border2:#3a3a3a;--text:#e8e6e0;--muted:#7a7870;--accent:#c8f060;--accent-dim:#8aaa38;--teal:#3ecfb2;--amber:#f0b429;--red:#e05c5c;--radius:10px;--mono:'IBM Plex Mono',monospace;--sans:'Sora',sans-serif;}
+/* ════════════════════════════════════════════════════════════════
+   CALCULADORA NF — tema CLARO AZUL (Fase 4)
+   Mesma paleta do index.html pra consistência total
+   ════════════════════════════════════════════════════════════════ */
+:root{
+  /* Paleta neutra (cinzas) */
+  --c-bg:        #f5f6f8;
+  --c-surface:   #ffffff;
+  --c-surface-2: #fafbfc;
+  --c-border:    #e1e4e8;
+  --c-border-2:  #d4d8dd;
+  --c-text:      #1f2328;
+  --c-text-2:    #57606a;
+  --c-text-3:    #8b949e;
+
+  /* Cor primária (azul) */
+  --c-primary:        #0969da;
+  --c-primary-hover:  #0860c7;
+  --c-primary-soft:   #ddf4ff;
+
+  /* Acento secundário (cinza-azulado) */
+  --c-neutral:        #f6f8fa;
+  --c-neutral-hover:  #eaeef2;
+  --c-neutral-border: #d0d7de;
+
+  /* Cores funcionais */
+  --c-success:        #1a7f37;
+  --c-success-hover:  #166528;
+  --c-success-soft:   #dafbe1;
+  --c-warning:        #9a6700;
+  --c-warning-soft:   #fff8c5;
+  --c-danger:         #cf222e;
+  --c-danger-hover:   #a40e26;
+  --c-danger-soft:    #ffebe9;
+
+  /* Aliases legados (compatibilidade — todo CSS antigo continua funcionando) */
+  --bg:        var(--c-bg);
+  --surface:   var(--c-surface);
+  --surface2:  var(--c-surface-2);
+  --border:    var(--c-border);
+  --border2:   var(--c-border-2);
+  --text:      var(--c-text);
+  --muted:     var(--c-text-2);
+  --accent:    var(--c-primary);
+  --accent-dim:var(--c-primary-hover);
+  --teal:      var(--c-success);
+  --amber:     var(--c-warning);
+  --red:       var(--c-danger);
+
+  /* Tipografia */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, monospace;
+  --sans:      var(--font-sans);
+  --mono:      var(--font-mono);
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(31, 35, 40, 0.04);
+  --shadow-md: 0 3px 6px rgba(31, 35, 40, 0.08), 0 1px 2px rgba(31, 35, 40, 0.04);
+  --shadow-lg: 0 8px 24px rgba(31, 35, 40, 0.12);
+
+  /* Bordas arredondadas */
+  --radius: 8px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-pill: 999px;
+}
+
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;}
 .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh;}
 
 /* ── Sidebar ── */
 .sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
-.sidebar-header{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
-.logo{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
-.sidebar-title{font-size:18px;font-weight:600;line-height:1.3;}
-.token-section{padding:20px 24px;border-bottom:1px solid var(--border);}
-.label{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:block;}
+.sidebar-header{padding:24px 24px 18px;border-bottom:1px solid var(--border);}
+.logo{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;font-weight:500;}
+.sidebar-title{font-size:17px;font-weight:600;line-height:1.3;color:var(--text);letter-spacing:-0.01em;}
+.token-section{padding:18px 24px;border-bottom:1px solid var(--border);}
+.label{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;display:block;font-weight:600;}
 .token-row{display:flex;gap:8px;}
-.token-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .2s;}
-.token-row input:focus{border-color:var(--accent-dim);}
-.btn-connect{background:var(--accent);color:#0f0f0f;border:none;border-radius:8px;padding:9px 14px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.btn-connect:hover{opacity:.85;}.btn-connect:disabled{opacity:.4;cursor:not-allowed;}
-.server-warn{background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin-top:12px;line-height:1.6;}
-.debug-box{margin:12px 0 0;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);display:none;max-height:140px;overflow-y:auto;line-height:1.6;}
-.debug-box.visible{display:block;}.de{color:var(--red);}.dok{color:var(--teal);}
-.filter-section{padding:16px 24px;border-bottom:1px solid var(--border);}
-.filter-row{display:flex;gap:8px;margin-bottom:8px;}.filter-row:last-child{margin-bottom:0;}
-.filter-row input,.filter-row select{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:var(--sans);font-size:12px;outline:none;}
-.filter-row select option{background:var(--surface2);}
-.btn-search{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;}
-.btn-search:hover{background:var(--border);}
+.token-row input{flex:1;background:var(--surface);border:1px solid var(--border-2,var(--border2));border-radius:var(--r-md);padding:8px 11px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .12s, box-shadow .12s;}
+.token-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(9,105,218,.12);}
+.btn-connect{background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:var(--r-md);padding:8px 14px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .12s;}
+.btn-connect:hover{background:var(--accent-dim);border-color:var(--accent-dim);}
+.btn-connect:disabled{opacity:.4;cursor:not-allowed;}
+.server-warn{background:var(--c-warning-soft);border:1px solid #fde68a;border-radius:var(--r-md);padding:10px 12px;font-size:12px;color:var(--amber);margin-top:12px;line-height:1.5;}
+.debug-box{margin:10px 0 0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);display:none;max-height:140px;overflow-y:auto;line-height:1.6;}
+.debug-box.visible{display:block;}
+.de{color:var(--red);}.dok{color:var(--teal);}
+.filter-section{padding:14px 24px;border-bottom:1px solid var(--border);}
+.filter-row{display:flex;gap:8px;margin-bottom:8px;}
+.filter-row:last-child{margin-bottom:0;}
+.filter-row input,.filter-row select{flex:1;background:var(--surface);border:1px solid var(--border-2,var(--border2));border-radius:var(--r-md);padding:8px 10px;color:var(--text);font-family:var(--sans);font-size:12px;outline:none;transition:border-color .12s, box-shadow .12s;}
+.filter-row input:focus,.filter-row select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(9,105,218,.12);}
+.filter-row select option{background:var(--surface);}
+.btn-search{width:100%;background:var(--c-neutral);border:1px solid var(--c-neutral-border);border-radius:var(--r-md);padding:9px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:background .12s;}
+.btn-search:hover{background:var(--c-neutral-hover);}
 .nf-list-section{flex:1;overflow-y:auto;}
-.nf-list-header{padding:16px 24px 10px;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:1;}
-.nf-count{background:var(--surface2);border-radius:99px;padding:2px 8px;font-size:11px;color:var(--accent);font-family:var(--mono);}
-.nf-item{padding:14px 24px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;flex-direction:column;gap:4px;}
-.nf-item:hover{background:var(--surface2);}.nf-item.active{background:var(--surface2);border-left:3px solid var(--accent);padding-left:21px;}
+.nf-list-header{padding:14px 24px 8px;font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:1;}
+.nf-count{background:var(--c-primary-soft);border-radius:var(--r-pill);padding:2px 9px;font-size:11px;color:var(--accent);font-family:var(--mono);font-weight:600;}
+.nf-item{padding:12px 24px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;display:flex;flex-direction:column;gap:4px;}
+.nf-item:hover{background:var(--c-neutral);}
+.nf-item.active{background:var(--c-primary-soft);border-left:3px solid var(--accent);padding-left:21px;}
 .nf-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.nf-num{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--accent);}
-.nf-status{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;flex-shrink:0;}
-.nf-status.autorizado{background:rgba(62,207,178,.15);color:var(--teal);}
-.nf-status.cancelado{background:rgba(224,92,92,.15);color:var(--red);}
-.nf-status.outro{background:var(--surface2);color:var(--muted);}
+.nf-num{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);}
+.nf-status{font-size:10px;padding:2px 8px;border-radius:var(--r-pill);font-weight:600;flex-shrink:0;letter-spacing:.03em;text-transform:uppercase;}
+.nf-status.autorizado{background:var(--c-success-soft);color:var(--teal);}
+.nf-status.cancelado{background:var(--c-danger-soft);color:var(--red);}
+.nf-status.outro{background:var(--c-neutral);color:var(--muted);}
 .nf-emit{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .nf-meta{display:flex;gap:12px;font-size:11px;color:var(--muted);font-family:var(--mono);}
-.sidebar-state{padding:32px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7;}
+.sidebar-state{padding:32px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;}
 
 /* ── Main ── */
 .main{background:var(--bg);display:flex;flex-direction:column;}
-.main-header{padding:24px 36px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.main-header{padding:20px 32px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;background:var(--surface);}
 .nf-info-block{display:flex;flex-direction:column;gap:4px;}
-.nf-info-num{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--accent);}
+.nf-info-num{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);letter-spacing:-.01em;}
 .nf-info-meta{font-size:13px;color:var(--muted);}
-.nf-info-emit{font-size:15px;font-weight:500;}
+.nf-info-emit{font-size:14px;font-weight:500;color:var(--text);}
 
 /* ── XML Upload area ── */
-.xml-bar{padding:14px 36px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.xml-label{font-size:12px;color:var(--muted);white-space:nowrap;}
-.xml-drop{flex:1;min-width:200px;border:1.5px dashed var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;background:var(--surface2);}
-.xml-drop:hover,.xml-drop.over{border-color:var(--accent-dim);color:var(--text);background:var(--bg);}
-.xml-drop.loaded{border-color:var(--teal);color:var(--teal);}
+.xml-bar{padding:14px 32px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.xml-label{font-size:12px;color:var(--muted);white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.xml-drop{flex:1;min-width:200px;border:1.5px dashed var(--c-neutral-border);border-radius:var(--r-md);padding:11px 16px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;background:var(--surface2);}
+.xml-drop:hover,.xml-drop.over{border-color:var(--accent);color:var(--accent);background:var(--c-primary-soft);}
+.xml-drop.loaded{border-color:var(--teal);color:var(--teal);background:var(--c-success-soft);border-style:solid;font-weight:500;}
 .xml-drop input[type=file]{display:none;}
-.xml-clear{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;}
-.xml-clear:hover{color:var(--red);border-color:var(--red);}
+.xml-clear{background:var(--surface);border:1px solid var(--c-neutral-border);border-radius:var(--r-sm);color:var(--muted);font-size:11px;padding:5px 12px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .12s;}
+.xml-clear:hover{color:var(--red);border-color:#ffcdd2;background:var(--c-danger-soft);}
 .xml-hint{font-size:11px;color:var(--muted);line-height:1.5;}
 
-.globals-bar{padding:14px 36px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px;flex-wrap:wrap;background:var(--surface);}
-.global-field{display:flex;align-items:center;gap:10px;}
-.global-field input{width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:var(--mono);font-size:13px;text-align:right;outline:none;}
-.global-field input:focus{border-color:var(--accent-dim);}
-.globals-hint{font-size:11px;color:var(--muted);margin-left:auto;}
-.table-wrap{flex:1;overflow-x:auto;padding:24px 36px;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-thead th{text-align:left;padding:10px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;}
-thead th.num{text-align:right;}
-tbody tr{border-bottom:1px solid var(--border);}
-tbody tr:hover{background:var(--surface);}
-tbody td{padding:11px 12px;}
-tbody td.num{text-align:right;font-family:var(--mono);font-size:12px;}
-tbody td.sku{font-family:var(--mono);font-size:12px;color:var(--accent);}
-tbody td.desc{max-width:220px;}
-tbody td.desc span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-td input{background:transparent;border:none;font-family:var(--mono);font-size:12px;color:var(--text);text-align:right;width:70px;outline:none;border-bottom:1px solid transparent;padding:2px 4px;}
-td input:focus{border-bottom-color:var(--accent-dim);}
-.val-pf{color:var(--amber);}.val-pl{color:var(--teal);}.val-pp{color:var(--accent);}
-.pl-menor{text-decoration:line-through;opacity:.5;font-size:11px;}
-.pl-atual{color:var(--teal);font-weight:700;}
-.pl-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
-.summary-bar{padding:20px 36px;border-top:1px solid var(--border);background:var(--surface);display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
-.metric{display:flex;flex-direction:column;gap:3px;padding:12px 16px;background:var(--surface2);border-radius:var(--radius);min-width:105px;border:1px solid var(--border);}
-.metric .mlabel{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:var(--mono);}
-.metric .mval{font-size:16px;font-weight:500;font-family:var(--mono);}
-.metric.m-pc .mval{color:var(--text);}.metric.m-pf .mval{color:var(--amber);}.metric.m-pl .mval{color:var(--teal);}.metric.m-pp .mval{color:var(--accent);}
-.export-group{margin-left:auto;display:flex;gap:8px;align-items:center;}
-.btn-export{background:var(--accent);color:#0f0f0f;border:none;border-radius:8px;padding:10px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
-.btn-export:hover{opacity:.85;}.btn-export:disabled{opacity:.4;cursor:not-allowed;}
-.btn-csv{background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-family:var(--sans);font-size:13px;cursor:pointer;}
-.btn-csv:hover{background:var(--surface2);}
-.main-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);padding:60px;text-align:center;}
-.main-empty .big{font-size:40px;opacity:.2;}
-.main-empty p{font-size:14px;line-height:1.7;max-width:340px;}
-.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+/* Linha de ajustes globais (IPI/Frete/Categoria) */
+.globals-bar{padding:12px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:var(--surface2);}
+.globals-bar > .label{margin-bottom:0;font-weight:600;}
+.global-field{display:flex;align-items:center;gap:8px;}
+.global-field > span{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em;}
+.global-field input,
+.global-field select{
+  width:100px;
+  background:var(--surface);
+  border:1px solid var(--c-neutral-border);
+  border-radius:var(--r-md);
+  padding:7px 10px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:13px;
+  text-align:right;
+  outline:none;
+  transition:border-color .12s, box-shadow .12s;
+}
+.global-field select{
+  font-family:var(--sans);
+  text-align:left;
+  width:auto;
+  min-width:120px;
+  cursor:pointer;
+}
+.global-field input:focus,
+.global-field select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(9,105,218,.12);
+}
+.globals-hint{font-size:11px;color:var(--muted);margin-left:auto;font-style:italic;}
+
+/* ── Tabela principal (a real, sem class .tbl) ── */
+.table-wrap{flex:1;overflow-x:auto;padding:20px 32px;background:var(--bg);}
+.table-wrap table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  overflow:hidden;
+  box-shadow:var(--shadow-sm);
+}
+.table-wrap thead tr{background:var(--surface2);}
+.table-wrap th{
+  text-align:left;
+  padding:11px 14px;
+  font-size:11px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:600;
+  border-bottom:1px solid var(--border);
+  font-family:var(--sans);
+  white-space:nowrap;
+}
+.table-wrap th.num{text-align:right;}
+.table-wrap td{
+  padding:9px 14px;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+  color:var(--text);
+  vertical-align:middle;
+}
+.table-wrap tbody tr:last-child td{border-bottom:none;}
+.table-wrap tbody tr:hover td{background:var(--surface2);}
+.table-wrap td.num{
+  text-align:right;
+  font-family:var(--mono);
+  white-space:nowrap;
+}
+.table-wrap td.sku{
+  font-family:var(--mono);
+  color:var(--accent);
+  font-size:12px;
+  font-weight:600;
+}
+.table-wrap td.desc{
+  max-width:320px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:13px;
+  line-height:1.4;
+}
+.table-wrap td.desc span{
+  display:inline-block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  vertical-align:middle;
+}
+.table-wrap td input[type=number]{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--c-neutral-border);
+  border-radius:var(--r-sm);
+  padding:5px 8px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:12px;
+  text-align:right;
+  outline:none;
+  transition:border-color .12s, box-shadow .12s;
+}
+.table-wrap td input[type=number]:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(9,105,218,.12);
+}
+.table-wrap td input[type=number]::-webkit-outer-spin-button,
+.table-wrap td input[type=number]::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+.table-wrap td input[type=number]{-moz-appearance:textfield;}
+
+/* Cores semânticas dos valores na tabela */
+.val-pf{color:var(--amber);font-weight:600;}
+.val-pl{color:var(--teal);font-weight:600;}
+.val-pp{color:var(--accent);font-weight:600;}
+.pl-menor{
+  text-decoration:line-through;
+  opacity:.5;
+  font-size:11px;
+  display:block;
+  color:var(--muted);
+  font-weight:400;
+}
+.pl-atual{
+  color:var(--teal);
+  font-weight:600;
+  display:block;
+}
+.pl-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:0;
+  line-height:1.3;
+}
+
+/* Barra de resumo (totais + botões) */
+.summary-bar{
+  padding:18px 32px;
+  border-top:1px solid var(--border);
+  background:var(--surface);
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.metric{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:10px 14px;
+  background:var(--surface);
+  border-radius:var(--r-md);
+  min-width:115px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.metric .mlabel{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:var(--muted);
+  font-family:var(--sans);
+  font-weight:600;
+}
+.metric .mval{
+  font-size:15px;
+  font-weight:600;
+  font-family:var(--mono);
+  letter-spacing:-.01em;
+}
+/* Cor da linha esquerda — destaca tipo de preço */
+.metric.m-pc{border-left:3px solid var(--c-text-3);}
+.metric.m-pc .mval{color:var(--text);}
+.metric.m-pf{border-left:3px solid var(--amber);}
+.metric.m-pf .mval{color:var(--amber);}
+.metric.m-pl{border-left:3px solid var(--teal);}
+.metric.m-pl .mval{color:var(--teal);}
+.metric.m-pp{border-left:3px solid var(--accent);}
+.metric.m-pp .mval{color:var(--accent);}
+
+.export-group{
+  margin-left:auto;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.btn-export{
+  background:var(--accent);
+  color:#fff;
+  border:1px solid var(--accent);
+  border-radius:var(--r-md);
+  padding:9px 18px;
+  font-family:var(--sans);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:background .12s;
+}
+.btn-export:hover{background:var(--accent-dim);border-color:var(--accent-dim);}
+.btn-export:disabled{opacity:.4;cursor:not-allowed;}
+.btn-csv{
+  background:var(--c-neutral);
+  color:var(--text);
+  border:1px solid var(--c-neutral-border);
+  border-radius:var(--r-md);
+  padding:9px 16px;
+  font-family:var(--sans);
+  font-size:13px;
+  cursor:pointer;
+  font-weight:500;
+  transition:all .12s;
+}
+.btn-csv:hover{background:var(--c-neutral-hover);}
+/* Variante: botão Atualizar Tiny (verde discreto) */
+.btn-tiny{
+  color:var(--teal) !important;
+  border-color:#a3d9b1 !important;
+  background:var(--c-success-soft) !important;
+}
+.btn-tiny:hover{
+  background:var(--c-success-soft) !important;
+  border-color:var(--teal) !important;
+}
+
+.main-empty{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  color:var(--muted);
+  padding:60px;
+  text-align:center;
+}
+.main-empty p{
+  font-size:14px;
+  line-height:1.6;
+  max-width:380px;
+}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 18px;font-size:13px;color:var(--text);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:380px;}
-.toast.show{transform:translateY(0);opacity:1;}.toast.err{border-color:var(--red);color:var(--red);}.toast.ok{border-color:var(--accent);}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 16px;font-size:13px;color:var(--text);z-index:9999;transform:translateY(80px);opacity:0;transition:all .25s;max-width:380px;box-shadow:var(--shadow-lg);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.err{border-color:var(--red);color:var(--red);background:var(--c-danger-soft);}
+.toast.ok{border-color:var(--teal);color:var(--teal);background:var(--c-success-soft);}
 
 /* ── Abas ── */
-.app-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);}
-.app-tab{padding:14px 24px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.03em;}
+.app-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 32px;}
+.app-tab{padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;letter-spacing:0;background:transparent;border-top:none;border-left:none;border-right:none;font-family:var(--sans);}
 .app-tab:hover{color:var(--text);}
-.app-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.app-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
 .tab-content{display:none;flex:1;flex-direction:column;}
 .tab-content.active{display:flex;}
 
-
 /* ── Histórico ── */
-.hist-header{padding:20px 36px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;}
-.hist-title{font-size:18px;font-weight:600;}
-.hist-count{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:99px;border:1px solid var(--border);}
+.hist-header{padding:18px 32px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--surface);}
+.hist-title{font-size:17px;font-weight:600;color:var(--text);letter-spacing:-0.01em;}
+.hist-count{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--c-primary-soft);padding:3px 10px;border-radius:var(--r-pill);font-weight:600;}
 .hist-search{display:flex;gap:8px;align-items:center;}
-.hist-search input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;width:220px;}
-.hist-search input:focus{border-color:var(--accent-dim);}
-.hist-list{flex:1;overflow-y:auto;padding:16px 36px;display:flex;flex-direction:column;gap:10px;}
+.hist-search input{background:var(--surface);border:1px solid var(--border-2,var(--border2));border-radius:var(--r-md);padding:8px 12px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;width:220px;transition:border-color .12s, box-shadow .12s;}
+.hist-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(9,105,218,.12);}
+.hist-list{flex:1;overflow-y:auto;padding:14px 32px;display:flex;flex-direction:column;gap:8px;}
 .hist-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:14px;text-align:center;padding:60px;}
-.hist-empty .big{font-size:40px;opacity:.2;}
-.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:16px;}
-.hist-card:hover{border-color:var(--border2);background:var(--surface2);}
-.hist-card-icon{font-size:28px;flex-shrink:0;margin-top:2px;}
+.hist-empty .big{font-size:36px;opacity:.25;}
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px 18px;cursor:pointer;transition:all .12s;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow-sm);}
+.hist-card:hover{border-color:var(--c-text-3);box-shadow:var(--shadow-md);}
+.hist-card-icon{font-size:24px;flex-shrink:0;margin-top:2px;color:var(--muted);}
 .hist-card-body{flex:1;min-width:0;}
 .hist-card-top{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
-.hist-card-nf{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--accent);}
-.hist-card-cat{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.hist-card-nf{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent);}
+.hist-card-cat{font-size:10px;padding:2px 8px;border-radius:var(--r-pill);font-weight:600;background:var(--c-neutral);color:var(--muted);border:1px solid var(--c-neutral-border);text-transform:uppercase;letter-spacing:.03em;}
 .hist-card-emit{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hist-card-meta{display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--muted);font-family:var(--mono);}
-.hist-card-vals{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
-.hist-val{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:6px;border:1px solid var(--border);}
-.hist-val.pf{color:var(--amber);border-color:rgba(240,180,41,.2);background:rgba(240,180,41,.06);}
-.hist-val.pl{color:var(--teal);border-color:rgba(62,207,178,.2);background:rgba(62,207,178,.06);}
-.hist-val.pp{color:var(--accent);border-color:rgba(200,240,96,.2);background:rgba(200,240,96,.06);}
+.hist-card-meta{display:flex;gap:14px;margin-top:6px;font-size:11px;color:var(--muted);font-family:var(--mono);}
+.hist-card-vals{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.hist-val{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:var(--r-sm);border:1px solid var(--border);font-weight:500;}
+.hist-val.pf{color:var(--amber);border-color:#fde68a;background:var(--c-warning-soft);}
+.hist-val.pl{color:var(--teal);border-color:#a3d9b1;background:var(--c-success-soft);}
+.hist-val.pp{color:var(--accent);border-color:#a8d4f5;background:var(--c-primary-soft);}
 .hist-card-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
-.hist-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:6px 12px;font-size:11px;font-family:var(--sans);color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s;}
-.hist-btn:hover{background:var(--border);}.hist-btn.danger{color:var(--red);}.hist-btn.danger:hover{border-color:var(--red);}
-.hist-btn.conferido{color:var(--teal);border-color:rgba(62,207,178,.3);background:rgba(62,207,178,.06);cursor:default;}
+.hist-btn{background:var(--c-neutral);border:1px solid var(--c-neutral-border);border-radius:var(--r-sm);padding:6px 12px;font-size:11px;font-family:var(--sans);color:var(--text);cursor:pointer;white-space:nowrap;transition:background .12s, border-color .12s;font-weight:500;}
+.hist-btn:hover{background:var(--c-neutral-hover);}
+.hist-btn-conferir{
+  color:var(--teal) !important;
+  border-color:#a3d9b1 !important;
+  background:var(--c-success-soft) !important;
+}
+.hist-btn-conferir:hover{
+  background:var(--teal) !important;
+  color:#fff !important;
+  border-color:var(--teal) !important;
+}
+.hist-btn.danger{color:var(--red);border-color:#ffcdd2;background:var(--c-danger-soft);}
+.hist-btn.danger:hover{background:var(--red);color:#fff;border-color:var(--red);}
+.hist-btn.conferido{color:var(--teal);border-color:#a3d9b1;background:var(--c-success-soft);cursor:default;}
 .hist-card.is-conferido{border-left:3px solid var(--teal);}
-.hist-conferido-badge{font-size:10px;font-weight:600;color:var(--teal);background:rgba(62,207,178,.1);border:1px solid rgba(62,207,178,.2);padding:2px 8px;border-radius:99px;}
+.hist-conferido-badge{font-size:10px;font-weight:600;color:var(--teal);background:var(--c-success-soft);border:1px solid #a3d9b1;padding:2px 8px;border-radius:var(--r-pill);text-transform:uppercase;letter-spacing:.03em;}
 
 /* Modal senha */
-.senha-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;}
+.senha-modal{display:none;position:fixed;inset:0;background:rgba(31,35,40,.55);z-index:10000;align-items:center;justify-content:center;font-family:var(--sans);}
 .senha-modal.open{display:flex;}
-.senha-modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px;width:320px;display:flex;flex-direction:column;gap:14px;}
-.senha-modal-box h3{font-size:15px;font-weight:600;margin:0;}
-.senha-modal-box p{font-size:13px;color:var(--muted);margin:0;}
-.senha-modal-box input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:14px;outline:none;width:100%;letter-spacing:.15em;}
-.senha-modal-box input:focus{border-color:var(--accent-dim);}
-.senha-modal-erro{font-size:12px;color:var(--red);display:none;}
-.senha-modal-btns{display:flex;gap:8px;}
-.senha-modal-btns button{flex:1;padding:9px;border:none;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;}
-.senha-modal-ok{background:var(--accent);color:#0f0f0f;}
-.senha-modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border2)!important;}
+.senha-modal-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:340px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow-lg);}
+.senha-modal-box h3{font-size:16px;font-weight:600;margin:0;color:var(--text);}
+.senha-modal-box p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+.senha-modal-box input{background:var(--surface);border:1px solid var(--border-2,var(--border2));border-radius:var(--r-md);padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:14px;outline:none;width:100%;letter-spacing:.15em;transition:border-color .12s, box-shadow .12s;}
+.senha-modal-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(9,105,218,.12);}
+.senha-modal-erro{font-size:12px;color:var(--red);display:none;background:var(--c-danger-soft);padding:6px 10px;border-radius:var(--r-sm);border:1px solid #ffcdd2;}
+.senha-modal-btns{display:flex;gap:8px;margin-top:4px;}
+.senha-modal-btns button{flex:1;padding:9px;border:1px solid transparent;border-radius:var(--r-md);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s, border-color .12s;}
+.senha-modal-ok{background:var(--accent);color:#fff;border-color:var(--accent);}
+.senha-modal-ok:hover{background:var(--accent-dim);border-color:var(--accent-dim);}
+.senha-modal-cancel{background:var(--c-neutral);color:var(--text);border-color:var(--c-neutral-border)!important;}
+.senha-modal-cancel:hover{background:var(--c-neutral-hover);}
 
 /* ── Modal visualização ── */
-.hist-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;align-items:center;justify-content:center;}
+.hist-modal{display:none;position:fixed;inset:0;background:rgba(31,35,40,.55);z-index:9998;align-items:center;justify-content:center;font-family:var(--sans);}
 .hist-modal.open{display:flex;}
-.hist-modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:90vw;max-width:900px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
-.hist-modal-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.hist-modal-head h2{font-size:16px;font-weight:600;}
-.hist-modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;}
-.hist-modal-close:hover{color:var(--red);}
-.hist-modal-body{flex:1;overflow-y:auto;padding:24px;}
+.hist-modal-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:90vw;max-width:900px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg);}
+.hist-modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.hist-modal-head h2{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.01em;margin:0;}
+.hist-modal-close{background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:var(--r-sm);transition:background .12s, color .12s;}
+.hist-modal-close:hover{color:var(--text);background:var(--c-neutral-hover);}
+.hist-modal-body{flex:1;overflow-y:auto;padding:22px;}
 .hist-modal-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px;}
-.hist-info-card{background:var(--surface2);border-radius:8px;padding:12px;border:1px solid var(--border);}
-.hist-info-card .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
-.hist-info-card .val{font-size:14px;font-weight:500;font-family:var(--mono);}
+.hist-info-card{background:var(--surface2);border-radius:var(--r-md);padding:12px;border:1px solid var(--border);}
+.hist-info-card .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:600;}
+.hist-info-card .val{font-size:14px;font-weight:600;font-family:var(--mono);color:var(--text);}
 .hist-modal-table{width:100%;border-collapse:collapse;font-size:12px;}
-.hist-modal-table th{text-align:left;padding:8px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.hist-modal-table th{text-align:left;padding:8px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600;}
 .hist-modal-table th.r{text-align:right;}
-.hist-modal-table td{padding:10px 10px;border-bottom:1px solid var(--border);}
+.hist-modal-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);}
 .hist-modal-table td.r{text-align:right;font-family:var(--mono);}
 .hist-modal-table tr:hover td{background:var(--surface2);}
-/* ═══════ EMISSÃO MASSIVA NF ═══════ */
-.em-wrap{padding:32px;max-width:1200px;margin:0 auto;width:100%;}
-.em-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;gap:16px;}
-.em-title{font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.01em;}
+
+/* ═══════ EMISSÃO MASSIVA NF (tema claro) ═══════ */
+.em-wrap{padding:28px 32px;max-width:1200px;margin:0 auto;width:100%;}
+.em-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;}
+.em-title{font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;}
 .em-sub{color:var(--muted);font-size:13px;line-height:1.5;max-width:680px;}
 .em-subtitle{font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px;}
-.em-section{margin-bottom:24px;}
+.em-section{margin-bottom:22px;}
 
 /* Cards informativos */
-.em-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin-bottom:16px;}
-.em-card-info{background:rgba(62,207,178,.05);border-color:rgba(62,207,178,.25);}
-.em-card-title{font-size:13px;font-weight:600;color:var(--teal);margin-bottom:12px;letter-spacing:.02em;}
+.em-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 22px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+.em-card-info{background:var(--c-success-soft);border-color:#a3d9b1;}
+.em-card-title{font-size:13px;font-weight:600;color:var(--teal);margin-bottom:10px;letter-spacing:.02em;text-transform:uppercase;}
 .em-config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 24px;font-size:12px;color:var(--text);}
 .em-config-lbl{color:var(--muted);}
 
 /* Botões */
-.em-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 20px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
-.em-btn:hover:not(:disabled){background:var(--border);}
+.em-btn{background:var(--c-neutral);border:1px solid var(--c-neutral-border);border-radius:var(--r-md);padding:9px 18px;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s;}
+.em-btn:hover:not(:disabled){background:var(--c-neutral-hover);}
 .em-btn:disabled{opacity:.4;cursor:not-allowed;}
-.em-btn-primary{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:600;}
-.em-btn-primary:hover:not(:disabled){background:var(--accent-dim);color:#fff;}
+.em-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+.em-btn-primary:hover:not(:disabled){background:var(--accent-dim);border-color:var(--accent-dim);}
 .em-btn-secondary{background:transparent;}
 .em-btn-cancelar{background:transparent;border-color:var(--red);color:var(--red);}
-.em-btn-cancelar:hover{background:rgba(224,92,92,.1);}
+.em-btn-cancelar:hover{background:var(--c-danger-soft);}
 .em-actions{display:flex;gap:10px;margin-top:18px;}
 .em-actions .em-btn{flex:1;}
 
-/* Drop area */
-.em-drop{border:2px dashed var(--border2);border-radius:var(--radius);padding:48px 32px;text-align:center;background:var(--surface);cursor:pointer;transition:all .15s;}
-.em-drop:hover{border-color:var(--accent-dim);background:var(--surface2);}
-.em-drop.over{border-color:var(--accent);background:rgba(62,207,178,.05);}
-.em-drop-icon{font-size:42px;margin-bottom:12px;opacity:.7;}
-.em-drop-text{color:var(--text);font-size:15px;margin-bottom:6px;}
+/* Drop area (upload de XML) */
+.em-drop{border:2px dashed var(--c-neutral-border);border-radius:var(--r-md);padding:42px 32px;text-align:center;background:var(--surface);cursor:pointer;transition:all .15s;}
+.em-drop:hover{border-color:var(--accent);background:var(--c-primary-soft);}
+.em-drop.over{border-color:var(--accent);background:var(--c-primary-soft);border-style:solid;}
+.em-drop-icon{font-size:36px;margin-bottom:10px;opacity:.4;color:var(--muted);}
+.em-drop-text{color:var(--text);font-size:14px;margin-bottom:6px;font-weight:500;}
 .em-drop-hint{color:var(--muted);font-size:12px;}
-.em-arquivo-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin-top:16px;}
-.em-arquivo-nome{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;font-family:var(--mono);}
+.em-arquivo-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 20px;margin-top:14px;box-shadow:var(--shadow-sm);}
+.em-arquivo-nome{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;font-family:var(--mono);}
 .em-arquivo-stats{font-size:13px;color:var(--muted);line-height:1.6;}
 .em-arquivo-stats strong{color:var(--text);}
 
 /* Erros de validação */
-.em-erros-card{background:rgba(224,92,92,.05);border:1px solid rgba(224,92,92,.4);border-radius:var(--radius);padding:18px;margin-top:16px;}
-.em-erros-titulo{color:var(--red);font-weight:600;font-size:14px;margin-bottom:10px;}
-.em-erros-lista{font-family:var(--mono);font-size:12px;color:var(--text);max-height:200px;overflow-y:auto;line-height:1.7;}
+.em-erros-card{background:var(--c-danger-soft);border:1px solid #ffcdd2;border-radius:var(--r-md);padding:16px 18px;margin-top:14px;}
+.em-erros-titulo{color:var(--red);font-weight:600;font-size:13px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.03em;}
+.em-erros-lista{font-family:var(--mono);font-size:12px;color:var(--text);max-height:200px;overflow-y:auto;line-height:1.6;}
 .em-erros-lista .l{display:block;padding:3px 0;}
 
 /* Progresso */
-.em-progresso{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
-.em-progresso-bar{background:var(--surface2);border-radius:99px;overflow:hidden;height:30px;margin-bottom:14px;border:1px solid var(--border);}
-.em-progresso-fill{background:linear-gradient(90deg,var(--accent-dim),var(--accent));height:100%;width:0%;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:#0f0f0f;font-weight:700;font-size:13px;font-family:var(--mono);}
-.em-progresso-txt{font-size:14px;color:var(--text);text-align:center;margin-bottom:14px;font-weight:500;}
-.em-progresso-log{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--muted);max-height:280px;overflow-y:auto;line-height:1.7;}
+.em-progresso{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:22px;box-shadow:var(--shadow-sm);}
+.em-progresso-bar{background:var(--c-neutral);border-radius:var(--r-pill);overflow:hidden;height:26px;margin-bottom:12px;border:1px solid var(--border);}
+.em-progresso-fill{background:var(--accent);height:100%;width:0%;transition:width .3s ease;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:12px;font-family:var(--mono);}
+.em-progresso-txt{font-size:13px;color:var(--text);text-align:center;margin-bottom:12px;font-weight:500;}
+.em-progresso-log{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;font-family:var(--mono);font-size:11px;color:var(--muted);max-height:280px;overflow-y:auto;line-height:1.7;}
 .em-progresso-log .ok{color:var(--teal);}
 .em-progresso-log .err{color:var(--red);}
 .em-progresso-log .wrn{color:var(--amber);}
@@ -241,27 +542,28 @@ td input:focus{border-bottom-color:var(--accent-dim);}
 
 /* Relatório */
 .em-rel-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
-.em-rel-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;}
-.em-rel-box.ok{border-color:var(--teal);}
-.em-rel-box.err{border-color:var(--red);}
-.em-rel-box.wrn{border-color:var(--amber);}
-.em-rel-num{font-size:32px;font-weight:700;color:var(--text);font-family:var(--mono);margin-bottom:4px;}
+.em-rel-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;text-align:center;box-shadow:var(--shadow-sm);}
+.em-rel-box.ok{border-color:var(--teal);background:var(--c-success-soft);}
+.em-rel-box.err{border-color:var(--red);background:var(--c-danger-soft);}
+.em-rel-box.wrn{border-color:var(--amber);background:var(--c-warning-soft);}
+.em-rel-num{font-size:30px;font-weight:700;color:var(--text);font-family:var(--mono);margin-bottom:4px;}
 .em-rel-box.ok .em-rel-num{color:var(--teal);}
 .em-rel-box.err .em-rel-num{color:var(--red);}
 .em-rel-box.wrn .em-rel-num{color:var(--amber);}
 .em-rel-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
-.em-rel-detalhes{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0;overflow:hidden;}
+.em-rel-detalhes{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:0;overflow:hidden;}
 .em-rel-tabela{width:100%;border-collapse:collapse;font-size:12px;}
-.em-rel-tabela th{text-align:left;padding:12px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2);}
-.em-rel-tabela td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);}
+.em-rel-tabela th{text-align:left;padding:11px 13px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2);font-weight:600;}
+.em-rel-tabela td{padding:10px 13px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);}
 .em-rel-tabela tr:last-child td{border-bottom:none;}
 .em-rel-tabela tr:hover td{background:var(--surface2);}
-.em-rel-status{display:inline-block;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:600;letter-spacing:.05em;}
-.em-rel-status.ok{background:rgba(62,207,178,.15);color:var(--teal);}
-.em-rel-status.err{background:rgba(224,92,92,.15);color:var(--red);}
-.em-rel-status.wrn{background:rgba(240,180,41,.15);color:var(--amber);}
+.em-rel-status{display:inline-block;padding:2px 10px;border-radius:var(--r-pill);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.em-rel-status.ok{background:var(--c-success-soft);color:var(--teal);}
+.em-rel-status.err{background:var(--c-danger-soft);color:var(--red);}
+.em-rel-status.wrn{background:var(--c-warning-soft);color:var(--amber);}
 
 </style>
+
 </head>
 <body>
 <div class="app">
@@ -296,31 +598,30 @@ td input:focus{border-bottom-color:var(--accent-dim);}
         <input type="date" id="f-data-ini" title="Data inicial"/>
         <input type="date" id="f-data-fim" title="Data final"/>
       </div>
-      <button class="btn-search" onclick="buscarNFs()">⌕ Buscar notas de entrada</button>
+      <button class="btn-search" onclick="buscarNFs()">Buscar notas de entrada</button>
     </div>
     <div class="nf-list-section">
       <div class="nf-list-header">
         <span>Notas de entrada</span>
         <span class="nf-count" id="nf-count">0</span>
       </div>
-      <div id="nf-list"><div class="sidebar-state"><span class="spinner"></span><br><br>Carregando notas...</div></div>
+      <div id="nf-list"><div class="sidebar-state"><span class="spinner"></span><br><br>Carregando…</div></div>
     </div>
   </aside>
 
   <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
     <!-- Abas -->
     <div class="app-tabs">
-      <div class="app-tab active" id="tab-calc" onclick="mudarAba('calc')">📊 Precificação</div>
-      <div class="app-tab" id="tab-hist" onclick="mudarAba('hist')">🗂 Histórico</div>
-      <div class="app-tab" id="tab-em" onclick="mudarAba('em')">📋 Emissão Massiva NF</div>
+      <div class="app-tab active" id="tab-calc" onclick="mudarAba('calc')">Precificação</div>
+      <div class="app-tab" id="tab-hist" onclick="mudarAba('hist')">Histórico</div>
+      <div class="app-tab" id="tab-em" onclick="mudarAba('em')">Emissão Massiva NF</div>
     </div>
 
     <!-- Tab: Precificação -->
     <div class="tab-content active" id="tc-calc" style="overflow:auto;">
       <main class="main" id="main">
         <div class="main-empty">
-          <div class="big">📄</div>
-          <p>Selecione uma nota de entrada para carregar os produtos e calcular os preços.</p>
+          <p>Escolha uma nota na lista do lado pra começar a precificar.</p>
         </div>
       </main>
     </div>
@@ -338,8 +639,7 @@ td input:focus{border-bottom-color:var(--accent-dim);}
       </div>
       <div class="hist-list" id="hist-list">
         <div class="hist-empty">
-          <div class="big">🗂</div>
-          <p>Nenhuma NF precificada ainda.<br>Gere um PDF para registrar aqui.</p>
+          <p>Nada por aqui ainda.<br>Quando você gerar um PDF de precificação, ele aparece nesta lista.</p>
         </div>
       </div>
     </div>
@@ -349,40 +649,40 @@ td input:focus{border-bottom-color:var(--accent-dim);}
       <div class="em-wrap">
         <div class="em-header">
           <div>
-            <h2 class="em-title">📋 Emissão Massiva de Notas Fiscais</h2>
-            <p class="em-sub">Faça upload de uma planilha Excel pra cadastrar clientes em massa, criar pedidos e gerar NFs (pendentes pra autorização manual).</p>
+            <h2 class="em-title">Emissão Massiva de Notas Fiscais</h2>
+            <p class="em-sub">Cadastra os clientes da planilha, monta os pedidos e gera as notas fiscais. Elas saem como pendentes — você autoriza depois no SEFAZ.</p>
           </div>
-          <button class="em-btn em-btn-secondary" onclick="emBaixarModelo()">📥 Baixar modelo</button>
+          <button class="em-btn em-btn-secondary" onclick="emBaixarModelo()">Baixar modelo</button>
         </div>
 
         <!-- Configurações fixas (informativo) -->
         <div class="em-card em-card-info">
-          <div class="em-card-title">⚙️ Configurações fixas das NFs geradas</div>
+          <div class="em-card-title">Como as notas vão sair</div>
           <div class="em-config-grid">
             <div><span class="em-config-lbl">Forma de envio:</span> <strong>Envio Próprio Caús</strong></div>
             <div><span class="em-config-lbl">Frete por conta:</span> <strong>Transporte Próprio do Remetente</strong></div>
             <div><span class="em-config-lbl">Forma de pagamento:</span> <strong>Dinheiro</strong></div>
             <div><span class="em-config-lbl">Valor unitário:</span> <strong>preço Tiny − 40%</strong></div>
             <div><span class="em-config-lbl">Status final:</span> <strong>Pendente (você autoriza no SEFAZ)</strong></div>
-            <div><span class="em-config-lbl">Operação Presencial:</span> <strong>marcar manualmente antes de autorizar</strong></div>
+            <div><span class="em-config-lbl">Operação presencial:</span> <strong>marcar à mão antes de autorizar</strong></div>
           </div>
         </div>
 
         <!-- Etapa 1: Upload -->
         <div class="em-section" id="emSection1">
-          <h3 class="em-subtitle">1. Selecione a planilha</h3>
+          <h3 class="em-subtitle">1. Anexe a planilha</h3>
           <div class="em-drop" id="emDropArea" ondragover="emDragOver(event)" ondragleave="emDragLeave(event)" ondrop="emDrop(event)" onclick="document.getElementById('emFileInput').click()">
-            <div class="em-drop-icon">📂</div>
-            <div class="em-drop-text">Arraste a planilha aqui ou <strong>clique pra escolher</strong></div>
-            <div class="em-drop-hint">Aceita arquivos .xlsx (Excel)</div>
+            
+            <div class="em-drop-text">Arraste a planilha aqui, ou <strong>clique pra escolher</strong></div>
+            <div class="em-drop-hint">Aceita arquivos .xlsx</div>
             <input type="file" id="emFileInput" accept=".xlsx" style="display:none;" onchange="emFileChange(event)">
           </div>
           <div id="emArquivoInfo" style="display:none;" class="em-arquivo-info">
             <div class="em-arquivo-nome"><span id="emArquivoNome"></span></div>
             <div class="em-arquivo-stats" id="emArquivoStats"></div>
             <div class="em-actions">
-              <button class="em-btn em-btn-secondary" onclick="emResetar()">↺ Trocar arquivo</button>
-              <button class="em-btn em-btn-primary" onclick="emProcessar()" id="emBtnProcessar">▶ Processar planilha</button>
+              <button class="em-btn em-btn-secondary" onclick="emResetar()">Trocar arquivo</button>
+              <button class="em-btn em-btn-primary" onclick="emProcessar()" id="emBtnProcessar">Processar planilha</button>
             </div>
           </div>
           <div id="emValidacaoErros" style="display:none;" class="em-erros-card"></div>
@@ -390,27 +690,27 @@ td input:focus{border-bottom-color:var(--accent-dim);}
 
         <!-- Etapa 2: Progresso -->
         <div class="em-section" id="emSection2" style="display:none;">
-          <h3 class="em-subtitle">2. Processando…</h3>
+          <h3 class="em-subtitle">2. Processando</h3>
           <div class="em-progresso">
             <div class="em-progresso-bar">
               <div class="em-progresso-fill" id="emProgFill" style="width:0%;">0%</div>
             </div>
-            <div class="em-progresso-txt" id="emProgTxt">Iniciando…</div>
+            <div class="em-progresso-txt" id="emProgTxt">Começando…</div>
             <div class="em-progresso-log" id="emProgLog"></div>
             <div style="margin-top:14px;text-align:right;">
-              <button class="em-btn em-btn-cancelar" onclick="emCancelar()" id="emBtnCancelar">⏹ Cancelar</button>
+              <button class="em-btn em-btn-cancelar" onclick="emCancelar()" id="emBtnCancelar">Cancelar</button>
             </div>
           </div>
         </div>
 
         <!-- Etapa 3: Relatório -->
         <div class="em-section" id="emSection3" style="display:none;">
-          <h3 class="em-subtitle">3. Relatório final</h3>
+          <h3 class="em-subtitle">3. Resultado</h3>
           <div class="em-rel-resumo" id="emRelResumo"></div>
           <div class="em-rel-detalhes" id="emRelDetalhes"></div>
           <div class="em-actions" style="margin-top:18px;">
-            <button class="em-btn em-btn-secondary" onclick="emResetar()">📋 Nova emissão</button>
-            <button class="em-btn em-btn-primary" onclick="emExportarRelatorio()">📥 Exportar relatório CSV</button>
+            <button class="em-btn em-btn-secondary" onclick="emResetar()">Fazer outra emissão</button>
+            <button class="em-btn em-btn-primary" onclick="emExportarRelatorio()">Exportar resultado em CSV</button>
           </div>
         </div>
       </div>
@@ -434,12 +734,12 @@ td input:focus{border-bottom-color:var(--accent-dim);}
 <!-- Modal de senha -->
 <div class="senha-modal" id="senhaModal">
   <div class="senha-modal-box">
-    <h3 id="senhaTitulo">🔐 Confirmação</h3>
+    <h3 id="senhaTitulo">Confirmação</h3>
     <p id="senhaDesc">Digite a senha para continuar.</p>
     <input type="password" id="senhaInput" placeholder="••••" maxlength="20">
     <div class="senha-modal-erro" id="senhaErro">Senha incorreta. Tente novamente.</div>
     <div class="senha-modal-btns">
-      <button class="senha-modal-cancel" onclick="fecharSenhaModal()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border2);">Cancelar</button>
+      <button class="senha-modal-cancel" onclick="fecharSenhaModal()">Cancelar</button>
       <button class="senha-modal-ok" onclick="confirmarSenha()">Confirmar</button>
     </div>
   </div>
@@ -473,7 +773,7 @@ async function proxy(action,params={}){
 async function conectar(){
   token=document.getElementById("token-input").value.trim();
   // Token pode estar vazio — o proxy do VPS usa o TINY_TOKEN do .env automaticamente
-  const btn=document.getElementById("btn-connect");btn.disabled=true;btn.textContent="Conectando...";
+  const btn=document.getElementById("btn-connect");btn.disabled=true;btn.textContent = "Conectando…";
   document.getElementById("server-warn").style.display="none";
 
   // Define período padrão: últimos 60 dias
@@ -485,7 +785,7 @@ async function conectar(){
   if(elIni&&!elIni.value) elIni.value=fmt(ini);
   if(elFim&&!elFim.value) elFim.value=fmt(hoje);
 
-  try{dbg("Conectando...");await buscarNFs();document.getElementById("filter-section").style.display="block";toast("Conectado!");}
+  try{dbg("Conectando...");await buscarNFs();document.getElementById("filter-section").style.display="block";toast("Pronto, conectado!");}
   catch(e){dbg(e.message,"err");toast(e.message,"err");}
   finally{btn.disabled=false;btn.textContent="Conectar";}
 }
@@ -496,7 +796,7 @@ function fmtDataTiny(d){ // dd/mm/yyyy
 
 async function buscarNFs(){
   const listEl=document.getElementById("nf-list");
-  listEl.innerHTML=`<div class="sidebar-state"><span class="spinner"></span><br><br>Buscando...</div>`;
+  listEl.innerHTML=`<div class="sidebar-state"><span class="spinner"></span><br><br>Buscando…</div>`;
   const params={tipoNota:"E"};
   const num=document.getElementById("f-numero")?.value.trim();
   const sit=document.getElementById("f-situacao")?.value;
@@ -529,7 +829,7 @@ async function buscarNFs(){
 
   dbg(lista.length+" notas",lista.length>0?"ok":"");
   document.getElementById("nf-count").textContent=lista.length;
-  if(!lista.length){listEl.innerHTML=`<div class="sidebar-state">Nenhuma nota encontrada.</div>`;return;}
+  if(!lista.length){listEl.innerHTML=`<div class="sidebar-state">Nenhuma nota encontrada com esses filtros.</div>`;return;}
   listEl.innerHTML="";
   lista.forEach(nf=>{
     const div=document.createElement("div");div.className="nf-item";
@@ -548,7 +848,7 @@ async function selecionarNF(nf,el){
   document.querySelectorAll(".nf-item").forEach(d=>d.classList.remove("active"));
   el.classList.add("active");activeNF=nf;xmlCarregado=null;xmlCteCarregado=null;if(document.getElementById('cte-drop'))limparCTE();
   const main=document.getElementById("main");
-  main.innerHTML=`<div class="main-empty"><span class="spinner" style="width:32px;height:32px;border-width:3px"></span><br><br><p>Carregando NF ${nf.numero||"—"}...</p></div>`;
+  main.innerHTML=`<div class="main-empty"><span class="spinner" style="width:32px;height:32px;border-width:3px"></span><br><br><p>Carregando NF ${nf.numero || "—"}…</p></div>`;
   try{
     dbg("Carregando id="+nf.id);
     const data=await proxy("detalhe_nf",{id:nf.id});
@@ -600,31 +900,31 @@ function renderMain(nfData,nfMeta){
     </div>
 
     <div class="xml-bar">
-      <span class="xml-label">XML da NF:</span>
+      <span class="xml-label">XML da NF</span>
       <label class="xml-drop" id="xml-drop" ondragover="xmlDragOver(event)" ondragleave="xmlDragLeave(event)" ondrop="xmlDrop(event)">
         <input type="file" id="xml-file" accept=".xml" onchange="xmlFileChange(event)"/>
-        <span id="xml-drop-text">📂 Clique ou arraste o arquivo XML da NF aqui</span>
+        <span id="xml-drop-text">Arraste o XML aqui ou clique pra escolher</span>
       </label>
-      <button class="xml-clear" id="xml-clear-btn" onclick="limparXML()" style="display:none">✕ Remover</button>
-      <div class="xml-hint">Baixe o XML no Tiny: Suprimentos → Notas de Entrada → ⋮ → Baixar XML</div>
+      <button class="xml-clear" id="xml-clear-btn" onclick="limparXML()" style="display:none">Remover</button>
+      <div class="xml-hint">Baixe no Tiny: Suprimentos → Notas de Entrada → ⋮ → Baixar XML</div>
     </div>
     <div class="xml-bar" style="border-top:none;">
-      <span class="xml-label">XML da CT-e:</span>
+      <span class="xml-label">XML da CT-e</span>
       <label class="xml-drop" id="cte-drop" ondragover="cteDragOver(event)" ondragleave="cteDragLeave(event)" ondrop="cteDrop(event)">
         <input type="file" id="cte-file" accept=".xml" onchange="cteFileChange(event)"/>
-        <span id="cte-drop-text">📂 Opcional — arraste o XML da CT-e (frete por conta nossa)</span>
+        <span id="cte-drop-text">Arraste o XML da CT-e aqui (opcional)</span>
       </label>
-      <button class="xml-clear" id="cte-clear-btn" onclick="limparCTE()" style="display:none">✕ Remover</button>
-      <div class="xml-hint" style="color:var(--muted);font-style:italic;">Opcional — apenas quando o frete for por nossa conta</div>
+      <button class="xml-clear" id="cte-clear-btn" onclick="limparCTE()" style="display:none">Remover</button>
+      <div class="xml-hint" style="font-style:italic;">Só quando o frete é por nossa conta</div>
     </div>
 
     <div class="globals-bar">
-      <span class="label">Ajustes globais:</span>
-      <div class="global-field"><span style="font-size:12px;color:var(--muted)">IPI global %</span><input type="number" id="g-ipi" placeholder="0" min="0" step="0.01" oninput="recalc()"/></div>
-      <div class="global-field"><span style="font-size:12px;color:var(--muted)">Frete global %</span><input type="number" id="g-frete" placeholder="0" min="0" step="0.01" oninput="recalc()"/></div>
+      <span class="label">Ajustes globais</span>
+      <div class="global-field"><span>IPI %</span><input type="number" id="g-ipi" placeholder="0" min="0" step="0.01" oninput="recalc()"/></div>
+      <div class="global-field"><span>Frete %</span><input type="number" id="g-frete" placeholder="0" min="0" step="0.01" oninput="recalc()"/></div>
       <div class="global-field">
-        <span style="font-size:12px;color:var(--muted)">Categoria</span>
-        <select id="g-categoria" onchange="recalc()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;cursor:pointer;">
+        <span>Categoria</span>
+        <select id="g-categoria" onchange="recalc()">
           <option value="moveis">Móveis</option>
           <option value="eletro">Eletro</option>
         </select>
@@ -652,9 +952,9 @@ function renderMain(nfData,nfMeta){
       <div class="metric m-pl"><div class="mlabel">Total PL</div><div class="mval" id="s-pl">R$ 0,00</div></div>
       <div class="metric m-pp"><div class="mlabel">Total PP</div><div class="mval" id="s-pp">R$ 0,00</div></div>
       <div class="export-group">
-        <button class="btn-csv" onclick="exportarCSV()">↓ CSV</button>
-        <button class="btn-csv" id="btn-atualizar-tiny" onclick="atualizarPrecosTiny()" style="color:var(--teal);border-color:var(--teal);">↑ Atualizar Preços no Tiny</button>
-        <button class="btn-export" id="btn-pdf" onclick="exportarPDF()">↓ PDF completo</button>
+        <button class="btn-csv" onclick="exportarCSV()">Baixar CSV</button>
+        <button class="btn-csv btn-tiny" id="btn-atualizar-tiny" onclick="atualizarPrecosTiny()">Atualizar preços no Tiny</button>
+        <button class="btn-export" id="btn-pdf" onclick="exportarPDF()">Gerar PDF</button>
       </div>
     </div>`;
   renderTabela();
@@ -666,15 +966,15 @@ function xmlDragLeave(e){document.getElementById("xml-drop").classList.remove("o
 function xmlDrop(e){e.preventDefault();document.getElementById("xml-drop").classList.remove("over");const f=e.dataTransfer.files[0];if(f)lerXML(f);}
 function xmlFileChange(e){const f=e.target.files[0];if(f)lerXML(f);}
 function lerXML(file){
-  if(!file.name.endsWith(".xml")&&file.type!=="text/xml"){toast("Selecione um arquivo .xml","err");return;}
+  if(!file.name.endsWith(".xml")&&file.type!=="text/xml"){toast("Esse não parece ser um arquivo .xml","err");return;}
   const reader=new FileReader();
   reader.onload=e=>{
     xmlCarregado=e.target.result;
     const drop=document.getElementById("xml-drop");
     drop.classList.add("loaded");
-    document.getElementById("xml-drop-text").textContent="✓ "+file.name+" carregado";
+    document.getElementById("xml-drop-text").textContent = file.name;
     document.getElementById("xml-clear-btn").style.display="inline-block";
-    toast("XML carregado: "+file.name,"ok");
+    toast("XML carregado: " + file.name, "ok");
     dbg("XML carregado: "+file.name+" ("+file.size+" bytes)","ok");
 
     // Valida se o XML é da NF correta
@@ -684,20 +984,20 @@ function lerXML(file){
       const nNFAtiva = parseInt(activeNF.numero||"0");
       if(nNFXml !== nNFAtiva){
         // XML errado — avisa e bloqueia
-        toast("⚠️ XML incorreto! O XML é da NF "+nNFXml+" mas a NF selecionada é "+nNFAtiva,"err");
+        toast("Esse XML é da NF " + nNFXml + ", mas você selecionou a NF " + nNFAtiva, "err");
         dbg("ERRO: XML da NF "+nNFXml+" não corresponde à NF "+nNFAtiva+" selecionada","err");
         // Destaca o drop em vermelho
         drop.classList.remove("loaded");
         drop.style.borderColor="var(--red)";
         drop.style.color="var(--red)";
-        document.getElementById("xml-drop-text").textContent="❌ XML incorreto! NF "+nNFXml+" ≠ NF "+nNFAtiva;
+        document.getElementById("xml-drop-text").textContent = "XML é da NF " + nNFXml + " (diferente da NF " + nNFAtiva + ")";
         document.getElementById("xml-clear-btn").style.display="inline-block";
         xmlCarregado=null; // invalida o XML
         atualizarBotaoPDF();
         return;
       } else {
-        dbg("✓ XML validado: NF "+nNFXml+" corresponde à NF selecionada","ok");
-        toast("✓ XML validado! Corresponde à NF "+nNFAtiva,"ok");
+        dbg("XML validado: NF "+nNFXml+" corresponde à NF selecionada","ok");
+        toast("Beleza, o XML bate com a NF " + nNFAtiva, "ok");
       }
     }
 
@@ -724,7 +1024,7 @@ function extrairIPIDoXML(xmlStr){
       dbg("Fallback pIPIs: "+pIPIs.length);
       rows.forEach((r,i)=>{ r.ipi = pIPIs[i] ?? 0; });
       renderTabela();
-      toast("IPI aplicado por índice!","ok");
+      toast("IPI aplicado por índice", "ok");
       return;
     }
 
@@ -746,7 +1046,7 @@ function extrairIPIDoXML(xmlStr){
 
     dbg(comIPI+" com IPI | "+semIPI+" sem IPI (0%)","ok");
     renderTabela();
-    toast("IPI preenchido em "+rows.length+" produto(s)!","ok");
+    toast("IPI preenchido em " + rows.length + " produto(s)", "ok");
 
   }catch(e){
     dbg("Erro ao extrair IPI: "+e.message,"err");
@@ -758,7 +1058,7 @@ function limparXML(){
   drop.classList.remove("loaded");
   drop.style.borderColor="";
   drop.style.color="";
-  document.getElementById("xml-drop-text").textContent="📂 Clique ou arraste o arquivo XML da NF aqui";
+  document.getElementById("xml-drop-text").textContent = "Arraste o XML aqui ou clique pra escolher";
   document.getElementById("xml-clear-btn").style.display="none";
   document.getElementById("xml-file").value="";
   atualizarBotaoPDF();
@@ -770,21 +1070,21 @@ function cteDrop(e){e.preventDefault();document.getElementById("cte-drop").class
 function cteFileChange(e){const f=e.target.files[0];if(f)lerCTE(f);}
 
 function lerCTE(file){
-  if(!file.name.endsWith(".xml")&&file.type!=="text/xml"){toast("Selecione um arquivo .xml","err");return;}
+  if(!file.name.endsWith(".xml")&&file.type!=="text/xml"){toast("Esse não parece ser um arquivo .xml","err");return;}
   const reader=new FileReader();
   reader.onload=e=>{
     const xml=e.target.result;
     // Valida se é CT-e (tag cteProc ou CTe)
     if(!xml.includes("<CTe") && !xml.includes("<cteProc")){
-      toast("Arquivo não é um XML de CT-e válido","err");
+      toast("Esse arquivo não parece um XML de CT-e", "err");
       return;
     }
     xmlCteCarregado=xml;
     const drop=document.getElementById("cte-drop");
     drop.classList.add("loaded");
-    document.getElementById("cte-drop-text").textContent="✓ "+file.name+" carregado";
+    document.getElementById("cte-drop-text").textContent = file.name;
     document.getElementById("cte-clear-btn").style.display="inline-block";
-    toast("CT-e carregado: "+file.name,"ok");
+    toast("CT-e carregado: " + file.name, "ok");
     dbg("CT-e carregado: "+file.name+" ("+file.size+" bytes)","ok");
   };
   reader.readAsText(file);
@@ -796,7 +1096,7 @@ function limparCTE(){
   drop.classList.remove("loaded");
   drop.style.borderColor="";
   drop.style.color="";
-  document.getElementById("cte-drop-text").textContent="📂 Opcional — arraste o XML da CT-e (frete por conta nossa)";
+  document.getElementById("cte-drop-text").textContent = "Arraste o XML da CT-e aqui (opcional)";
   document.getElementById("cte-clear-btn").style.display="none";
   document.getElementById("cte-file").value="";
 }
@@ -867,11 +1167,11 @@ function updateSummary(){let tPc=0,tPf=0,tPl=0,tPp=0;rows.forEach(r=>{const{pf,p
 
 /* ── ATUALIZAR PREÇOS NO TINY ── */
 async function atualizarPrecosTiny(){
-  if(!xmlCarregado){ toast("Anexe o XML da NF antes de atualizar os preços","err"); return; }
-  if(!rows.length){ toast("Nenhum produto para atualizar","err"); return; }
+  if(!xmlCarregado){ toast("Anexe o XML da NF antes de atualizar os preços no Tiny", "err"); return; }
+  if(!rows.length){ toast("Não tem produto pra atualizar", "err"); return; }
   const btn = document.getElementById("btn-atualizar-tiny");
   btn.disabled = true;
-  btn.textContent = "⏳ Buscando preços...";
+  btn.textContent = "Buscando preços…";
 
   let atualizados = 0;
   let ignorados = 0;
@@ -883,7 +1183,7 @@ async function atualizarPrecosTiny(){
       const {pf, pl} = calcRow(r);
 
       // 1º — Pesquisa produto no Tiny pelo SKU para obter o ID interno
-      btn.textContent = `⏳ Buscando ${r.sku}...`;
+      btn.textContent = `Buscando ${r.sku}…`;
       const respPesq = await proxy("pesquisar_produto", { pesquisa: r.sku });
       const listaProd = respPesq?.retorno?.produtos;
 
@@ -921,14 +1221,14 @@ async function atualizarPrecosTiny(){
       if(pl > precoAtual){
         payload.preco = pl.toFixed(2);
         atualizados++;
-        dbg(`✓ ${r.sku}: PF=${fmt(pf)} | PL ${fmt(precoAtual)}→${fmt(pl)}`, "ok");
+        dbg(`${r.sku}: PF=${fmt(pf)} | PL ${fmt(precoAtual)}→${fmt(pl)}`, "ok");
       } else {
         ignorados++;
         dbg(`↔ ${r.sku}: PF=${fmt(pf)} | PL mantido (${fmt(precoAtual)} > ${fmt(pl)})`);
       }
 
       // Envia atualização para o Tiny
-      btn.textContent = `⏳ Atualizando ${r.sku}...`;
+      btn.textContent = `Atualizando ${r.sku}…`;
       await proxy("alterar_produto", payload);
 
     }catch(e){
@@ -941,24 +1241,24 @@ async function atualizarPrecosTiny(){
   renderTabela();
 
   btn.disabled = false;
-  btn.textContent = "↑ Atualizar Preços no Tiny";
+  btn.textContent = "Atualizar preços no Tiny";
 
-  toast(`✓ ${atualizados} atualizados | ${ignorados} mantidos | ${erros} erros`, atualizados > 0 ? "ok" : "err");
+  toast(`${atualizados} atualizados | ${ignorados} mantidos | ${erros} erros`, atualizados > 0 ? "ok" : "err");
 }
 
 /* ── CSV ── */
 function exportarCSV(){
-  if(!rows.length){toast("Nenhum dado","err");return;}
+  if(!rows.length){toast("Não tem nada pra exportar ainda", "err");return;}
   const header="SKU,Descrição,PC,IPI%,Frete%,PF,PL,PP,Qtde";
   const linhas=rows.map(r=>{const{ipi,frete,pf,pl,pp}=calcRow(r);return[r.sku,`"${r.desc}"`,r.pc.toFixed(2),ipi.toFixed(2),frete.toFixed(2),pf.toFixed(2),pl.toFixed(2),pp.toFixed(2),r.q].join(",");});
   const csv=[header,...linhas].join("\n");
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
-  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`NF_${activeNF?.numero||"export"}_precificacao.csv`;a.click();URL.revokeObjectURL(url);toast("CSV exportado!");
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`NF_${activeNF?.numero||"export"}_precificacao.csv`;a.click();URL.revokeObjectURL(url);toast("CSV pronto, baixando…");
 }
 
 /* ── PDF ── */
 async function exportarPDF(){
-  if(!rows.length){toast("Nenhum dado","err");return;}
+  if(!rows.length){toast("Não tem nada pra exportar ainda", "err");return;}
   const btn=document.getElementById("btn-pdf");
   btn.disabled=true;
 
@@ -973,14 +1273,14 @@ async function exportarPDF(){
       const data=await resp.json();
       if(data.erro){
         dbg("Erro DANFE: "+data.erro,"err");
-        toast("Erro ao gerar DANFE: "+data.erro,"err");
+        toast("Não consegui gerar o DANFE: " + data.erro, "err");
       } else {
         danfeBytes=base64ToBytes(data.pdf);
         dbg("DANFE gerado com sucesso!","ok");
       }
     } else {
       dbg("Sem XML — gerando só a tabela de precificação");
-      toast("Sem XML carregado — gerando só a tabela de precificação");
+      toast("Sem XML — vou gerar só a tabela de precificação");
     }
 
     btn.textContent="Montando PDF...";
@@ -996,7 +1296,7 @@ async function exportarPDF(){
         const dataCte=await respCte.json();
         if(dataCte.erro){
           dbg("Erro DACT-e: "+dataCte.erro,"err");
-          toast("Erro ao gerar DACT-e: "+dataCte.erro,"err");
+          toast("Não consegui gerar o DACT-e: " + dataCte.erro, "err");
         } else {
           dacteBytes=base64ToBytes(dataCte.pdf);
           dbg("DACT-e gerado!","ok");
@@ -1009,13 +1309,13 @@ async function exportarPDF(){
     let finalBytes;
     if(danfeBytes && dacteBytes){
       finalBytes=await mergePDFs(precBytes,danfeBytes,dacteBytes);
-      toast("PDF completo! Precificação + DANFE + DACT-e","ok");
+      toast("PDF completo: precificação + DANFE + DACT-e", "ok");
     } else if(danfeBytes){
       finalBytes=await mergePDFs(precBytes,danfeBytes);
-      toast("PDF completo gerado! Precificação (pág 1) + DANFE (pág 2)","ok");
+      toast("PDF gerado: precificação (pág 1) + DANFE (pág 2)", "ok");
     } else {
       finalBytes=precBytes;
-      toast("PDF de precificação gerado!","ok");
+      toast("PDF de precificação pronto", "ok");
     }
     registrarNoPrecificado();
 
@@ -1044,10 +1344,10 @@ async function exportarPDF(){
         dbg("PDF salvo: "+nomeArq,"ok");
         mostrarAvisoPDF(nomeArq, res.caminho||"Downloads");
       } else {
-        toast("Erro ao salvar PDF: "+(res.erro||"erro desconhecido"),"err");
+        toast("Não consegui salvar o PDF: " + (res.erro || "erro desconhecido"), "err");
       }
     }catch(e){
-      toast("Erro ao salvar PDF: "+e.message,"err");
+      toast("Não consegui salvar o PDF: " + e.message, "err");
       dbg("Erro: "+e.message,"err");
     }
 
@@ -1060,23 +1360,23 @@ async function exportarPDF(){
     }
 
   }catch(e){
-    dbg(e.message,"err");toast("Erro: "+e.message,"err");
+    dbg(e.message,"err");toast(e.message, "err");
   }finally{
-    btn.disabled=false;btn.textContent="↓ PDF completo";
+    btn.disabled=false;btn.textContent = "Gerar PDF";
   }
 }
 
 function mostrarAvisoPDF(nome, local){
   // Cria aviso no centro da tela
   const overlay = document.createElement("div");
-  overlay.style.cssText=`position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;`;
+  overlay.style.cssText=`position:fixed;inset:0;background:rgba(31, 35, 40, 0.55);z-index:99999;display:flex;align-items:center;justify-content:center;`;
   overlay.innerHTML=`
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px 36px;text-align:center;max-width:380px;animation:fadeIn .2s ease;">
-      <div style="font-size:48px;margin-bottom:12px;">✅</div>
+      
       <div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:8px;">PDF Salvo!</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">${nome}</div>
-      <div style="font-size:12px;color:var(--teal);margin-bottom:24px;">📁 ${local}</div>
-      <button onclick="this.closest('div[style*=inset]').remove()" style="background:var(--accent);color:#0f0f0f;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);">OK</button>
+      <div style="font-size:12px;color:var(--teal);margin-bottom:24px;">${local}</div>
+      <button onclick="this.closest('div[style*=inset]').remove()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);">OK</button>
     </div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener("click", e=>{ if(e.target===overlay) overlay.remove(); });
@@ -1376,7 +1676,7 @@ async function renderHistorico(){
     : _histData;
   document.getElementById("hist-count").textContent = lista.length+" registro"+(lista.length!==1?"s":"");
   if(!lista.length){
-    el.innerHTML=`<div class="hist-empty"><div class="big">🗂</div><p>${_histFiltro?"Nenhum resultado encontrado.":"Nenhuma NF precificada ainda.<br>Gere um PDF para registrar aqui."}</p></div>`;
+    el.innerHTML=`<div class="hist-empty"><p>${_histFiltro?"Nenhum resultado encontrado.":"Nenhuma NF precificada ainda.<br>Gere um PDF para registrar aqui."}</p></div>`;
     return;
   }
   el.innerHTML="";
@@ -1385,12 +1685,12 @@ async function renderHistorico(){
     card.className="hist-card"+(h.conferido?' is-conferido':'');
     const catLabel=h.categoria==="eletro"?"Eletro":"Móveis";
     card.innerHTML=`
-      <div class="hist-card-icon">📋</div>
+      
       <div class="hist-card-body">
         <div class="hist-card-top">
           <span class="hist-card-nf">NF ${h.nf}</span>
           <span class="hist-card-cat">${catLabel}</span>
-          ${h.conferido ? `<span class="hist-conferido-badge">✓ Conferido</span>` : ""}
+          ${h.conferido ? `<span class="hist-conferido-badge">Conferido</span>` : ""}
         </div>
         <div class="hist-card-emit">${h.fornecedor}</div>
         <div class="hist-card-meta">
@@ -1405,12 +1705,12 @@ async function renderHistorico(){
         </div>
       </div>
       <div class="hist-card-actions">
-        <button class="hist-btn" onclick="event.stopPropagation();verHistorico(${h.id})">👁 Ver</button>
+        <button class="hist-btn" onclick="event.stopPropagation();verHistorico(${h.id})">Ver</button>
         ${h.conferido
-          ? `<button class="hist-btn conferido" disabled>✓ Conferido</button>`
-          : `<button class="hist-btn" onclick="event.stopPropagation();pedirSenha('conferir',${h.id})" style="color:var(--teal)">✓ Conferir</button>`
+          ? `<button class="hist-btn conferido" disabled>Conferido</button>`
+          : `<button class="hist-btn hist-btn-conferir" onclick="event.stopPropagation();pedirSenha('conferir',${h.id})">Conferir</button>`
         }
-        <button class="hist-btn danger" onclick="event.stopPropagation();pedirSenha('excluir',${h.id})">🗑 Excluir</button>
+        <button class="hist-btn danger" onclick="event.stopPropagation();pedirSenha('excluir',${h.id})">Excluir</button>
       </div>`;
     card.onclick=()=>verHistorico(h.id);
     el.appendChild(card);
@@ -1478,7 +1778,7 @@ function pedirSenha(tipo, id){
   const desc = document.getElementById("senhaDesc");
   const inp = document.getElementById("senhaInput");
   const erro = document.getElementById("senhaErro");
-  titulo.textContent = tipo==="conferir" ? "🔐 Confirmar Conferência" : "🔐 Confirmar Exclusão";
+  titulo.textContent = tipo==="conferir" ? "Confirmar Conferência" : "Confirmar Exclusão";
   desc.textContent = tipo==="conferir"
     ? "Digite a senha para marcar esta NF como conferida."
     : "Digite a senha para excluir este registro do histórico.";
@@ -1504,13 +1804,13 @@ async function confirmarSenha(){
     if(h){ h.conferido = true; h.dataConferido = new Date().toLocaleString("pt-BR"); }
     await salvarHistoricoLocal();
     await renderHistorico();
-    toast("NF marcada como conferida! ✓","ok");
+    toast("NF marcada como conferida.","ok");
   } else {
     _histData = _histData.filter(h=>h.id!==_senhaAcao.id);
     await salvarHistoricoLocal();
     await renderHistorico();
     fecharHistModal();
-    toast("Registro excluído","ok");
+    toast("Registro removido", "ok");
   }
   _senhaAcao = null;
 }
@@ -1687,7 +1987,7 @@ function emBaixarModelo(){
 
   // Aba de instruções
   const ins_data = [
-    ["📋 COMO USAR ESTA PLANILHA"],
+    ["COMO USAR ESTA PLANILHA"],
     [""],
     ["1. Apague as linhas de exemplo (linhas 2, 3 e 4)"],
     ["2. Preencha os dados dos clientes (uma linha por SKU)"],
@@ -1700,7 +2000,7 @@ function emBaixarModelo(){
     ["• Mesmo CPF/CNPJ em várias linhas → agrupado em 1 NF"],
     ["• Quando agrupar, usa o Nº Pedido da PRIMEIRA linha do grupo"],
     [""],
-    ["⚠️  ZEROS À ESQUERDA (Nº Pedido como '00001')"],
+    [" ZEROS À ESQUERDA (Nº Pedido como '00001')"],
     [""],
     ["O Excel REMOVE zeros à esquerda automaticamente. Pra preservar:"],
     ["  Opção 1: Antes de digitar, selecione a coluna E (Nº Pedido)"],
@@ -1708,7 +2008,7 @@ function emBaixarModelo(){
     ["  Opção 2: Digite com apóstrofo na frente: '00001"],
     ["          (o apóstrofo não aparece, só força o texto)"],
     [""],
-    ["⚙️  CONFIGURAÇÕES FIXAS DA NF"],
+    [" CONFIGURAÇÕES FIXAS DA NF"],
     [""],
     ["• Forma de envio: Envio Próprio Caús"],
     ["• Frete por conta: Transporte Próprio do Remetente"],
@@ -1730,7 +2030,7 @@ function emBaixarModelo(){
   XLSX.utils.book_append_sheet(wb, ws_ins, "Instruções");
 
   XLSX.writeFile(wb, "modelo-emissao-nf.xlsx");
-  toast("Modelo baixado!");
+  toast("Modelo baixado");
 }
 
 /* ──────────── UPLOAD E LEITURA ──────────── */
@@ -1759,7 +2059,7 @@ function emFileChange(e){
 
 function emLerArquivo(file){
   if(!file.name.toLowerCase().endsWith(".xlsx")){
-    toast("Use um arquivo .xlsx (Excel)", "err");
+    toast("Precisa ser um arquivo .xlsx", "err");
     return;
   }
   _emArquivo = file;
@@ -1774,7 +2074,7 @@ function emLerArquivo(file){
       emProcessarLinhas(json);
     }catch(err){
       console.error(err);
-      toast("Erro ao ler planilha: " + err.message, "err");
+      toast("Não consegui ler a planilha: " + err.message, "err");
     }
   };
   reader.readAsArrayBuffer(file);
@@ -1782,7 +2082,7 @@ function emLerArquivo(file){
 
 function emProcessarLinhas(json){
   if(!json || json.length === 0){
-    toast("Planilha vazia", "err");
+    toast("Essa planilha está vazia", "err");
     return;
   }
 
@@ -1791,7 +2091,7 @@ function emProcessarLinhas(json){
   const colunasPlanilha = Object.keys(primeiraLinha);
   const colunasFaltando = EM_COLUNAS.filter(c => !colunasPlanilha.includes(c));
   if(colunasFaltando.length > 0){
-    toast(`Faltam colunas: ${colunasFaltando.join(", ")}`, "err");
+    toast(`Faltam colunas na planilha: ${colunasFaltando.join(", ")}`, "err");
     return;
   }
 
@@ -1853,7 +2153,7 @@ function emProcessarLinhas(json){
   const totalGrupos = Object.keys(_emGruposCpf).length;
   const totalNFs = totalGrupos; // 1 NF por CPF único
 
-  document.getElementById("emArquivoNome").textContent = "📊 " + _emArquivo.name;
+  document.getElementById("emArquivoNome").textContent = "" + _emArquivo.name;
   document.getElementById("emArquivoStats").innerHTML =
     `<strong>${totalLinhas}</strong> linhas lidas` +
     (totalLinhasOK < totalLinhas ? ` (<span style="color:var(--red);">${totalLinhas - totalLinhasOK} com erro</span>)` : "") +
@@ -1865,7 +2165,7 @@ function emProcessarLinhas(json){
   const errosEl = document.getElementById("emValidacaoErros");
   if(errosValidacao.length > 0){
     errosEl.innerHTML =
-      `<div class="em-erros-titulo">⚠️ ${errosValidacao.length} erro(s) de validação encontrado(s):</div>` +
+      `<div class="em-erros-titulo">${errosValidacao.length} erro(s) de validação encontrado(s):</div>` +
       `<div class="em-erros-lista">` +
       errosValidacao.map(e => `<span class="l">• ${e}</span>`).join("") +
       `</div>` +
@@ -1878,7 +2178,7 @@ function emProcessarLinhas(json){
   // Habilita botão se houver pelo menos 1 grupo válido
   document.getElementById("emBtnProcessar").disabled = totalGrupos === 0;
   if(totalGrupos === 0){
-    toast("Nenhuma linha válida pra processar", "err");
+    toast("Nenhuma linha válida na planilha pra processar", "err");
   }
 }
 
@@ -1903,7 +2203,7 @@ function emResetar(){
 function emCancelar(){
   if(!confirm("Cancelar o processamento? As NFs já criadas continuarão.")) return;
   _emCancelar = true;
-  emAddLog("🛑 Cancelamento solicitado…", "wrn");
+  emAddLog("Cancelando…", "wrn");
 }
 
 function emAddLog(msg, tipo=""){
@@ -1926,7 +2226,7 @@ async function emProcessar(){
   // Filtra grupos válidos (cada grupo = 1 NF)
   const grupos = Object.entries(_emGruposCpf);
   if(grupos.length === 0){
-    toast("Nenhum grupo válido pra processar", "err");
+    toast("Nada pra processar — confira a planilha", "err");
     return;
   }
 
@@ -1938,12 +2238,12 @@ async function emProcessar(){
   _emCancelar = false;
   _emRelatorio = [];
 
-  emAddLog(`📋 Iniciando processamento de ${grupos.length} NF(s)…`, "info");
+  emAddLog(`Vou processar ${grupos.length} nota(s)…`, "info");
 
   let processados = 0;
   for(const [cpf, linhas] of grupos){
     if(_emCancelar){
-      emAddLog("⏹ Processamento cancelado pelo usuário.", "wrn");
+      emAddLog("Você cancelou o processamento.", "wrn");
       break;
     }
 
@@ -1960,7 +2260,7 @@ async function emProcessar(){
 
     try{
       // PASSO 1: Pesquisa cliente por CPF/CNPJ
-      emAddLog(`🔍 Cliente "${nomeCliente}" (${cpf}) — pesquisando…`, "info");
+      emAddLog(`Procurando cliente "${nomeCliente}" (${cpf})…`, "info");
       let idCliente = null;
 
       try{
@@ -1982,9 +2282,9 @@ async function emProcessar(){
 
       // PASSO 2: Cria cliente se não existe
       if(idCliente){
-        emAddLog(`  ✓ Cliente já cadastrado (id ${idCliente})`, "ok");
+        emAddLog(`  Já cadastrado (id ${idCliente})`, "ok");
       } else {
-        emAddLog(`  → Cadastrando cliente novo…`, "info");
+        emAddLog(`  Cadastrando cliente novo…`, "info");
         await emSleep(EM_DELAY_MS);
 
         const novoCliente = {
@@ -2017,16 +2317,16 @@ async function emProcessar(){
 
         if(reg && reg.id){
           idCliente = reg.id;
-          emAddLog(`  ✓ Cliente cadastrado (id ${idCliente})`, "ok");
+          emAddLog(`  Cliente cadastrado (id ${idCliente})`, "ok");
         } else if(reg && reg.codigo_erro === "30"){
           // Duplicado — busca de novo
-          emAddLog(`  ⚠ Duplicidade detectada — buscando…`, "wrn");
+          emAddLog(`  Já existe um igual — vou usar o cadastrado`, "wrn");
           await emSleep(EM_DELAY_MS);
           const respPesq2 = await emChamarTiny("cliente_pesquisa", { cpf_cnpj: cpf });
           const ret2 = respPesq2.retorno || {};
           if(ret2.status === "OK" && ret2.contatos?.[0]?.contato?.id){
             idCliente = ret2.contatos[0].contato.id;
-            emAddLog(`  ✓ Encontrado (id ${idCliente})`, "ok");
+            emAddLog(`  Achei (id ${idCliente})`, "ok");
           } else {
             throw new Error("Cliente duplicado mas não foi encontrado na pesquisa");
           }
@@ -2044,7 +2344,7 @@ async function emProcessar(){
         const sku = String(li.dados["SKU"] || "").trim();
         const qtd = li.qtd;
 
-        emAddLog(`  → Consultando SKU ${sku}…`, "info");
+        emAddLog(`  Consultando SKU ${sku}…`, "info");
         const respProd = await emChamarTiny("pesquisar_produto", { pesquisa: sku });
         const retProd = respProd.retorno || {};
         let prod = null;
@@ -2075,12 +2375,12 @@ async function emProcessar(){
             valor_unitario: precoFinal.toFixed(2)
           }
         });
-        emAddLog(`    ✓ ${sku} qtd ${qtd} R$ ${precoFinal.toFixed(2)} (R$ ${precoTiny.toFixed(2)} − ${EM_DESCONTO_PERC}%)`, "ok");
+        emAddLog(`    ${sku} qtd ${qtd} R$ ${precoFinal.toFixed(2)} (R$ ${precoTiny.toFixed(2)} − ${EM_DESCONTO_PERC}%)`, "ok");
         await emSleep(EM_DELAY_MS);
       }
 
       if(erroSku){
-        emAddLog(`  ✗ ${erroSku}`, "err");
+        emAddLog(`  ${erroSku}`, "err");
         _emRelatorio.push({
           numero_pedido: numPedido,
           cliente: nomeCliente,
@@ -2092,7 +2392,7 @@ async function emProcessar(){
       }
 
       // PASSO 4: Cria pedido
-      emAddLog(`  → Criando pedido (Nº ${numPedido})…`, "info");
+      emAddLog(`  Criando pedido (nº ${numPedido})…`, "info");
       const pedidoPayload = {
         pedido: {
           cliente: {
@@ -2133,17 +2433,17 @@ async function emProcessar(){
 
       const idPedido = regPed.id;
       const numPedidoTiny = regPed.numero;
-      emAddLog(`  ✓ Pedido criado (id ${idPedido}, nº ${numPedidoTiny})`, "ok");
+      emAddLog(`  Pedido criado (id ${idPedido}, nº ${numPedidoTiny})`, "ok");
 
       // PASSO 5: Gera NF do pedido
       await emSleep(EM_DELAY_MS);
-      emAddLog(`  → Gerando NF…`, "info");
+      emAddLog(`  Gerando NF…`, "info");
       const respNF = await emChamarTiny("gerar_nota_fiscal_pedido", { id: idPedido });
       const retNF = respNF.retorno || {};
       const regNF = retNF.registros?.[0]?.registro || retNF.registros?.registro;
 
       if(regNF && regNF.idNotaFiscal){
-        emAddLog(`  ✓ NF gerada (id ${regNF.idNotaFiscal}, nº ${regNF.numero})`, "ok");
+        emAddLog(`  NF gerada (id ${regNF.idNotaFiscal}, nº ${regNF.numero})`, "ok");
         _emRelatorio.push({
           numero_pedido: numPedido,
           cliente: nomeCliente,
@@ -2158,7 +2458,7 @@ async function emProcessar(){
         });
       } else {
         const erros = (regNF?.erros || retNF.erros || []).map(e => e.erro || e).join("; ");
-        emAddLog(`  ⚠ Pedido criado mas NF falhou: ${erros}`, "wrn");
+        emAddLog(`  Pedido foi criado mas a NF falhou: ${erros}`, "wrn");
         _emRelatorio.push({
           numero_pedido: numPedido,
           cliente: nomeCliente,
@@ -2170,7 +2470,7 @@ async function emProcessar(){
         });
       }
     }catch(err){
-      emAddLog(`  ✗ Erro: ${err.message}`, "err");
+      emAddLog(`  Falhou: ${err.message}`, "err");
       _emRelatorio.push({
         numero_pedido: numPedido,
         cliente: nomeCliente,
@@ -2197,7 +2497,7 @@ async function emProcessar(){
     });
   }
 
-  emAddLog(`\n✅ Processamento concluído.`, "info");
+  emAddLog(`\nTudo pronto!`, "info");
   emMostrarRelatorio();
 }
 
@@ -2244,9 +2544,9 @@ function emMostrarRelatorio(){
   </tr></thead><tbody>`;
   for(const r of _emRelatorio){
     const cls = r.status === "ok" ? "ok" : r.status === "warn" ? "wrn" : "err";
-    const lbl = r.status === "ok" ? "✓ Sucesso" :
-                r.status === "warn" ? "⚠ Parcial" :
-                r.status === "skip" ? "⏭ Pulado" : "✗ Erro";
+    const lbl = r.status === "ok" ? "Sucesso" :
+                r.status === "warn" ? "Parcial" :
+                r.status === "skip" ? "⏭ Pulado" : "Erro";
     html += `<tr>
       <td><span class="em-rel-status ${cls}">${lbl}</span></td>
       <td>${escEm(r.numero_pedido)}</td>
@@ -2260,7 +2560,7 @@ function emMostrarRelatorio(){
 }
 
 function emExportarRelatorio(){
-  if(_emRelatorio.length === 0){ toast("Nada pra exportar", "err"); return; }
+  if(_emRelatorio.length === 0){ toast("Nada pra exportar ainda", "err"); return; }
   const linhas = [
     ["Status","Nº Pedido","Cliente","CPF/CNPJ","ID Cliente","ID Pedido","Nº Pedido Tiny","ID NF","Nº NF","Mensagem"]
   ];
@@ -2279,7 +2579,7 @@ function emExportarRelatorio(){
   a.download = `relatorio-emissao-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  toast("Relatório exportado!");
+  toast("Relatório baixado");
 }
 
 function escEm(s){
