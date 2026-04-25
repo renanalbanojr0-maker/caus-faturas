@@ -245,6 +245,51 @@ async function checarBackupGoogleDrive() {
   }
 }
 
+/* 6b. Backup Backblaze B2 — verifica log do último run */
+async function checarBackupBackblaze() {
+  // Caminho do log definido no cron do VPS (cron 0 4 * * *)
+  const logFile = '/var/www/caus-faturas/backup-backblaze.log';
+  try {
+    if (!fs.existsSync(logFile)) {
+      return { status: 'warn', detalhes: { erro: 'log de backup Backblaze não encontrado (verifique cron)' } };
+    }
+    const stat = fs.statSync(logFile);
+    const horas = horasAtras(stat.mtime);
+
+    // Lê últimas linhas pra detectar erro/sucesso
+    const raw = fs.readFileSync(logFile, 'utf8');
+    const ultimasLinhas = raw.split('\n').slice(-30).join('\n');
+    const rodouOk = ultimasLinhas.includes('Concluído com sucesso') || ultimasLinhas.includes('✓ Backup');
+    const teveErro = ultimasLinhas.includes('Erro geral') || ultimasLinhas.includes('❌') || ultimasLinhas.includes('Error');
+
+    // Tenta extrair quantidade de arquivos do log (último run)
+    let qtdArquivos = null;
+    let tamanhoTotal = null;
+    const matchQtd = ultimasLinhas.match(/(\d+)\s+arquivo[s]?\s+(?:enviado|sincronizad)/i);
+    if (matchQtd) qtdArquivos = parseInt(matchQtd[1], 10);
+    const matchTam = ultimasLinhas.match(/total[:\s]+([\d.,]+\s*[KMG]?B)/i);
+    if (matchTam) tamanhoTotal = matchTam[1];
+
+    let status = 'ok';
+    if (horas > 36) status = 'warn';   // backup é diário às 4am → +36h já tá atrasado
+    if (horas > 60) status = 'erro';
+    if (teveErro && !rodouOk) status = 'erro';
+
+    return {
+      status,
+      detalhes: {
+        ultimoRun: stat.mtime.toISOString(),
+        horasDesdeUltimo: horas,
+        sucesso: rodouOk && !teveErro,
+        ...(qtdArquivos != null && { qtdArquivos }),
+        ...(tamanhoTotal && { tamanhoTotal }),
+      }
+    };
+  } catch (e) {
+    return { status: 'warn', detalhes: { erro: e.message } };
+  }
+}
+
 /* 7. Socket.io — quantos clientes conectados */
 function checarSocketClients() {
   if (!config.io) {
@@ -271,6 +316,7 @@ async function checarTudo() {
     dadosArquivo:    checarArquivoDados(),
     backupsLocais:   checarBackupsLocais(),
     backupGoogle:    await checarBackupGoogleDrive(),
+    backupBackblaze: await checarBackupBackblaze(),
     socketClients:   checarSocketClients(),
   };
 

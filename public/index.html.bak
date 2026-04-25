@@ -2776,7 +2776,7 @@ async function buscarPrecoTinyPorSKU(sku){
     try{
         // Pequeno delay pra ser educado com a API do Tiny (rate limit ~60/min)
         await new Promise(r => setTimeout(r, 200));
-        const resp = await chamarTinyAPI("produtos.pesquisa", { pesquisa: sku });
+        const resp = await chamarTinyAPI("pesquisar_produto", { pesquisa: sku });
         const produtos = resp?.retorno?.produtos || [];
         // produtos.pesquisa retorna lista. Pegamos o item com codigo == sku exato.
         for(const p of produtos){
@@ -4771,14 +4771,34 @@ function recalcularTodos(){
 
 /* ── EVENTOS ─────────────────────────────────────────────────── */
 let _salvarTimer = null;
+let _temMudancaNaoSalva = false;  // flag de "tem alguma coisa pra salvar?"
+
 document.addEventListener("input", () => {
     recalcularAtual();
     if (!_ignorarInput){
+        _temMudancaNaoSalva = true;
         // Debounce — espera 300ms após parar de digitar antes de salvar
         clearTimeout(_salvarTimer);
-        _salvarTimer = setTimeout(() => salvar(), 300);
+        _salvarTimer = setTimeout(() => {
+            salvar();
+            _temMudancaNaoSalva = false;
+        }, 300);
     }
 });
+
+/* ── AUTO-SAVE 3s (safety net) ─────────────────────────────────
+   Se o usuário fica digitando ininterruptamente por mais de 3s,
+   o debounce de 300ms acima nunca dispara. Esse timer força o
+   save a cada 3s mesmo durante digitação contínua.
+   Garantia: no máximo 3s de trabalho perdido em caso de crash. */
+setInterval(() => {
+    if(_temMudancaNaoSalva && !_ignorarInput){
+        // Limpa o debounce pendente (se houver) e salva agora
+        clearTimeout(_salvarTimer);
+        salvar();
+        _temMudancaNaoSalva = false;
+    }
+}, 3000);
 
 function proximaFatura(){
     if(faturaAtual < totalFaturas-1){

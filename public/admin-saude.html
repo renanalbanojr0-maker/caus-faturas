@@ -372,13 +372,14 @@ footer {
 <script>
 // ── Nomes amigáveis dos checks ──
 const LABELS = {
-  servidor:      'Servidor Node',
-  mongodb:       'MongoDB Atlas',
-  disco:         'Disco do VPS',
-  dadosArquivo:  'Arquivo de Dados',
-  backupsLocais: 'Backups Locais (VPS)',
-  backupGoogle:  'Backup Google Drive',
-  socketClients: 'Clientes Socket.io',
+  servidor:        'Servidor Node',
+  mongodb:         'MongoDB Atlas',
+  disco:           'Disco do VPS',
+  dadosArquivo:    'Arquivo de Dados',
+  backupsLocais:   'Backups Locais (VPS)',
+  backupGoogle:    'Backup Google Drive',
+  backupBackblaze: 'Backup Backblaze B2',
+  socketClients:   'Clientes Socket.io',
 };
 
 // ── Formatadores por check (transformam chaves em labels legíveis) ──
@@ -423,6 +424,15 @@ const FORMATTERS = {
     ['Idade', d.horasDesdeUltimo != null ? d.horasDesdeUltimo + 'h atrás' : '—',
       d.horasDesdeUltimo > 60 ? 'erro' : d.horasDesdeUltimo > 36 ? 'alerta' : null],
     ['Sucesso', d.sucesso != null ? (d.sucesso ? 'sim' : 'não') : '—'],
+    d.erro ? ['Aviso', d.erro, 'alerta'] : null,
+  ],
+  backupBackblaze: (d) => [
+    ['Último run', d.ultimoRun ? new Date(d.ultimoRun).toLocaleString('pt-BR') : '—'],
+    ['Idade', d.horasDesdeUltimo != null ? d.horasDesdeUltimo + 'h atrás' : '—',
+      d.horasDesdeUltimo > 60 ? 'erro' : d.horasDesdeUltimo > 36 ? 'alerta' : null],
+    ['Sucesso', d.sucesso != null ? (d.sucesso ? 'sim' : 'não') : '—'],
+    d.qtdArquivos != null ? ['Arquivos', d.qtdArquivos] : null,
+    d.tamanhoTotal ? ['Tamanho', d.tamanhoTotal] : null,
     d.erro ? ['Aviso', d.erro, 'alerta'] : null,
   ],
   socketClients: (d) => [
@@ -481,7 +491,7 @@ function render(data) {
     </div>`;
 
   const ordemChecks = ['servidor', 'mongodb', 'disco', 'dadosArquivo',
-                       'backupsLocais', 'backupGoogle', 'socketClients'];
+                       'backupsLocais', 'backupGoogle', 'backupBackblaze', 'socketClients'];
 
   const cards = ordemChecks
     .filter(k => data.checks[k])
