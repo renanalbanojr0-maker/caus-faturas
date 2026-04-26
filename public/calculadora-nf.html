@@ -1219,25 +1219,51 @@ async function atualizarPrecosTiny(){
       // Salva preço atual para comparação visual
       r.precoTiny = precoAtual;
 
-      // Monta payload de atualização
-      const payload = {
-        id: idProduto,
+      // Tiny exige TODOS os campos obrigatórios no alterar (sequencia, unidade, origem,
+      // situacao, tipo, etc). Por isso reaproveitamos o objeto inteiro do produto
+      // que veio do obter_produto e só sobrescrevemos os preços.
+      const dadosProduto = {
+        ...prod, // copia TODOS os campos atuais do produto
+        sequencia: "1", // alterar_produto exige sequencia (não vem no obter)
         preco_custo: pf.toFixed(2), // sempre atualiza PF como custo
       };
 
       // PL só atualiza se for MAIOR que o atual
       if(pl > precoAtual){
-        payload.preco = pl.toFixed(2);
+        dadosProduto.preco = pl.toFixed(2);
         atualizados++;
         dbg(`${r.sku}: PF=${fmt(pf)} | PL ${fmt(precoAtual)}→${fmt(pl)}`, "ok");
       } else {
+        // Mesmo mantendo o PL, precisamos enviar o preco atual pra não dar erro
+        // de "preço deve ser informado" (mantém o valor atual que já estava lá)
+        dadosProduto.preco = precoAtual.toFixed(2);
         ignorados++;
         dbg(`↔ ${r.sku}: PF=${fmt(pf)} | PL mantido (${fmt(precoAtual)} > ${fmt(pl)})`);
       }
 
+      // Estrutura final: { produtos: [ { produto: {...} } ] } como JSON
+      const estruturaTiny = {
+        produtos: [{ produto: dadosProduto }]
+      };
+
+      const payload = {
+        produto: JSON.stringify(estruturaTiny),
+      };
+
       // Envia atualização para o Tiny
       btn.textContent = `Atualizando ${r.sku}…`;
-      await proxy("alterar_produto", payload);
+      const respAlt = await proxy("alterar_produto", payload);
+
+      // Verifica se Tiny aceitou
+      const reg = respAlt?.retorno?.registros?.[0]?.registro;
+      if(respAlt?.retorno?.status === "Erro" || reg?.status === "Erro"){
+        const erros_lista = reg?.erros || respAlt?.retorno?.erros || [];
+        const erroMsg = erros_lista.map(e => e.erro || e).join("; ") || "erro desconhecido";
+        dbg(`✗ ${r.sku}: Tiny rejeitou — ${erroMsg}`, "err");
+        erros++;
+        if(pl > precoAtual) atualizados--;
+        else ignorados--;
+      }
 
     }catch(e){
       dbg("Erro ao atualizar "+r.sku+": "+e.message,"err");
