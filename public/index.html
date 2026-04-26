@@ -1459,6 +1459,204 @@ font-size:13px;
   margin-bottom:20px;
 }
 
+/* ════════════════════════════════════════════════════════════════
+   MODAL RESTAURAR BACKUP
+   ════════════════════════════════════════════════════════════════ */
+.modal-restore-box{
+  background:var(--c-surface);
+  border-radius:12px;
+  padding:28px;
+  width:680px;
+  max-width:96vw;
+  box-shadow:var(--shadow-lg);
+  font-family:var(--font-sans);
+  animation:modalSlideIn .18s ease-out;
+  max-height:90vh;
+  overflow-y:auto;
+}
+.modal-restore-box h3{
+  margin:0 0 4px;
+  font-size:18px;
+  color:var(--c-text);
+  font-weight:600;
+  letter-spacing:-0.01em;
+}
+.modal-restore-sub{
+  font-size:13px;
+  color:var(--c-text-2);
+  margin-bottom:18px;
+  line-height:1.5;
+}
+.restore-tabs{
+  display:flex;
+  gap:4px;
+  border-bottom:1px solid var(--c-border);
+  margin-bottom:14px;
+}
+.restore-tab{
+  background:transparent;
+  border:none;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--c-text-2);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  transition:color .12s, border-color .12s;
+  font-family:var(--font-sans);
+}
+.restore-tab:hover{
+  color:var(--c-text);
+}
+.restore-tab.ativo{
+  color:var(--c-primary);
+  border-bottom-color:var(--c-primary);
+}
+.restore-content{
+  display:none;
+}
+.restore-content.ativo{
+  display:block;
+}
+.restore-lista{
+  max-height:340px;
+  overflow-y:auto;
+  border:1px solid var(--c-border);
+  border-radius:var(--r-md);
+  background:var(--c-bg);
+}
+.restore-lista-loading{
+  padding:30px;
+  text-align:center;
+  color:var(--c-text-2);
+  font-size:13px;
+}
+.restore-item{
+  padding:12px 14px;
+  border-bottom:1px solid var(--c-border);
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  transition:background .1s;
+  background:var(--c-surface);
+}
+.restore-item:last-child{
+  border-bottom:none;
+}
+.restore-item:hover{
+  background:var(--c-primary-soft);
+}
+.restore-item-info{
+  flex:1;
+  min-width:0;
+}
+.restore-item-nome{
+  font-size:13px;
+  font-weight:500;
+  color:var(--c-text);
+  font-family:var(--font-mono);
+  margin-bottom:3px;
+}
+.restore-item-meta{
+  font-size:11px;
+  color:var(--c-text-2);
+}
+.restore-item-tag{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:var(--r-pill);
+  font-size:10px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+  margin-left:6px;
+}
+.restore-item-tag.auto{
+  background:var(--c-primary-soft);
+  color:var(--c-primary);
+}
+.restore-item-tag.abertura,
+.restore-item-tag.fechamento{
+  background:var(--c-success-soft);
+  color:var(--c-success);
+}
+.restore-item-tag.antes-do-reset,
+.restore-item-tag.antes-do-restore{
+  background:var(--c-warning-soft);
+  color:var(--c-warning);
+}
+.restore-item-acao{
+  background:var(--c-primary);
+  color:#fff;
+  border:none;
+  border-radius:var(--r-sm);
+  padding:6px 12px;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  font-family:var(--font-sans);
+  flex-shrink:0;
+  transition:background .12s;
+}
+.restore-item-acao:hover{
+  background:var(--c-primary-hover);
+}
+
+/* Upload area */
+.restore-upload-area{
+  border:2px dashed var(--c-border-2);
+  border-radius:var(--r-md);
+  padding:30px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .12s, background .12s;
+  background:var(--c-bg);
+}
+.restore-upload-area:hover{
+  border-color:var(--c-primary);
+  background:var(--c-primary-soft);
+}
+.restore-upload-icone{
+  font-size:32px;
+  margin-bottom:8px;
+  opacity:0.6;
+}
+.restore-upload-titulo{
+  font-size:14px;
+  font-weight:500;
+  color:var(--c-text);
+  margin-bottom:4px;
+}
+.restore-upload-sub{
+  font-size:12px;
+  color:var(--c-text-2);
+}
+.restore-upload-resultado{
+  margin-top:12px;
+  padding:14px;
+  border-radius:var(--r-md);
+  background:var(--c-success-soft);
+  border:1px solid #a3d9b1;
+  font-size:13px;
+  line-height:1.6;
+}
+
+/* Resumo no modal de confirmar */
+.modal-restore-resumo{
+  background:var(--c-bg);
+  border:1px solid var(--c-border);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin-bottom:14px;
+  font-size:13px;
+  line-height:1.6;
+}
+.modal-restore-resumo strong{
+  color:var(--c-text);
+}
+
 /* Tabela de usuários */
 .tabela-usuarios{
   width:100%;
@@ -2153,6 +2351,7 @@ input:focus, textarea:focus{
     <button class="menu-opcao-item" onclick="fecharMenuOpcoes(); abrirModalEditar()" id="btnEditar">Editar fatura</button>
     <button class="menu-opcao-item" onclick="fecharMenuOpcoes(); abrirModalConferencia()" id="btnConferencia">Conferência</button>
     <button class="menu-opcao-item" onclick="fecharMenuOpcoes(); abrirModalUsuarios()" id="btnUsuarios">Usuários</button>
+    <button class="menu-opcao-item" onclick="fecharMenuOpcoes(); abrirModalRestore()" id="btnRestore">Restaurar backup</button>
   </div>
 </div>
 <button class="btn-perigo" onclick="abrirModalReset()" id="btnZerar">Zerar Tudo</button>
@@ -2228,6 +2427,61 @@ input:focus, textarea:focus{
     <div class="modal-btns">
       <button class="modal-cancelar" onclick="fecharModalReset()">Cancelar</button>
       <button class="modal-confirmar modal-confirmar-perigo" onclick="confirmarReset()">Zerar Tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Restaurar Backup (só admin) -->
+<div class="modal-overlay" id="modalRestore">
+  <div class="modal-restore-box">
+    <h3>Restaurar Backup</h3>
+    <p class="modal-restore-sub">Selecione um backup do servidor ou envie um arquivo do seu computador. Os dados serão sincronizados em todos os PCs.</p>
+
+    <!-- Tabs: VPS / Local -->
+    <div class="restore-tabs">
+      <button class="restore-tab ativo" id="tabRestoreVPS" onclick="trocarTabRestore('vps')">Backups do servidor</button>
+      <button class="restore-tab" id="tabRestoreLocal" onclick="trocarTabRestore('local')">Backup do meu PC</button>
+    </div>
+
+    <!-- Tab: Backups do VPS -->
+    <div id="restoreContentVPS" class="restore-content ativo">
+      <div class="restore-lista" id="restoreListaBackups">
+        <div class="restore-lista-loading">Carregando backups disponíveis…</div>
+      </div>
+    </div>
+
+    <!-- Tab: Upload de arquivo local -->
+    <div id="restoreContentLocal" class="restore-content">
+      <div class="restore-upload-area" id="restoreUploadArea" onclick="document.getElementById('restoreFileInput').click()">
+        <div class="restore-upload-icone">📁</div>
+        <div class="restore-upload-titulo">Clique pra escolher um arquivo</div>
+        <div class="restore-upload-sub">Aceita arquivos JSON da pasta FaturasBackup do seu PC</div>
+        <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="processarArquivoLocal(this)">
+      </div>
+      <div id="restoreUploadResultado" class="restore-upload-resultado" style="display:none"></div>
+    </div>
+
+    <!-- Botões de fechar -->
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="modal-cancelar" onclick="fecharModalRestore()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmação de restore (segunda etapa) -->
+<div class="modal-overlay" id="modalRestoreConfirmar">
+  <div class="modal-box">
+    <h3>Confirmar Restauração</h3>
+    <div id="modalRestoreConfirmarResumo" class="modal-restore-resumo"></div>
+    <div class="modal-aviso-perigo">
+      Isso vai SOBRESCREVER os dados atuais em TODOS os dispositivos. A ação não pode ser desfeita facilmente.
+    </div>
+    <label>Senha do administrador</label>
+    <input type="password" id="restoreSenha" placeholder="senha de admin">
+    <div class="modal-erro" id="restoreErro">Senha incorreta ou erro na operação.</div>
+    <div class="modal-btns">
+      <button class="modal-cancelar" onclick="fecharModalRestoreConfirmar()">Cancelar</button>
+      <button class="modal-confirmar modal-confirmar-perigo" onclick="confirmarRestore()" id="btnConfirmarRestore">Restaurar agora</button>
     </div>
   </div>
 </div>
@@ -2807,6 +3061,275 @@ function confirmarReset(){
         document.getElementById("resetErro").style.display = "block";
         document.getElementById("resetSenha").value = "";
         setTimeout(() => document.getElementById("resetUsuario").focus(), 50);
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MODAL RESTAURAR BACKUP — só admin
+   ════════════════════════════════════════════════════════════════ */
+
+// Estado da tela de restore
+let restoreEstado = {
+    backupSelecionado: null,   // { fonte: 'vps' | 'local', nome, dados, qtdFaturas, qtdFinalizadas }
+    senhaTemp: null,            // senha digitada na 1ª etapa (pra reusar na 2ª)
+};
+
+async function abrirModalRestore(){
+    // Verificação de role
+    if(!sessaoAtual || sessaoAtual.role !== "admin"){
+        alert("Só administradores podem restaurar backups.");
+        return;
+    }
+    if(sessaoAtual.fallback){
+        alert("Você está em modo emergência (site/dev).\n\nPra restaurar backups, sai e entra com seu usuário (ex: renan).");
+        return;
+    }
+
+    // Limpa estado anterior
+    restoreEstado = { backupSelecionado: null, senhaTemp: null };
+
+    // Reseta tabs
+    trocarTabRestore('vps');
+
+    // Limpa upload
+    document.getElementById("restoreUploadResultado").style.display = "none";
+    document.getElementById("restoreFileInput").value = "";
+
+    document.getElementById("modalRestore").classList.add("ativo");
+
+    // Carrega lista do VPS
+    carregarListaBackupsVPS();
+}
+
+function fecharModalRestore(){
+    document.getElementById("modalRestore").classList.remove("ativo");
+}
+
+function trocarTabRestore(qual){
+    document.getElementById("tabRestoreVPS").classList.toggle("ativo", qual === "vps");
+    document.getElementById("tabRestoreLocal").classList.toggle("ativo", qual === "local");
+    document.getElementById("restoreContentVPS").classList.toggle("ativo", qual === "vps");
+    document.getElementById("restoreContentLocal").classList.toggle("ativo", qual === "local");
+}
+
+async function carregarListaBackupsVPS(){
+    const container = document.getElementById("restoreListaBackups");
+    container.innerHTML = '<div class="restore-lista-loading">Carregando backups disponíveis…</div>';
+
+    // Pede senha pra acessar a lista
+    let senha = restoreEstado.senhaTemp;
+    if(!senha){
+        senha = prompt("Digite a senha de admin pra ver os backups:");
+        if(!senha){
+            container.innerHTML = '<div class="restore-lista-loading">Digite a senha pra carregar a lista.</div>';
+            return;
+        }
+        restoreEstado.senhaTemp = senha;
+    }
+
+    try {
+        const resp = await fetch("/admin/listar-backups?senha=" + encodeURIComponent(senha));
+        const j = await resp.json();
+
+        if(!j.ok){
+            restoreEstado.senhaTemp = null;
+            container.innerHTML = `<div class="restore-lista-loading" style="color:var(--c-danger);">Erro: ${j.erro || 'Senha incorreta'}</div>`;
+            return;
+        }
+
+        if(!j.backups || j.backups.length === 0){
+            container.innerHTML = '<div class="restore-lista-loading">Nenhum backup encontrado no servidor.</div>';
+            return;
+        }
+
+        container.innerHTML = j.backups.map(b => {
+            // Extrai motivo do nome (ex: dados_2026-04-26_HH-MM_abertura.json → abertura)
+            const m = b.nome.match(/_(\w+(?:-\w+)*)\.json$/);
+            const motivo = m ? m[1] : "auto";
+            const data = new Date(b.modificado);
+            const dataFmt = data.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+            const tamanhoKB = (b.tamanho / 1024).toFixed(1);
+
+            return `
+                <div class="restore-item">
+                    <div class="restore-item-info">
+                        <div class="restore-item-nome">${escapeHtmlSimples(b.nome)}<span class="restore-item-tag ${motivo}">${motivo}</span></div>
+                        <div class="restore-item-meta">${dataFmt} · ${tamanhoKB} KB</div>
+                    </div>
+                    <button class="restore-item-acao" onclick="selecionarBackupVPS('${escapeHtmlSimples(b.nome).replace(/'/g, "\\'")}')">Restaurar</button>
+                </div>
+            `;
+        }).join("");
+    } catch(e) {
+        container.innerHTML = `<div class="restore-lista-loading" style="color:var(--c-danger);">Erro de conexão: ${e.message}</div>`;
+    }
+}
+
+async function selecionarBackupVPS(nome){
+    const senha = restoreEstado.senhaTemp;
+    if(!senha){
+        alert("Sessão expirou. Reabre o modal de restore.");
+        fecharModalRestore();
+        return;
+    }
+
+    try {
+        const resp = await fetch(`/admin/ler-backup?senha=${encodeURIComponent(senha)}&nome=${encodeURIComponent(nome)}`);
+        const j = await resp.json();
+
+        if(!j.ok){
+            alert("Erro ao ler backup: " + (j.erro || "desconhecido"));
+            return;
+        }
+
+        restoreEstado.backupSelecionado = {
+            fonte: 'vps',
+            nome: j.nome,
+            dados: j.dados,
+            qtdFaturas: j.qtdFaturas,
+            qtdFinalizadas: j.qtdFinalizadas,
+        };
+
+        abrirModalRestoreConfirmar();
+    } catch(e) {
+        alert("Erro de conexão: " + e.message);
+    }
+}
+
+function processarArquivoLocal(input){
+    const file = input.files[0];
+    if(!file) return;
+
+    if(!file.name.endsWith(".json")){
+        alert("Arquivo precisa ser .json");
+        input.value = "";
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        try {
+            const dados = JSON.parse(e.target.result);
+
+            // Valida estrutura mínima
+            if(!dados || typeof dados !== "object" || !Array.isArray(dados.dados)){
+                throw new Error("JSON inválido — não tem o campo 'dados'");
+            }
+
+            // Conta faturas
+            let qtdFaturas = 0;
+            for(const p of dados.dados){
+                if(Array.isArray(p) && p.some(c => c && c !== "")){
+                    qtdFaturas++;
+                }
+            }
+            const qtdFinalizadas = (dados.finalizadas || []).filter(f => f).length;
+
+            restoreEstado.backupSelecionado = {
+                fonte: 'local',
+                nome: file.name,
+                dados,
+                qtdFaturas,
+                qtdFinalizadas,
+            };
+
+            // Mostra resumo + botão pra continuar
+            const div = document.getElementById("restoreUploadResultado");
+            div.style.display = "block";
+            div.innerHTML = `
+                <strong>Arquivo carregado:</strong> ${escapeHtmlSimples(file.name)}<br>
+                <strong>Faturas com dados:</strong> ${qtdFaturas}<br>
+                <strong>Finalizadas:</strong> ${qtdFinalizadas}<br>
+                <button class="modal-confirmar modal-confirmar-perigo" style="margin-top:8px;" onclick="abrirModalRestoreConfirmar()">Continuar pra confirmação</button>
+            `;
+        } catch(err){
+            alert("Erro ao ler arquivo: " + err.message);
+            input.value = "";
+        }
+    };
+    reader.readAsText(file, "UTF-8");
+}
+
+function abrirModalRestoreConfirmar(){
+    const b = restoreEstado.backupSelecionado;
+    if(!b){
+        alert("Nenhum backup selecionado.");
+        return;
+    }
+
+    // Resumo
+    const fonteFmt = b.fonte === 'vps' ? 'Servidor (VPS)' : 'Arquivo local';
+    document.getElementById("modalRestoreConfirmarResumo").innerHTML = `
+        <strong>Origem:</strong> ${fonteFmt}<br>
+        <strong>Arquivo:</strong> <span style="font-family:var(--font-mono);font-size:12px;">${escapeHtmlSimples(b.nome)}</span><br>
+        <strong>Faturas com dados:</strong> ${b.qtdFaturas}<br>
+        <strong>Finalizadas:</strong> ${b.qtdFinalizadas}
+    `;
+
+    // Limpa senha e erro
+    document.getElementById("restoreSenha").value = "";
+    document.getElementById("restoreErro").style.display = "none";
+    document.getElementById("btnConfirmarRestore").disabled = false;
+
+    document.getElementById("modalRestoreConfirmar").classList.add("ativo");
+    setTimeout(() => document.getElementById("restoreSenha").focus(), 150);
+}
+
+function fecharModalRestoreConfirmar(){
+    document.getElementById("modalRestoreConfirmar").classList.remove("ativo");
+}
+
+async function confirmarRestore(){
+    const senha = document.getElementById("restoreSenha").value.trim();
+    if(!senha){
+        document.getElementById("restoreErro").textContent = "Digite a senha pra continuar.";
+        document.getElementById("restoreErro").style.display = "block";
+        return;
+    }
+
+    const b = restoreEstado.backupSelecionado;
+    if(!b){
+        alert("Backup não encontrado. Reabre o modal.");
+        return;
+    }
+
+    const btn = document.getElementById("btnConfirmarRestore");
+    btn.disabled = true;
+    btn.textContent = "Restaurando…";
+
+    try {
+        const resp = await fetch("/admin/restore", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                senha,
+                usuario: sessaoAtual?.usuario || "admin",
+                dados: b.dados,
+            }),
+        });
+
+        const j = await resp.json();
+
+        if(!j.ok){
+            document.getElementById("restoreErro").textContent = j.erro || "Erro desconhecido";
+            document.getElementById("restoreErro").style.display = "block";
+            btn.disabled = false;
+            btn.textContent = "Restaurar agora";
+            return;
+        }
+
+        // Sucesso
+        fecharModalRestoreConfirmar();
+        fecharModalRestore();
+        alert(`Backup restaurado.\n\nFaturas: ${j.faturas}\nFinalizadas: ${j.finalizadas}\n\nO sistema vai recarregar pra mostrar os dados.`);
+        // Aguarda load-data via socket; mas pra garantir, recarrega
+        setTimeout(() => location.reload(), 800);
+
+    } catch(e){
+        document.getElementById("restoreErro").textContent = "Erro de conexão: " + e.message;
+        document.getElementById("restoreErro").style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Restaurar agora";
     }
 }
 
@@ -6316,15 +6839,15 @@ function aplicarPermissoesUI(){
       `<span class="user-indicador-role ${roleClass}">${roleLabel}</span>`;
   }
 
-  // Itens DENTRO do menu Opções: Editar, Conferência, Usuários (só admin)
+  // Itens DENTRO do menu Opções: Editar, Conferência, Usuários, Restore (só admin)
   // Botão Zerar fica fora do menu (também só admin)
-  const apenasAdmin = ["btnZerar", "btnConferencia", "btnEditar", "btnUsuarios"];
+  const apenasAdmin = ["btnZerar", "btnConferencia", "btnEditar", "btnUsuarios", "btnRestore"];
   const ehAdmin = (role === "admin");
   for(const id of apenasAdmin){
     const el = document.getElementById(id);
     if(!el) continue;
-    if(id === "btnUsuarios" && isFallback){
-      // Esconde botão de Usuários DENTRO do menu em modo fallback (não funciona sem token)
+    if((id === "btnUsuarios" || id === "btnRestore") && isFallback){
+      // Esconde botão de Usuários e Restore DENTRO do menu em modo fallback (não funciona sem token)
       el.style.display = "none";
     } else {
       el.style.display = ehAdmin ? "" : "none";
