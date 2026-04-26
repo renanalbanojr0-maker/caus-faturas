@@ -773,11 +773,6 @@ overflow:hidden;
   background:var(--c-warning-soft);
   color:var(--c-warning);
 }
-.res-status.bloqueada{
-  background:var(--c-surface-2);
-  color:var(--c-text-3);
-  border:1px solid var(--c-border);
-}
 .res-status.finalizada{
   background:var(--c-success-soft);
   color:var(--c-success);
@@ -1098,13 +1093,6 @@ font-size:13px;
 }
 .modal-overlay.ativo,
 .modal-print-overlay.ativo{display:flex;}
-
-/* Modais "secundários" — aparecem POR CIMA de outros modais (ex: confirmação dentro do massivo) */
-#modalConfirmacao,
-#modalPromptSenha,
-#modalAviso{
-  z-index:9999999;  /* um zero a mais que o normal */
-}
 
 @keyframes modalFadeIn{
   from{opacity:0;}
@@ -2565,33 +2553,6 @@ input:focus, textarea:focus{
   </div>
 </div>
 
-<!-- Modal de prompt de senha customizado (substitui prompt() nativo, que é bloqueado no Electron) -->
-<div class="modal-overlay" id="modalPromptSenha">
-  <div class="modal-box">
-    <h3 id="promptSenhaTitulo">Senha de administrador</h3>
-    <div id="promptSenhaMsg" style="font-size:13px;color:var(--c-text-2);margin:0 0 12px;line-height:1.4;"></div>
-    <label>Senha</label>
-    <input type="password" id="promptSenhaInput" placeholder="senha" autocomplete="off">
-    <div class="modal-erro" id="promptSenhaErro" style="display:none;">Senha não pode estar em branco.</div>
-    <div class="modal-btns">
-      <button class="modal-cancelar" onclick="cancelarPromptSenha()">Cancelar</button>
-      <button class="modal-confirmar" onclick="confirmarPromptSenha()">Confirmar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de confirmação customizado (substitui confirm() nativo — no Electron, confirm() rouba o foco do teclado e não devolve corretamente) -->
-<div class="modal-overlay" id="modalConfirmacao">
-  <div class="modal-box">
-    <h3 id="confirmacaoTitulo">Confirmar</h3>
-    <div id="confirmacaoMsg" style="font-size:13px;color:var(--c-text);text-align:left;margin:10px 0 18px;white-space:pre-line;line-height:1.5;"></div>
-    <div class="modal-btns">
-      <button class="modal-cancelar" id="btnCancelarConfirmacao" onclick="responderConfirmacao(false)">Cancelar</button>
-      <button class="modal-confirmar" id="btnConfirmarConfirmacao" onclick="responderConfirmacao(true)">Confirmar</button>
-    </div>
-  </div>
-</div>
-
 <!-- Painel lateral de busca e filtro de faturas -->
 <div id="painelBusca" class="painel-busca-overlay">
   <div class="painel-busca">
@@ -3088,16 +3049,27 @@ function fecharModalReset(){
     document.getElementById("modalReset").classList.remove("ativo");
 }
 
-function confirmarReset(){
+async function confirmarReset(){
     const u = document.getElementById("resetUsuario").value.trim();
     const s = document.getElementById("resetSenha").value.trim();
-    if(u === USUARIO_EDIT && s === SENHA_EDIT){
+    const btn = document.querySelector("#modalReset button.btn-confirmar, #modalReset button[onclick*='confirmarReset']");
+    if(btn){ btn.disabled = true; btn.dataset.txt = btn.textContent; btn.textContent = "Validando..."; }
+
+    const r = await validarAcaoNoServidor(u, s, "zerar-tudo");
+
+    if(btn){ btn.disabled = false; btn.textContent = btn.dataset.txt || "Confirmar"; }
+
+    if(r.ok){
         fecharModalReset();
         // Envia reset para o servidor — propaga para TODOS os dispositivos
-        // Inclui o usuário logado pra auditoria saber quem zerou
-        socket.emit("reset-all", { usuario: sessaoAtual?.usuario || u });
+        socket.emit("reset-all", { usuario: sessaoAtual?.usuario || "renan" });
     } else {
-        document.getElementById("resetErro").style.display = "block";
+        const erroEl = document.getElementById("resetErro");
+        erroEl.style.display = "block";
+        // Mensagem específica pra rate limit / offline
+        if(r.rateLimited) erroEl.textContent = "⏱ Muitas tentativas. Aguarde 15 minutos.";
+        else if(r.offline) erroEl.textContent = "🔌 Servidor offline. Verifique a internet.";
+        else erroEl.textContent = "Usuário ou senha inválidos";
         document.getElementById("resetSenha").value = "";
         setTimeout(() => document.getElementById("resetUsuario").focus(), 50);
     }
@@ -3116,11 +3088,11 @@ let restoreEstado = {
 async function abrirModalRestore(){
     // Verificação de role
     if(!sessaoAtual || sessaoAtual.role !== "admin"){
-        avisar("Só administradores podem restaurar backups.");
+        alert("Só administradores podem restaurar backups.");
         return;
     }
     if(sessaoAtual.fallback){
-        avisar("Você está em modo emergência (site/dev).\n\nPra restaurar backups, sai e entra com seu usuário (ex: renan).");
+        alert("Você está em modo emergência (site/dev).\n\nPra restaurar backups, sai e entra com seu usuário (ex: renan).");
         return;
     }
 
@@ -3155,12 +3127,12 @@ async function carregarListaBackupsVPS(){
     const container = document.getElementById("restoreListaBackups");
     container.innerHTML = '<div class="restore-lista-loading">Carregando backups disponíveis…</div>';
 
-    // Pede senha pra acessar a lista (modal customizado, prompt() não funciona no Electron)
+    // Pede senha pra acessar a lista
     let senha = restoreEstado.senhaTemp;
     if(!senha){
-        senha = await pedirSenha("Senha de administrador", "Digite a senha para ver os backups do servidor.");
+        senha = prompt("Digite a senha de admin pra ver os backups:");
         if(!senha){
-            container.innerHTML = '<div class="restore-lista-loading">Operação cancelada.</div>';
+            container.innerHTML = '<div class="restore-lista-loading">Digite a senha pra carregar a lista.</div>';
             return;
         }
         restoreEstado.senhaTemp = senha;
@@ -3207,7 +3179,7 @@ async function carregarListaBackupsVPS(){
 async function selecionarBackupVPS(nome){
     const senha = restoreEstado.senhaTemp;
     if(!senha){
-        avisar("Sessão expirou. Reabre o modal de restore.");
+        alert("Sessão expirou. Reabre o modal de restore.");
         fecharModalRestore();
         return;
     }
@@ -3217,7 +3189,7 @@ async function selecionarBackupVPS(nome){
         const j = await resp.json();
 
         if(!j.ok){
-            avisar("Erro ao ler backup: " + (j.erro || "desconhecido"));
+            alert("Erro ao ler backup: " + (j.erro || "desconhecido"));
             return;
         }
 
@@ -3231,7 +3203,7 @@ async function selecionarBackupVPS(nome){
 
         abrirModalRestoreConfirmar();
     } catch(e) {
-        avisar("Erro de conexão: " + e.message);
+        alert("Erro de conexão: " + e.message);
     }
 }
 
@@ -3240,7 +3212,7 @@ function processarArquivoLocal(input){
     if(!file) return;
 
     if(!file.name.endsWith(".json")){
-        avisar("Arquivo precisa ser .json");
+        alert("Arquivo precisa ser .json");
         input.value = "";
         return;
     }
@@ -3282,7 +3254,7 @@ function processarArquivoLocal(input){
                 <button class="modal-confirmar modal-confirmar-perigo" style="margin-top:8px;" onclick="abrirModalRestoreConfirmar()">Continuar pra confirmação</button>
             `;
         } catch(err){
-            avisar("Erro ao ler arquivo: " + err.message);
+            alert("Erro ao ler arquivo: " + err.message);
             input.value = "";
         }
     };
@@ -3292,7 +3264,7 @@ function processarArquivoLocal(input){
 function abrirModalRestoreConfirmar(){
     const b = restoreEstado.backupSelecionado;
     if(!b){
-        avisar("Nenhum backup selecionado.");
+        alert("Nenhum backup selecionado.");
         return;
     }
 
@@ -3328,7 +3300,7 @@ async function confirmarRestore(){
 
     const b = restoreEstado.backupSelecionado;
     if(!b){
-        avisar("Backup não encontrado. Reabre o modal.");
+        alert("Backup não encontrado. Reabre o modal.");
         return;
     }
 
@@ -3360,7 +3332,7 @@ async function confirmarRestore(){
         // Sucesso
         fecharModalRestoreConfirmar();
         fecharModalRestore();
-        avisar(`Backup restaurado.\n\nFaturas: ${j.faturas}\nFinalizadas: ${j.finalizadas}\n\nO sistema vai recarregar pra mostrar os dados.`);
+        alert(`Backup restaurado.\n\nFaturas: ${j.faturas}\nFinalizadas: ${j.finalizadas}\n\nO sistema vai recarregar pra mostrar os dados.`);
         // Aguarda load-data via socket; mas pra garantir, recarrega
         setTimeout(() => location.reload(), 800);
 
@@ -3377,7 +3349,7 @@ function abrirModalConferencia(){
     // Só permite conferir fatura finalizada
     const jaFinalizada = finalizadas.includes(faturaAtual);
     if(!jaFinalizada){
-        avisar("Só dá pra conferir faturas finalizadas.\n\nFinaliza a fatura primeiro e volta aqui pra conferir.");
+        alert("Só dá pra conferir faturas finalizadas.\n\nFinaliza a fatura primeiro e volta aqui pra conferir.");
         return;
     }
     // Verifica se já está conferida para mudar o texto do modal
@@ -3410,11 +3382,22 @@ function fecharModalConferencia(){
     document.getElementById("modalConferencia").classList.remove("ativo");
 }
 
-function confirmarConferencia(){
+async function confirmarConferencia(){
     const u = document.getElementById("confUsuario").value.trim();
     const s = document.getElementById("confSenha").value.trim();
-    if(u !== USUARIO_EDIT || s !== SENHA_EDIT){
-        document.getElementById("confErro").style.display = "block";
+    const btn = document.querySelector("#modalConferencia button.btn-confirmar, #modalConferencia button[onclick*='confirmarConferencia']");
+    if(btn){ btn.disabled = true; btn.dataset.txt = btn.textContent; btn.textContent = "Validando..."; }
+
+    const r = await validarAcaoNoServidor(u, s, "conferir-fatura");
+
+    if(btn){ btn.disabled = false; btn.textContent = btn.dataset.txt || "Confirmar"; }
+
+    if(!r.ok){
+        const erroEl = document.getElementById("confErro");
+        erroEl.style.display = "block";
+        if(r.rateLimited) erroEl.textContent = "⏱ Muitas tentativas. Aguarde 15 minutos.";
+        else if(r.offline) erroEl.textContent = "🔌 Servidor offline. Verifique a internet.";
+        else erroEl.textContent = "Usuário ou senha inválidos";
         document.getElementById("confSenha").value = "";
         setTimeout(() => document.getElementById("confUsuario").focus(), 50);
         return;
@@ -3673,10 +3656,10 @@ function atualizarDadosViaClienteAtual(){
 }
 
 /* Toggle: liga/desliga o modo via de cliente pra fatura atual */
-async function toggleViaCliente(){
+function toggleViaCliente(){
     const page = pages[faturaAtual];
     if(!page){
-        avisar("Nenhuma fatura selecionada.");
+        alert("Nenhuma fatura selecionada.");
         return;
     }
     const jaAtivo = isViaClienteAtiva(faturaAtual);
@@ -3693,14 +3676,10 @@ async function toggleViaCliente(){
                 atualizarDadosViaClienteAtual();
                 vc.arquivada = true; // marca que foi desativada mas é finalizada (mantém visual)
             }
-            avisar("Essa fatura já foi finalizada. O modo Via de Cliente foi arquivado, mas os dados (Nº NF, Cód Cliente e OBS) continuam salvos e aparecem na impressão e na conferência.");
+            alert("Essa fatura já foi finalizada. O modo Via de Cliente foi arquivado, mas os dados (Nº NF, Cód Cliente e OBS) continuam salvos e aparecem na impressão e na conferência.");
         } else {
             // Fatura não finalizada: comportamento antigo (apaga tudo)
-            const ok = await pedirConfirmacao(
-                "Desativar o modo Via de Cliente?\nOs valores de Nº NF, Cód Cliente e OBS serão apagados.\n\n(Se quiser preservar os dados, finalize a fatura antes de desativar.)",
-                { titulo: "Desativar Via de Cliente", textoConfirmar: "Desativar", perigo: true }
-            );
-            if(!ok) return;
+            if(!confirm("Desativar o modo Via de Cliente?\nOs valores de Nº NF, Cód Cliente e OBS serão apagados.\n\n(Se quiser preservar os dados, finalize a fatura antes de desativar.)")) return;
             viasCliente = viasCliente.filter(v => v.indice !== faturaAtual);
             aplicarViaClienteNaPagina(faturaAtual);
         }
@@ -3764,9 +3743,6 @@ function vincularViaClienteInputs(){
         const taObs = page.querySelector(".vc-obs-textarea");
         [inpNF, inpCod, taObs].forEach(inp => {
             if(!inp) return;
-            // Guard contra dupla vinculação (após logout+login sem reload)
-            if(inp.dataset.vcInputBound) return;
-            inp.dataset.vcInputBound = "1";
             inp.addEventListener("input", () => {
                 const vc = viasCliente.find(v => v.indice === indice);
                 if(vc){
@@ -3790,7 +3766,7 @@ function vincularViaClienteInputs(){
 
 /* Confirma o Cód Cliente da fatura arquivada — trava o campo após confirmação.
    Depois que clicar em ✓, só o botão Editar (com senha) libera de novo. */
-async function confirmarCodCliente(btn){
+function confirmarCodCliente(btn){
     const page = btn.closest(".page");
     if(!page) return;
     const indice = pages.indexOf(page);
@@ -3802,16 +3778,14 @@ async function confirmarCodCliente(btn){
     const valorAtual = (inpCod?.value || "").trim();
 
     if(!valorAtual){
-        avisar("Preenche o Cód Cliente antes de confirmar.");
+        alert("Preenche o Cód Cliente antes de confirmar.");
         inpCod?.focus();
         return;
     }
 
-    const ok = await pedirConfirmacao(
-        `Confirmar Cód Cliente "${valorAtual}"?\n\nApós confirmar, o campo ficará bloqueado. Só será possível destravar pelo botão Editar (com senha).`,
-        { titulo: "Confirmar Cód Cliente" }
-    );
-    if(!ok) return;
+    if(!confirm(`Confirmar Cód Cliente "${valorAtual}"?\n\nApós confirmar, o campo ficará bloqueado. Só será possível destravar pelo botão Editar (com senha).`)){
+        return;
+    }
 
     // Grava o valor final e marca como confirmado
     vc.codCliente = valorAtual;
@@ -3822,26 +3796,6 @@ async function confirmarCodCliente(btn){
     btn.classList.add("confirmado");
 
     salvar();
-
-    // Re-salva a imagem da fatura no VPS (sobrescreve o FAT antigo, agora com o cód cliente preenchido)
-    // Só faz isso se a fatura já foi finalizada (caso em que a imagem original já existe)
-    if(finalizadas.includes(indice)){
-        const numero = String(faturaInicial + indice).padStart(6, "0");
-        // Se a fatura confirmada não é a atualmente exibida, troca temporariamente pra capturar a página certa
-        const indiceOriginal = faturaAtual;
-        if(indice !== faturaAtual){
-            faturaAtual = indice;
-            mostrarFatura();
-            // Aguarda um tick pro DOM atualizar antes de capturar
-            setTimeout(async () => {
-                await gerarESalvarImagem(numero);
-                faturaAtual = indiceOriginal;
-                mostrarFatura();
-            }, 100);
-        } else {
-            gerarESalvarImagem(numero);
-        }
-    }
 }
 
 /* ── INTEGRAÇÃO TINY ERP (puxar dados de NF) ─────────────────── */
@@ -3872,7 +3826,7 @@ async function buscarNFTiny(btn){
     const numero = (inpNF?.value || "").trim();
 
     if(!numero){
-        avisar("Digita o número da NF antes de buscar.");
+        alert("Digita o número da NF antes de buscar.");
         inpNF?.focus();
         return;
     }
@@ -3883,7 +3837,7 @@ async function buscarNFTiny(btn){
     const faturaDuplicada = buscarFaturaPorNumeroNF(numero, indiceAtual);
     if(faturaDuplicada >= 0){
         const numFaturaDup = String(faturaInicial + faturaDuplicada).padStart(6, "0");
-        avisar("A NF " + numero + " já está cadastrada.\n\n" +
+        alert("A NF " + numero + " já está cadastrada.\n\n" +
               "Essa NF já foi preenchida na Fatura " + numFaturaDup + ".\n\n" +
               "Não é permitido preencher a mesma NF em duas faturas diferentes.\n" +
               "Se precisar corrigir, vá até a Fatura " + numFaturaDup + " e use o botão Editar.");
@@ -3901,51 +3855,51 @@ async function buscarNFTiny(btn){
         // Passo 1: pesquisa a NF pelo número pra obter o ID
         const resp1 = await chamarTinyAPI("listar_nf", { numero });
         if(resp1.erro){
-            avisar("Não consegui conectar no Tiny:\n" + resp1.erro);
+            alert("Não consegui conectar no Tiny:\n" + resp1.erro);
             return;
         }
         const retorno1 = resp1.retorno || {};
         if(retorno1.status === "Erro"){
             const erros = (retorno1.erros || []).map(e => e.erro || e).join("\n");
-            avisar("O Tiny retornou um erro:\n" + erros);
+            alert("O Tiny retornou um erro:\n" + erros);
             return;
         }
         const notas = retorno1.notas_fiscais || [];
         if(notas.length === 0){
-            avisar("Não achei a NF nº " + numero + " no Tiny.");
+            alert("Não achei a NF nº " + numero + " no Tiny.");
             return;
         }
 
         // Pega a primeira NF da lista (geralmente é a correta)
         const idNF = notas[0].nota_fiscal?.id;
         if(!idNF){
-            avisar("O Tiny não retornou o ID da NF.");
+            alert("O Tiny não retornou o ID da NF.");
             return;
         }
 
         // Passo 2: obtém os detalhes completos da NF pelo ID
         const resp2 = await chamarTinyAPI("detalhe_nf", { id: idNF });
         if(resp2.erro){
-            avisar("Não consegui pegar os detalhes da NF:\n" + resp2.erro);
+            alert("Não consegui pegar os detalhes da NF:\n" + resp2.erro);
             return;
         }
         const retorno2 = resp2.retorno || {};
         if(retorno2.status === "Erro"){
             const erros = (retorno2.erros || []).map(e => e.erro || e).join("\n");
-            avisar("Não consegui pegar a NF:\n" + erros);
+            alert("Não consegui pegar a NF:\n" + erros);
             return;
         }
 
         const nf = retorno2.nota_fiscal;
         if(!nf){
-            avisar("O Tiny não retornou os dados da NF.");
+            alert("O Tiny não retornou os dados da NF.");
             return;
         }
 
         // Validação: limite de 14 itens (linhas da fatura)
         const itens = nf.itens || [];
         if(itens.length > 14){
-            avisar("Essa NF tem " + itens.length + " produtos.\n" +
+            alert("Essa NF tem " + itens.length + " produtos.\n" +
                   "A fatura suporta no máximo 14 itens.\n\n" +
                   "Nada foi preenchido. Edite manualmente ou divida a venda em duas faturas.");
             return;
@@ -3972,11 +3926,11 @@ async function buscarNFTiny(btn){
                  + skusNaoCad.join(", ")
                  + "\n\n(Foi usada a descrição do Tiny como fallback. Cadastre esses produtos no sistema pra padronizar.)";
         }
-        avisar(msg);
+        alert(msg);
 
     }catch(e){
         console.error("[Buscar NF]", e);
-        avisar("Algo deu errado:\n" + e.message);
+        alert("Algo deu errado:\n" + e.message);
     }finally{
         btn.disabled = false;
         btn.textContent = labelOriginal;
@@ -3992,7 +3946,7 @@ async function debugNFTiny(btn){
     const numero = (inpNF?.value || "").trim();
 
     if(!numero){
-        avisar("Digita o número da NF antes de usar o debug.");
+        alert("Digita o número da NF antes de usar o debug.");
         inpNF?.focus();
         return;
     }
@@ -4039,13 +3993,13 @@ async function debugNFTiny(btn){
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        avisar("Debug baixado.\n\n" +
+        alert("Debug baixado.\n\n" +
               "Arquivo: debug-nf-" + numero + ".json\n\n" +
               "Agora você pode abrir esse arquivo e ver todos os campos que o Tiny retorna, " +
               "ou me enviar ele pra eu analisar e implementar o marketplace.");
     }catch(e){
         console.error("[Debug NF]", e);
-        avisar(e.message);
+        alert(e.message);
     }finally{
         btn.disabled = false;
         btn.textContent = labelOriginal;
@@ -4666,9 +4620,6 @@ function abrirModalMassivo(){
 function fecharModalMassivo(){
     document.getElementById("modalMassivo").style.display = "none";
     _massivoAbortar = true;
-    // Re-renderiza fatura atual pra atualizar status no header
-    // (caso a última processada tenha ficado com status desatualizado)
-    if(typeof mostrarFatura === "function") mostrarFatura();
 }
 
 function voltarMassivoEtapaDatas(){
@@ -4690,11 +4641,11 @@ async function iniciarPrevia(){
     const dFim = document.getElementById("massivoDataFinal").value;
 
     if(!dIni || !dFim){
-        avisar("Preenche as duas datas antes de continuar.");
+        alert("Preenche as duas datas antes de continuar.");
         return;
     }
     if(dIni > dFim){
-        avisar("A data inicial não pode ser depois da data final.");
+        alert("A data inicial não pode ser depois da data final.");
         return;
     }
 
@@ -4751,7 +4702,7 @@ async function iniciarPrevia(){
 
             if(resp.erro){
                 clearInterval(timerInterval);
-                avisar("Não consegui conectar no Tiny:\n" + resp.erro);
+                alert("Não consegui conectar no Tiny:\n" + resp.erro);
                 return;
             }
             const retorno = resp.retorno || {};
@@ -4762,7 +4713,7 @@ async function iniciarPrevia(){
                     break;
                 }
                 clearInterval(timerInterval);
-                avisar("O Tiny retornou um erro:\n" + erros);
+                alert("O Tiny retornou um erro:\n" + erros);
                 return;
             }
 
@@ -4777,7 +4728,7 @@ async function iniciarPrevia(){
             if(pagina === 1 && totalPaginas > 10){
                 clearInterval(timerInterval);
                 const msg = `A API retornou ${totalPaginas} páginas (${totalPaginas * 100}+ NFs) — isso indica que o filtro de data não foi aceito pelo Tiny.\n\nPara períodos grandes, tente dividir em pedaços menores (ex: 1 semana por vez).\n\nSe o período já é pequeno e ainda veio muito, reporta esse erro — é um bug da integração.`;
-                avisar(msg);
+                alert(msg);
                 console.error("[Massivo] FILTRO NÃO FUNCIONOU — " + totalPaginas + " páginas retornadas. Verifique os nomes dos parâmetros.");
                 return;
             }
@@ -4812,12 +4763,12 @@ async function iniciarPrevia(){
         console.log(`[Massivo] Busca completa em ${tempoTotal}s. ${totalAnalisadas} NFs analisadas, ${candidatasEcommerce.length} candidatas.`);
 
         if(totalAnalisadas === 0){
-            avisar("Nenhuma NF de saída encontrada no período.");
+            alert("Nenhuma NF de saída encontrada no período.");
             return;
         }
 
         if(candidatasEcommerce.length === 0){
-            avisar(`Nenhuma NF de marketplace encontrada no período.\n\nAnalisei ${totalAnalisadas} NF(s) de saída — nenhuma tem indicadores de e-commerce (número de e-commerce ou email de marketplace).\n\nTempo: ${tempoTotal}s`);
+            alert(`Nenhuma NF de marketplace encontrada no período.\n\nAnalisei ${totalAnalisadas} NF(s) de saída — nenhuma tem indicadores de e-commerce (número de e-commerce ou email de marketplace).\n\nTempo: ${tempoTotal}s`);
             return;
         }
 
@@ -4856,7 +4807,7 @@ async function iniciarPrevia(){
 
     }catch(e){
         console.error("[Massivo Prévia]", e);
-        avisar("Algo deu errado:\n" + e.message);
+        alert("Algo deu errado:\n" + e.message);
     }finally{
         clearInterval(timerInterval);
         btn.disabled = false;
@@ -4867,16 +4818,12 @@ async function iniciarPrevia(){
 /* Etapa 3: executa o processamento real */
 async function executarMassivo(){
     if(_massivoNFs.length === 0){
-        avisar("Não tem nada pra processar.");
+        alert("Não tem nada pra processar.");
         return;
     }
 
     // Confirma antes
-    const okMassivo = await pedirConfirmacao(
-        `Confirmar processamento de ${_massivoNFs.length} NF(s)?\n\nCada NF vai:\n• Ativar modo Via de Cliente na próxima fatura em aberto\n• Preencher dados do cliente, itens, vendedor e total\n• Finalizar a fatura\n• Salvar imagem no servidor\n• Arquivar o modo VC\n\nProcesso não pode ser desfeito facilmente.`,
-        { titulo: "Processar NFs em massa", textoConfirmar: "Processar" }
-    );
-    if(!okMassivo) return;
+    if(!confirm(`Confirmar processamento de ${_massivoNFs.length} NF(s)?\n\nCada NF vai:\n• Ativar modo Via de Cliente na próxima fatura em aberto\n• Preencher dados do cliente, itens, vendedor e total\n• Finalizar a fatura\n• Salvar imagem no servidor\n• Arquivar o modo VC\n\nProcesso não pode ser desfeito facilmente.`)) return;
 
     _massivoAbortar = false;
     document.getElementById("massivoEtapaPrevia").style.display = "none";
@@ -5063,9 +5010,6 @@ async function executarMassivo(){
             const vc = viasCliente.find(v => v.indice === indiceFatura);
             if(vc) vc.arquivada = true;
             aplicarViaClienteNaPagina(indiceFatura);
-
-            // Re-renderiza o status no header (passa de "Em aberto" pra "Finalizada")
-            mostrarFatura();
 
             sucessos.push({ numero, fatura: numeroFatura, cliente: nf.cliente?.nome || "-", marketplace });
             addLog(`NF ${numero} → Fatura ${numeroFatura} (${marketplace})`);
@@ -5261,13 +5205,8 @@ function carregar(){
 }
 
 /* ── LIMPAR DADOS ────────────────────────────────────────────── */
-async function limparDados(confirmar = true){
-    if(confirmar){
-        const ok = await pedirConfirmacao("Apagar todos os dados salvos e começar do zero?", {
-            titulo: "Limpar dados", textoConfirmar: "Limpar tudo", perigo: true
-        });
-        if(!ok) return;
-    }
+function limparDados(confirmar = true){
+    if(confirmar && !confirm("Apagar todos os dados salvos e começar do zero?")) return;
     localStorage.removeItem("faturasDados");
     localStorage.removeItem("faturaAtual");
     localStorage.removeItem("faturasFinalizadas");
@@ -5512,12 +5451,6 @@ function mostrarAviso(titulo, mensagem, callback){
     }, 100);
 }
 
-/* Wrapper conveniente: substitui avisar() nativo (que rouba foco no Electron).
-   Uso: avisar("mensagem") em vez de avisar("mensagem") */
-function avisar(mensagem){
-    mostrarAviso("Aviso", mensagem || "");
-}
-
 function fecharAviso(){
     document.getElementById("modalAviso").classList.remove("ativo");
     const cb = _avisoCallback;
@@ -5534,110 +5467,6 @@ document.addEventListener("keydown", (e) => {
         if(e.key === "Enter" || e.key === "Escape"){
             e.preventDefault();
             fecharAviso();
-        }
-    }
-});
-
-/* ── PROMPT DE SENHA CUSTOMIZADO (substitui prompt() nativo, bloqueado no Electron) ── */
-let _promptSenhaResolve = null;
-
-/**
- * Mostra modal de senha. Uso: const senha = await pedirSenha("Título", "Mensagem opcional");
- * Retorna a senha digitada ou null se cancelado.
- */
-function pedirSenha(titulo, mensagem){
-    return new Promise(resolve => {
-        _promptSenhaResolve = resolve;
-        document.getElementById("promptSenhaTitulo").textContent = titulo || "Senha de administrador";
-        document.getElementById("promptSenhaMsg").textContent = mensagem || "";
-        const inp = document.getElementById("promptSenhaInput");
-        inp.value = "";
-        document.getElementById("promptSenhaErro").style.display = "none";
-        document.getElementById("modalPromptSenha").classList.add("ativo");
-        setTimeout(() => { try { inp.focus(); } catch(e){} }, 100);
-    });
-}
-
-function confirmarPromptSenha(){
-    const inp = document.getElementById("promptSenhaInput");
-    const valor = (inp.value || "").trim();
-    if(!valor){
-        document.getElementById("promptSenhaErro").style.display = "block";
-        inp.focus();
-        return;
-    }
-    document.getElementById("modalPromptSenha").classList.remove("ativo");
-    const r = _promptSenhaResolve;
-    _promptSenhaResolve = null;
-    if(r) r(valor);
-}
-
-function cancelarPromptSenha(){
-    document.getElementById("modalPromptSenha").classList.remove("ativo");
-    const r = _promptSenhaResolve;
-    _promptSenhaResolve = null;
-    if(r) r(null);
-}
-
-// Enter confirma, Escape cancela no modal de senha
-document.addEventListener("keydown", (e) => {
-    if(document.getElementById("modalPromptSenha").classList.contains("ativo")){
-        if(e.key === "Enter"){
-            e.preventDefault();
-            confirmarPromptSenha();
-        } else if(e.key === "Escape"){
-            e.preventDefault();
-            cancelarPromptSenha();
-        }
-    }
-});
-
-/* ── CONFIRMAÇÃO CUSTOMIZADA (substitui confirm() nativo, que rouba foco no Electron) ── */
-let _confirmacaoResolve = null;
-
-/**
- * Substitui confirm() nativo. Uso:
- *   if(await pedirConfirmacao("Tem certeza?")) { ... }
- *   if(await pedirConfirmacao("Excluir?", { titulo: "Excluir item", textoConfirmar: "Excluir" })) { ... }
- */
-function pedirConfirmacao(mensagem, opts){
-    opts = opts || {};
-    return new Promise(resolve => {
-        _confirmacaoResolve = resolve;
-        document.getElementById("confirmacaoTitulo").textContent = opts.titulo || "Confirmar";
-        document.getElementById("confirmacaoMsg").textContent = mensagem || "";
-        const btnOk = document.getElementById("btnConfirmarConfirmacao");
-        const btnCancel = document.getElementById("btnCancelarConfirmacao");
-        btnOk.textContent = opts.textoConfirmar || "Confirmar";
-        btnCancel.textContent = opts.textoCancelar || "Cancelar";
-        // Estilo de perigo opcional
-        if(opts.perigo){
-            btnOk.classList.add("modal-confirmar-perigo");
-        } else {
-            btnOk.classList.remove("modal-confirmar-perigo");
-        }
-        document.getElementById("modalConfirmacao").classList.add("ativo");
-        // Foca no botão Confirmar pra Enter funcionar
-        setTimeout(() => { try { btnOk.focus(); } catch(e){} }, 100);
-    });
-}
-
-function responderConfirmacao(resposta){
-    document.getElementById("modalConfirmacao").classList.remove("ativo");
-    const r = _confirmacaoResolve;
-    _confirmacaoResolve = null;
-    if(r) r(!!resposta);
-}
-
-// Enter confirma, Escape cancela no modal de confirmação
-document.addEventListener("keydown", (e) => {
-    if(document.getElementById("modalConfirmacao").classList.contains("ativo")){
-        if(e.key === "Enter"){
-            e.preventDefault();
-            responderConfirmacao(true);
-        } else if(e.key === "Escape"){
-            e.preventDefault();
-            responderConfirmacao(false);
         }
     }
 });
@@ -5811,10 +5640,6 @@ function renderizarResultadosBusca(resultados){
         } else if(finalizadas.includes(r.indice)){
             statusClass = "finalizada";
             statusTxt = "Finalizada";
-        } else if(r.indice > 0 && !finalizadas.includes(r.indice - 1)){
-            // Bloqueada: a fatura anterior ainda não foi finalizada
-            statusClass = "bloqueada";
-            statusTxt = "Bloqueada";
         }
         const dataStr = r.data ? r.data.toLocaleDateString("pt-BR") : "—";
 
@@ -5867,13 +5692,8 @@ async function finalizarFatura(){
     // Registra na auditoria
     registrarAuditoriaFront("finalizar-fatura", { numero, indice: faturaAtual });
     // Se estiver em modo Via de Cliente, garante que os valores estão salvos
-    // E arquiva automaticamente (igual o massivo faz) — assim o botão ✓ do Cód Cliente
-    // aparece após finalizar, permitindo confirmar depois quando souber o cód
     if(isViaClienteAtiva(faturaAtual)){
         atualizarDadosViaClienteAtual();
-        const vc = viasCliente.find(v => v.indice === faturaAtual);
-        if(vc) vc.arquivada = true;
-        aplicarViaClienteNaPagina(faturaAtual);
     }
     // Força salvar imediatamente sem debounce ao finalizar
     clearTimeout(_salvarTimer);
@@ -6087,9 +5907,6 @@ function vincularAutoResizes(){
 function popularListaClientes(){
     const container = document.getElementById("listaClientesItens");
     if(!container) return;
-    // Limpa lista existente antes de popular (evita duplicação se chamado várias vezes,
-    // por exemplo após logout+login na mesma sessão sem reload)
-    container.innerHTML = "";
     Object.entries(CLIENTES)
         .sort((a,b) => parseInt(a[0]) - parseInt(b[0]))
         .forEach(([cod, c]) => {
@@ -6403,8 +6220,7 @@ function vincularMascaras(){
 }
 
 /* ── EDITAR COM SENHA ────────────────────────────────────────── */
-const USUARIO_EDIT = "renan";
-const SENHA_EDIT   = "3003";
+// Validação agora é feita no servidor via /auth/validar-acao (bcrypt + auditoria)
 let modoEdicao = false;
 
 function abrirModalEditar(){
@@ -6439,14 +6255,25 @@ function fecharModalEditar(){
     document.getElementById("loginSenha").disabled   = false;
 }
 
-function confirmarLogin(){
+async function confirmarLogin(){
     const u = document.getElementById("loginUsuario").value.trim();
     const s = document.getElementById("loginSenha").value.trim();
-    if(u === USUARIO_EDIT && s === SENHA_EDIT){
+    const btn = document.querySelector("#modalLogin button.btn-confirmar, #modalLogin button[onclick*='confirmarLogin']");
+    if(btn){ btn.disabled = true; btn.dataset.txt = btn.textContent; btn.textContent = "Validando..."; }
+
+    const r = await validarAcaoNoServidor(u, s, "modo-edicao");
+
+    if(btn){ btn.disabled = false; btn.textContent = btn.dataset.txt || "Confirmar"; }
+
+    if(r.ok){
         fecharModalEditar();
         ativarEdicao();
     } else {
-        document.getElementById("loginErro").style.display = "block";
+        const erroEl = document.getElementById("loginErro");
+        erroEl.style.display = "block";
+        if(r.rateLimited) erroEl.textContent = "⏱ Muitas tentativas. Aguarde 15 minutos.";
+        else if(r.offline) erroEl.textContent = "🔌 Servidor offline. Verifique a internet.";
+        else erroEl.textContent = "Usuário ou senha inválidos";
         // Limpa senha e volta foco para o usuário
         document.getElementById("loginSenha").value = "";
         setTimeout(() => document.getElementById("loginUsuario").focus(), 50);
@@ -6466,12 +6293,12 @@ function ativarEdicao(){
     const isBloqueadaSequencia = faturaAtual > 0 && !finalizadas.includes(faturaAtual - 1);
 
     if(isBloqueadaSequencia){
-        avisar("Essa fatura ainda não pode ser editada — finalize as faturas anteriores primeiro.");
+        alert("Essa fatura ainda não pode ser editada — finalize as faturas anteriores primeiro.");
         return;
     }
 
     if(!isFinalizada){
-        avisar("Essa fatura está em aberto, pode editar à vontade.");
+        alert("Essa fatura está em aberto, pode editar à vontade.");
         return;
     }
 
@@ -6640,13 +6467,44 @@ function abrirCalculadora(){
 // Chave do localStorage onde guardamos a sessão
 const SESSAO_KEY = "caus_sessao";
 
-// Fallback: aceita site/dev se o backend não responder ou rejeitar
-// Remover depois de 30 dias quando todos os usuários migrarem
-const FALLBACK_USUARIO = "site";
-const FALLBACK_SENHA   = "dev";
-
 // Estado da sessão atual (carregado do localStorage)
 let sessaoAtual = null;
+
+/* ════════════════════════════════════════════════════════════════
+   VALIDAÇÃO DE AÇÕES SENSÍVEIS NO SERVIDOR
+   ════════════════════════════════════════════════════════════════
+   Substitui o antigo "if(u === USUARIO_EDIT && s === SENHA_EDIT)".
+   Manda usuario+senha+acao pro servidor que valida no MongoDB
+   (bcrypt + auditoria automática).
+
+   Uso:
+     const r = await validarAcaoNoServidor(u, s, "zerar-tudo");
+     if(r.ok) { ...prossegue... }
+     else if(r.rateLimited) { ...mostra "muitas tentativas"... }
+     else { ...mostra erro genérico... }
+
+   Em caso de servidor offline, retorna { ok:false, offline:true }.
+   ════════════════════════════════════════════════════════════════ */
+async function validarAcaoNoServidor(usuario, senha, acao) {
+  try {
+    const resp = await fetch("/auth/validar-acao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario, senha, acao }),
+    });
+    // 429 = rate limited
+    if(resp.status === 429){
+      const j = await resp.json().catch(() => ({}));
+      return { ok: false, rateLimited: true, erro: j.erro || "Muitas tentativas. Aguarde 15 minutos." };
+    }
+    const j = await resp.json();
+    if(j && j.ok) return { ok: true, usuario: j.usuario };
+    return { ok: false, erro: (j && j.erro) || "Não autorizado" };
+  } catch(e) {
+    console.warn("[validarAcao] Servidor indisponível:", e.message);
+    return { ok: false, offline: true, erro: "Servidor indisponível" };
+  }
+}
 
 function carregarSessao() {
   try {
@@ -6713,37 +6571,62 @@ async function fazerLogin(){
     let loginOk = false;
     let sessaoNova = null;
 
+    let rateLimited = false;
+
     try {
       const resp = await fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ usuario: u, senha: s })
       });
-      const j = await resp.json();
-      if(j.ok && j.token){
-        loginOk = true;
-        sessaoNova = {
-          token: j.token,
-          usuario: j.usuario,
-          role: j.role,
-          loginEm: new Date().toISOString(),
-        };
+      if(resp.status === 429){
+        rateLimited = true;
+      } else {
+        const j = await resp.json();
+        if(j.ok && j.token){
+          loginOk = true;
+          sessaoNova = {
+            token: j.token,
+            usuario: j.usuario,
+            role: j.role,
+            loginEm: new Date().toISOString(),
+          };
+        }
       }
     } catch(e) {
-      // Servidor offline ou erro de rede — vamos pro fallback
-      console.warn("[Login] Servidor indisponível, tentando fallback:", e.message);
+      // Servidor offline ou erro de rede — vamos tentar fallback
+      console.warn("[Login] Servidor indisponível no /auth/login:", e.message);
     }
 
-    // Fallback: aceita site/dev por 30 dias durante transição
-    if(!loginOk && u === FALLBACK_USUARIO && s === FALLBACK_SENHA){
-      loginOk = true;
-      sessaoNova = {
-        token: null, // sem token de servidor
-        usuario: "site",
-        role: "admin", // fallback é admin pra não trancar ninguém
-        loginEm: new Date().toISOString(),
-        fallback: true,
-      };
+    // Fallback: tenta /auth/fallback-login (valida credenciais do .env do servidor)
+    // Útil quando o usuário ainda não está cadastrado no Mongo (usuário de transição)
+    // Não tenta fallback se já foi rate-limited (mesmo limite vai estourar)
+    if(!loginOk && !rateLimited){
+      try {
+        const respFb = await fetch("/auth/fallback-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario: u, senha: s })
+        });
+        if(respFb.status === 429){
+          rateLimited = true;
+        } else {
+          const jf = await respFb.json();
+          if(jf.ok && jf.token){
+            loginOk = true;
+            sessaoNova = {
+              token: jf.token,
+              usuario: jf.usuario,
+              role: jf.role,
+              loginEm: new Date().toISOString(),
+              fallback: true,
+            };
+            console.warn("[Login] Logado em modo fallback (servidor)");
+          }
+        }
+      } catch(e) {
+        console.warn("[Login] Fallback do servidor também indisponível:", e.message);
+      }
     }
 
     if(loginOk && sessaoNova){
@@ -6753,7 +6636,11 @@ async function fazerLogin(){
       entrarNoSistema();
     } else {
       if(erro){
-        erro.textContent = "Usuário ou senha inválidos";
+        if(rateLimited){
+          erro.textContent = "⏱ Muitas tentativas. Aguarde 15 minutos.";
+        } else {
+          erro.textContent = "Usuário ou senha inválidos";
+        }
         erro.style.display = "block";
       }
       document.getElementById("loginPass").value = "";
@@ -6770,13 +6657,7 @@ async function fazerLogin(){
 
 /* Faz logout: limpa sessão e volta pra tela de login */
 async function fazerLogout(){
-  // Modal customizado em vez de confirm() nativo — confirm() no Electron rouba o foco
-  // do teclado e não devolve corretamente, deixando os inputs "mortos" depois.
-  const ok = await pedirConfirmacao("Tem certeza que deseja sair?", {
-    titulo: "Sair do sistema",
-    textoConfirmar: "Sair",
-  });
-  if(!ok) return;
+  if(!confirm("Tem certeza que deseja sair?")) return;
   // Tenta avisar o servidor (opcional, não bloqueia se falhar)
   if(sessaoAtual?.token){
     try {
@@ -6790,36 +6671,8 @@ async function fazerLogout(){
     }
   }
   limparSessao();
-
-  // Em vez de location.reload() (que tem bug de foco no Electron — tela trava
-  // até clicar fora ou abrir DevTools), mostra a tela de login dinamicamente.
-  // Isso evita o problema porque não recria o BrowserWindow, só re-renderiza
-  // os elementos que já existem.
-  const telaLogin = document.getElementById("telaLogin");
-  const sistemaCompleto = document.getElementById("sistemaCompleto");
-  if(sistemaCompleto) sistemaCompleto.style.display = "none";
-  if(telaLogin){
-    telaLogin.style.display = "flex";
-    // Limpa campos do login
-    const inpUser = document.getElementById("loginUser");
-    const inpPass = document.getElementById("loginPass");
-    const erro = document.getElementById("loginErroMsg");
-    if(inpUser) inpUser.value = "";
-    if(inpPass) inpPass.value = "";
-    if(erro) erro.style.display = "none";
-    // Foca no campo usuário com fallback robusto
-    function focarLoginUser(){
-      try {
-        window.focus();
-        if(!inpUser) return;
-        inpUser.blur();
-        inpUser.focus();
-        inpUser.click();
-      } catch(e){}
-    }
-    setTimeout(focarLoginUser, 50);
-    setTimeout(focarLoginUser, 200);
-  }
+  // Recarrega pra ir limpo pra tela de login
+  location.reload();
 }
 
 /* Retorna true se o usuário logado tem permissão pra ação X.
@@ -6881,12 +6734,12 @@ document.addEventListener("click", (e) => {
 async function abrirModalUsuarios(){
   // Bloqueia se não for admin
   if(!sessaoAtual || sessaoAtual.role !== "admin"){
-    avisar("Só administradores podem gerenciar usuários.");
+    alert("Só administradores podem gerenciar usuários.");
     return;
   }
   // Bloqueia se for sessão fallback (site/dev) — não tem token válido pra autenticar no servidor
   if(sessaoAtual.fallback || !sessaoAtual.token){
-    avisar("Você está em modo emergência (site/dev).\n\nPra gerenciar usuários, sai e entra com seu usuário (ex: renan).");
+    alert("Você está em modo emergência (site/dev).\n\nPra gerenciar usuários, sai e entra com seu usuário (ex: renan).");
     return;
   }
   document.getElementById("modalUsuarios").classList.add("ativo");
@@ -7024,11 +6877,7 @@ async function criarUsuario(){
 }
 
 async function excluirUsuario(usuario){
-  const ok = await pedirConfirmacao(
-    `Excluir o usuário "${usuario}"?\n\nTodas as sessões ativas dele serão invalidadas.`,
-    { titulo: "Excluir usuário", textoConfirmar: "Excluir", perigo: true }
-  );
-  if(!ok) return;
+  if(!confirm(`Excluir o usuário "${usuario}"?\n\nTodas as sessões ativas dele serão invalidadas.`)) return;
   try {
     const resp = await fetch("/auth/excluir-usuario", {
       method: "POST",
@@ -7040,12 +6889,12 @@ async function excluirUsuario(usuario){
     });
     const j = await resp.json();
     if(!j.ok){
-      avisar(j.erro || "Algo deu errado");
+      alert(j.erro || "Algo deu errado");
       return;
     }
     await listarUsuarios();
   } catch(e) {
-    avisar("Falha na conexão: " + e.message);
+    alert("Falha na conexão: " + e.message);
   }
 }
 
@@ -7119,25 +6968,7 @@ if(sessaoAtual){
   salvarSessao(sessaoAtual);
   entrarNoSistema();
 } else {
-  // Foco robusto na tela de login — após logout+reload, o Electron precisa de tempo
-  // pra realmente render+focar a janela antes do focus() funcionar.
-  // Padrão idêntico ao do modal de edição (que já funciona bem).
-  function focarLoginUser(){
-    try {
-      window.focus();
-      const el = document.getElementById("loginUser");
-      if(!el) return;
-      el.blur();
-      el.focus();
-      el.click();
-    } catch(e){}
-  }
-  // Tenta várias vezes em momentos diferentes — uma delas vai pegar
-  setTimeout(focarLoginUser, 50);
-  setTimeout(focarLoginUser, 200);
-  setTimeout(focarLoginUser, 500);
-  // E também quando a janela ganha foco (caso o usuário tenha alt-tabbado)
-  window.addEventListener("focus", focarLoginUser, { once: false });
+  document.getElementById("loginUser").focus();
 }
 
 /* ── SALVAR CÓPIA LOCAL DE IMAGEM (recebida de outro PC) ── */

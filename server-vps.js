@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const { MongoClient } = require('mongodb');
 const bcrypt   = require('bcrypt');
 const crypto   = require('crypto');
+const rateLimit = require('express-rate-limit');
 const saude     = require('./saude');
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -39,6 +40,12 @@ const io = new Server(server, {
   pingInterval: 5000,
   transports: ['websocket', 'polling'] // websocket primeiro — mais rápido
 });
+
+/* Trust proxy: confia em 1 nível de proxy à frente (nginx local OU cloudflare).
+   Necessário pro rate-limit ler o IP REAL do cliente via X-Forwarded-For
+   em vez de bloquear todo mundo achando que é o mesmo IP do proxy.
+   Usar valor numérico (não 'true') é mais seguro: confia só no último hop. */
+expressApp.set('trust proxy', 1);
 
 expressApp.use(compression()); // gzip em todas as respostas
 expressApp.use(express.static(path.join(__dirname, 'public'), {
@@ -113,46 +120,15 @@ function validarToken(token) {
   return sessoes[token] || null;
 }
 
-/* ── BACKUP ──
-   Debounce de 5min pros backups 'auto' (evita criar backup a cada digitação).
-   Tipos especiais (abertura, fechamento, antes-do-reset, antes-do-restore) ignoram debounce.
-   Limpeza por mtime real (não por nome alfabético) pra ser confiável.
-*/
-let _ultimoBackupAuto = 0;
-const _INTERVALO_MIN_AUTO_MS = 5 * 60 * 1000;
-const _LIMITE_BACKUPS = 100;
-
+/* ── BACKUP ── */
 function fazerBackup(tipo) {
   try {
     if(!fs.existsSync(saveFile)) return;
-
-    // Debounce: só 'auto' é limitado. Tipos especiais sempre passam.
-    if(tipo === 'auto') {
-      const agora = Date.now();
-      if(agora - _ultimoBackupAuto < _INTERVALO_MIN_AUTO_MS) {
-        return; // pula — backup recente já foi criado
-      }
-      _ultimoBackupAuto = agora;
-    }
-
-    const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    const ts  = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
     const dest = path.join(backupDir, `dados_${ts}_${tipo}.json`);
     fs.copyFileSync(saveFile, dest);
-
-    // Limpeza por mtime real (não por nome alfabético — nomes podem mudar de formato)
-    const arquivos = fs.readdirSync(backupDir)
-      .filter(f => f.endsWith('.json'))
-      .map(f => {
-        const fullPath = path.join(backupDir, f);
-        return { nome: f, caminho: fullPath, mtime: fs.statSync(fullPath).mtime.getTime() };
-      })
-      .sort((a, b) => b.mtime - a.mtime); // mais novo primeiro
-
-    if(arquivos.length > _LIMITE_BACKUPS) {
-      arquivos.slice(_LIMITE_BACKUPS).forEach(a => {
-        try { fs.unlinkSync(a.caminho); } catch(_) {}
-      });
-    }
+    const lista = fs.readdirSync(backupDir).filter(f=>f.endsWith('.json')).sort();
+    if(lista.length > 60) lista.slice(0, lista.length-60).forEach(f=>fs.unlinkSync(path.join(backupDir,f)));
   } catch(e) { console.error('[Backup] Erro:', e.message); }
 }
 
@@ -353,11 +329,67 @@ expressApp.post('/historico-prec', async (req, res) => {
    AUTENTICAÇÃO E GESTÃO DE USUÁRIOS
    ════════════════════════════════════════════════════════════════ */
 
+/* Rate limit pra endpoints de autenticação.
+   5 tentativas por IP a cada 15 minutos. Se passar disso,
+   bloqueia o IP por 15 min. Protege contra brute-force.
+
+   Aplica em: /auth/login, /auth/fallback-login, /auth/validar-acao.
+   NÃO aplica em /auth/logout, /auth/validar-token (não validam senha). */
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5,                    // 5 tentativas por IP nesse período
+  standardHeaders: true,     // expõe info nos headers RateLimit-*
+  legacyHeaders: false,      // não usa X-RateLimit-* (deprecated)
+  // Resposta personalizada quando bloqueia
+  handler: (req, res) => {
+    const ip = req.ip || req.connection?.remoteAddress || 'desconhecido';
+    const usuarioTentado = (req.body && req.body.usuario) || 'desconhecido';
+    registrarAuditoria(usuarioTentado, 'rate-limit-bloqueado', {
+      ip,
+      rota: req.path,
+    });
+    res.status(429).json({
+      ok: false,
+      erro: 'Muitas tentativas. Aguarde 15 minutos antes de tentar novamente.',
+      rateLimited: true,
+    });
+  },
+  // Não conta logins bem-sucedidos (só bloqueia tentativas falhadas).
+  // IMPORTANTE: nossos endpoints retornam SEMPRE HTTP 200, com {ok:true} ou {ok:false}.
+  // Por isso não dá pra confiar só em status code — precisamos olhar o body.
+  // O middleware authLimiterAux abaixo intercepta res.json e marca res.locals.loginOk.
+  skipSuccessfulRequests: true,
+  requestWasSuccessful: (req, res) => {
+    // 429 (já bloqueado) → não conta como sucesso pra evitar loops
+    if(res.statusCode === 429) return false;
+    // res.locals.loginOk é definido pelo authLimiterAux ao interceptar res.json
+    if(res.locals && typeof res.locals.loginOk === 'boolean') {
+      return res.locals.loginOk;
+    }
+    // Fallback: se status >= 400 → falha; senão → sucesso
+    return res.statusCode < 400;
+  },
+});
+
+/* Middleware auxiliar: intercepta res.json para detectar se a resposta é
+   {ok:true} (sucesso) ou {ok:false} (falha). Marca res.locals.loginOk
+   pra que o authLimiter possa decidir se conta a tentativa. */
+function authLimiterAux(req, res, next) {
+  const originalJson = res.json.bind(res);
+  res.json = function(body) {
+    if(body && typeof body.ok === 'boolean') {
+      res.locals.loginOk = body.ok;
+    }
+    return originalJson(body);
+  };
+  next();
+}
+
 /* POST /auth/login
    Body: { usuario, senha }
    Retorno OK: { ok: true, token, usuario, role }
    Retorno erro: { ok: false, erro } */
-expressApp.post('/auth/login', async (req, res) => {
+expressApp.post('/auth/login', authLimiterAux, authLimiter, async (req, res) => {
   try {
     if(!colUsuarios) return res.json({ ok: false, erro: 'Banco indisponível' });
     const { usuario, senha } = req.body || {};
@@ -402,6 +434,45 @@ expressApp.post('/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+/* POST /auth/fallback-login
+   Body: { usuario, senha }
+   Login de emergência usando credenciais do .env (FALLBACK_USUARIO/FALLBACK_SENHA).
+   Usado quando o login normal falha mas o servidor responde.
+   Retorna token + role admin. Registra auditoria como "login-fallback". */
+expressApp.post('/auth/fallback-login', authLimiterAux, authLimiter, async (req, res) => {
+  try {
+    const { usuario, senha } = req.body || {};
+    if(!usuario || !senha) return res.json({ ok: false, erro: 'Usuário e senha obrigatórios' });
+
+    const fallbackUser = process.env.FALLBACK_USUARIO || 'site';
+    const fallbackPass = process.env.FALLBACK_SENHA || 'dev';
+
+    const usuarioNorm = String(usuario).trim().toLowerCase();
+    if(usuarioNorm !== fallbackUser.toLowerCase() || String(senha) !== fallbackPass) {
+      return res.json({ ok: false, erro: 'Usuário ou senha inválidos' });
+    }
+
+    // Cria sessão fallback (role admin)
+    const token = gerarTokenSessao();
+    sessoes[token] = {
+      usuario: fallbackUser,
+      role: 'admin',
+      criadoEm: new Date(),
+      fallback: true,
+    };
+    registrarAuditoria(fallbackUser, 'login-fallback', { motivo: 'usuario-nao-cadastrado' });
+    res.json({
+      ok: true,
+      token,
+      usuario: fallbackUser,
+      role: 'admin',
+      fallback: true,
+    });
+  } catch(e) {
+    res.json({ ok: false, erro: e.message });
+  }
+});
+
 /* POST /auth/validar-token
    Body: { token }
    Retorna sessão se válida, ou erro. Útil pra reabertura do app. */
@@ -410,6 +481,52 @@ expressApp.post('/auth/validar-token', (req, res) => {
   const sessao = validarToken(token);
   if(!sessao) return res.json({ ok: false, erro: 'Token inválido' });
   res.json({ ok: true, usuario: sessao.usuario, role: sessao.role });
+});
+
+/* POST /auth/validar-acao
+   Body: { usuario, senha, acao }
+   Valida usuario+senha pra autorizar ações sensíveis (zerar, conferir, editar).
+   APENAS o "renan" (chefão único) pode autorizar.
+   Registra na auditoria se a ação foi autorizada ou rejeitada. */
+expressApp.post('/auth/validar-acao', authLimiterAux, authLimiter, async (req, res) => {
+  try {
+    if(!colUsuarios) return res.json({ ok: false, erro: 'Banco indisponível' });
+    const { usuario, senha, acao } = req.body || {};
+    if(!usuario || !senha || !acao) {
+      return res.json({ ok: false, erro: 'Dados incompletos' });
+    }
+
+    const usuarioNorm = String(usuario).trim().toLowerCase();
+
+    // Regra: SÓ o renan pode autorizar ações sensíveis
+    if(usuarioNorm !== 'renan') {
+      registrarAuditoria(usuarioNorm, 'validar-acao-rejeitada', {
+        acao,
+        motivo: 'usuario-nao-autorizado',
+      });
+      return res.json({ ok: false, erro: 'Usuário não autorizado para esta ação' });
+    }
+
+    const user = await colUsuarios.findOne({ usuario: 'renan' });
+    if(!user) {
+      return res.json({ ok: false, erro: 'Usuário renan não encontrado' });
+    }
+
+    const ok = await bcrypt.compare(String(senha), user.senhaHash);
+    if(!ok) {
+      registrarAuditoria('renan', 'validar-acao-rejeitada', {
+        acao,
+        motivo: 'senha-incorreta',
+      });
+      return res.json({ ok: false, erro: 'Senha incorreta' });
+    }
+
+    // Autorizado!
+    registrarAuditoria('renan', 'validar-acao-autorizada', { acao });
+    res.json({ ok: true, usuario: 'renan' });
+  } catch(e) {
+    res.json({ ok: false, erro: e.message });
+  }
 });
 
 /* POST /auth/listar-usuarios
@@ -821,9 +938,6 @@ io.on('connection', socket => {
   });
 
   socket.on('reset-all', async (payload) => {
-    // Faz backup do estado ANTES de zerar (rede de segurança)
-    fazerBackup('antes-do-reset');
-
     const vazio = { dados: [], finalizadas: [] };
     dadosCache = vazio; // limpa cache em memória
     fs.writeFileSync(saveFile, JSON.stringify(vazio), 'utf8');
