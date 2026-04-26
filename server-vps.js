@@ -113,15 +113,46 @@ function validarToken(token) {
   return sessoes[token] || null;
 }
 
-/* ── BACKUP ── */
+/* ── BACKUP ──
+   Debounce de 5min pros backups 'auto' (evita criar backup a cada digitação).
+   Tipos especiais (abertura, fechamento, antes-do-reset, antes-do-restore) ignoram debounce.
+   Limpeza por mtime real (não por nome alfabético) pra ser confiável.
+*/
+let _ultimoBackupAuto = 0;
+const _INTERVALO_MIN_AUTO_MS = 5 * 60 * 1000;
+const _LIMITE_BACKUPS = 100;
+
 function fazerBackup(tipo) {
   try {
     if(!fs.existsSync(saveFile)) return;
-    const ts  = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+
+    // Debounce: só 'auto' é limitado. Tipos especiais sempre passam.
+    if(tipo === 'auto') {
+      const agora = Date.now();
+      if(agora - _ultimoBackupAuto < _INTERVALO_MIN_AUTO_MS) {
+        return; // pula — backup recente já foi criado
+      }
+      _ultimoBackupAuto = agora;
+    }
+
+    const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
     const dest = path.join(backupDir, `dados_${ts}_${tipo}.json`);
     fs.copyFileSync(saveFile, dest);
-    const lista = fs.readdirSync(backupDir).filter(f=>f.endsWith('.json')).sort();
-    if(lista.length > 60) lista.slice(0, lista.length-60).forEach(f=>fs.unlinkSync(path.join(backupDir,f)));
+
+    // Limpeza por mtime real (não por nome alfabético — nomes podem mudar de formato)
+    const arquivos = fs.readdirSync(backupDir)
+      .filter(f => f.endsWith('.json'))
+      .map(f => {
+        const fullPath = path.join(backupDir, f);
+        return { nome: f, caminho: fullPath, mtime: fs.statSync(fullPath).mtime.getTime() };
+      })
+      .sort((a, b) => b.mtime - a.mtime); // mais novo primeiro
+
+    if(arquivos.length > _LIMITE_BACKUPS) {
+      arquivos.slice(_LIMITE_BACKUPS).forEach(a => {
+        try { fs.unlinkSync(a.caminho); } catch(_) {}
+      });
+    }
   } catch(e) { console.error('[Backup] Erro:', e.message); }
 }
 
@@ -790,6 +821,9 @@ io.on('connection', socket => {
   });
 
   socket.on('reset-all', async (payload) => {
+    // Faz backup do estado ANTES de zerar (rede de segurança)
+    fazerBackup('antes-do-reset');
+
     const vazio = { dados: [], finalizadas: [] };
     dadosCache = vazio; // limpa cache em memória
     fs.writeFileSync(saveFile, JSON.stringify(vazio), 'utf8');

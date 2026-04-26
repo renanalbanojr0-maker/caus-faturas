@@ -773,6 +773,11 @@ overflow:hidden;
   background:var(--c-warning-soft);
   color:var(--c-warning);
 }
+.res-status.bloqueada{
+  background:var(--c-surface-2);
+  color:var(--c-text-3);
+  border:1px solid var(--c-border);
+}
 .res-status.finalizada{
   background:var(--c-success-soft);
   color:var(--c-success);
@@ -2553,6 +2558,21 @@ input:focus, textarea:focus{
   </div>
 </div>
 
+<!-- Modal de prompt de senha customizado (substitui prompt() nativo, que é bloqueado no Electron) -->
+<div class="modal-overlay" id="modalPromptSenha">
+  <div class="modal-box">
+    <h3 id="promptSenhaTitulo">Senha de administrador</h3>
+    <div id="promptSenhaMsg" style="font-size:13px;color:var(--c-text-2);margin:0 0 12px;line-height:1.4;"></div>
+    <label>Senha</label>
+    <input type="password" id="promptSenhaInput" placeholder="senha" autocomplete="off">
+    <div class="modal-erro" id="promptSenhaErro" style="display:none;">Senha não pode estar em branco.</div>
+    <div class="modal-btns">
+      <button class="modal-cancelar" onclick="cancelarPromptSenha()">Cancelar</button>
+      <button class="modal-confirmar" onclick="confirmarPromptSenha()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Painel lateral de busca e filtro de faturas -->
 <div id="painelBusca" class="painel-busca-overlay">
   <div class="painel-busca">
@@ -3116,12 +3136,12 @@ async function carregarListaBackupsVPS(){
     const container = document.getElementById("restoreListaBackups");
     container.innerHTML = '<div class="restore-lista-loading">Carregando backups disponíveis…</div>';
 
-    // Pede senha pra acessar a lista
+    // Pede senha pra acessar a lista (modal customizado, prompt() não funciona no Electron)
     let senha = restoreEstado.senhaTemp;
     if(!senha){
-        senha = prompt("Digite a senha de admin pra ver os backups:");
+        senha = await pedirSenha("Senha de administrador", "Digite a senha para ver os backups do servidor.");
         if(!senha){
-            container.innerHTML = '<div class="restore-lista-loading">Digite a senha pra carregar a lista.</div>';
+            container.innerHTML = '<div class="restore-lista-loading">Operação cancelada.</div>';
             return;
         }
         restoreEstado.senhaTemp = senha;
@@ -3774,6 +3794,26 @@ function confirmarCodCliente(btn){
     btn.classList.add("confirmado");
 
     salvar();
+
+    // Re-salva a imagem da fatura no VPS (sobrescreve o FAT antigo, agora com o cód cliente preenchido)
+    // Só faz isso se a fatura já foi finalizada (caso em que a imagem original já existe)
+    if(finalizadas.includes(indice)){
+        const numero = String(faturaInicial + indice).padStart(6, "0");
+        // Se a fatura confirmada não é a atualmente exibida, troca temporariamente pra capturar a página certa
+        const indiceOriginal = faturaAtual;
+        if(indice !== faturaAtual){
+            faturaAtual = indice;
+            mostrarFatura();
+            // Aguarda um tick pro DOM atualizar antes de capturar
+            setTimeout(async () => {
+                await gerarESalvarImagem(numero);
+                faturaAtual = indiceOriginal;
+                mostrarFatura();
+            }, 100);
+        } else {
+            gerarESalvarImagem(numero);
+        }
+    }
 }
 
 /* ── INTEGRAÇÃO TINY ERP (puxar dados de NF) ─────────────────── */
@@ -5449,6 +5489,60 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
+/* ── PROMPT DE SENHA CUSTOMIZADO (substitui prompt() nativo, bloqueado no Electron) ── */
+let _promptSenhaResolve = null;
+
+/**
+ * Mostra modal de senha. Uso: const senha = await pedirSenha("Título", "Mensagem opcional");
+ * Retorna a senha digitada ou null se cancelado.
+ */
+function pedirSenha(titulo, mensagem){
+    return new Promise(resolve => {
+        _promptSenhaResolve = resolve;
+        document.getElementById("promptSenhaTitulo").textContent = titulo || "Senha de administrador";
+        document.getElementById("promptSenhaMsg").textContent = mensagem || "";
+        const inp = document.getElementById("promptSenhaInput");
+        inp.value = "";
+        document.getElementById("promptSenhaErro").style.display = "none";
+        document.getElementById("modalPromptSenha").classList.add("ativo");
+        setTimeout(() => { try { inp.focus(); } catch(e){} }, 100);
+    });
+}
+
+function confirmarPromptSenha(){
+    const inp = document.getElementById("promptSenhaInput");
+    const valor = (inp.value || "").trim();
+    if(!valor){
+        document.getElementById("promptSenhaErro").style.display = "block";
+        inp.focus();
+        return;
+    }
+    document.getElementById("modalPromptSenha").classList.remove("ativo");
+    const r = _promptSenhaResolve;
+    _promptSenhaResolve = null;
+    if(r) r(valor);
+}
+
+function cancelarPromptSenha(){
+    document.getElementById("modalPromptSenha").classList.remove("ativo");
+    const r = _promptSenhaResolve;
+    _promptSenhaResolve = null;
+    if(r) r(null);
+}
+
+// Enter confirma, Escape cancela no modal de senha
+document.addEventListener("keydown", (e) => {
+    if(document.getElementById("modalPromptSenha").classList.contains("ativo")){
+        if(e.key === "Enter"){
+            e.preventDefault();
+            confirmarPromptSenha();
+        } else if(e.key === "Escape"){
+            e.preventDefault();
+            cancelarPromptSenha();
+        }
+    }
+});
+
 /* ── PAINEL DE BUSCA E FILTRO ────────────────────────────────── */
 function abrirPainelBusca(){
     document.getElementById("painelBusca").classList.add("ativo");
@@ -5618,6 +5712,10 @@ function renderizarResultadosBusca(resultados){
         } else if(finalizadas.includes(r.indice)){
             statusClass = "finalizada";
             statusTxt = "Finalizada";
+        } else if(r.indice > 0 && !finalizadas.includes(r.indice - 1)){
+            // Bloqueada: a fatura anterior ainda não foi finalizada
+            statusClass = "bloqueada";
+            statusTxt = "Bloqueada";
         }
         const dataStr = r.data ? r.data.toLocaleDateString("pt-BR") : "—";
 

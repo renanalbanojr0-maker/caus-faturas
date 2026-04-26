@@ -1,4 +1,4 @@
-const CACHE_NAME = 'caus-faturas-v1';
+const CACHE_NAME = 'caus-faturas-v2';
 const ARQUIVOS = [
   '/',
   '/index.html',
@@ -41,7 +41,11 @@ self.addEventListener('fetch', event => {
      url.pathname.startsWith('/tiny-api') ||
      url.pathname.startsWith('/historico-prec') ||
      url.pathname.startsWith('/salvar-pdf-nf') ||
-     url.pathname.startsWith('/ping')) {
+     url.pathname.startsWith('/ping') ||
+     url.pathname.startsWith('/admin/') ||
+     url.pathname.startsWith('/auth/') ||
+     url.pathname.startsWith('/dados-atual') ||
+     url.pathname.startsWith('/saude')) {
     return; // deixa passar normalmente
   }
 
