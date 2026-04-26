@@ -5064,6 +5064,12 @@ async function executarMassivo(){
     atualizarProgresso(total);
     texto.textContent = "Processamento concluído";
 
+    // Re-renderiza a fatura atual pra refletir o status "Finalizada" da última processada.
+    // Sem isso, a última NF do loop fica visualmente "Em aberto" mesmo estando em finalizadas[],
+    // porque mostrarFatura() é chamado ANTES do finalizadas.push() durante o loop.
+    // Bug que reaparece de tempos em tempos quando alguém mexe na ordem das chamadas.
+    mostrarFatura();
+
     // Sincroniza tudo uma vez só no final
     salvar();
 
