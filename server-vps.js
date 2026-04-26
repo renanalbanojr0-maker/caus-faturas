@@ -104,21 +104,56 @@ async function criarAdminInicial() {
 }
 
 /* Mapa de tokens de sessão ativos (em memória).
-   Estrutura: { "token": { usuario, role, criadoEm } }
-   Tokens não expiram (logout manual). Limpos no restart do servidor.
+   Estrutura: { "token": { usuario, role, criadoEm, ultimoUso } }
+   Tokens expiram após 8h de inatividade (renovados a cada uso).
+   Limpos no restart do servidor + limpeza periódica a cada 1h.
    Pra sessões persistentes entre restarts, salvar no Mongo no futuro. */
 const sessoes = {};
+
+/* Tempo de inatividade pra expirar uma sessão (8h) */
+const SESSAO_TIMEOUT_MS = 8 * 60 * 60 * 1000;
 
 /* Gera um token aleatório de 32 bytes */
 function gerarTokenSessao() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-/* Valida um token e retorna a sessão (ou null se inválido) */
+/* Valida um token e retorna a sessão (ou null se inválido/expirado).
+   Se válido, atualiza ultimoUso pra renovar a janela de inatividade. */
 function validarToken(token) {
   if(!token) return null;
-  return sessoes[token] || null;
+  const sessao = sessoes[token];
+  if(!sessao) return null;
+  // Verifica expiração por inatividade
+  const ultimoUso = sessao.ultimoUso || sessao.criadoEm?.getTime() || 0;
+  const agora = Date.now();
+  if(agora - ultimoUso > SESSAO_TIMEOUT_MS) {
+    // Sessão expirada — remove e retorna null
+    delete sessoes[token];
+    return null;
+  }
+  // Renova a janela de inatividade
+  sessao.ultimoUso = agora;
+  return sessao;
 }
+
+/* Limpeza periódica de sessões expiradas — roda a cada 1h.
+   Evita acumular tokens mortos em memória se ninguém validar. */
+setInterval(() => {
+  const agora = Date.now();
+  let removidas = 0;
+  for(const token in sessoes) {
+    const sessao = sessoes[token];
+    const ultimoUso = sessao.ultimoUso || sessao.criadoEm?.getTime() || 0;
+    if(agora - ultimoUso > SESSAO_TIMEOUT_MS) {
+      delete sessoes[token];
+      removidas++;
+    }
+  }
+  if(removidas > 0) {
+    console.log(`[Sessões] ${removidas} sessão(ões) expirada(s) removida(s).`);
+  }
+}, 60 * 60 * 1000); // 1h
 
 /* ── BACKUP ── */
 function fazerBackup(tipo) {
@@ -407,6 +442,7 @@ expressApp.post('/auth/login', authLimiterAux, authLimiter, async (req, res) => 
       usuario: user.usuario,
       role: user.role,
       criadoEm: new Date(),
+      ultimoUso: Date.now(),
     };
     // Registra auditoria
     registrarAuditoria(user.usuario, 'login', { role: user.role });
@@ -415,6 +451,10 @@ expressApp.post('/auth/login', authLimiterAux, authLimiter, async (req, res) => 
       token,
       usuario: user.usuario,
       role: user.role,
+      // URI do Mongo enviada pro app desktop conectar localmente.
+      // NÃO fica no .exe — só vive em memória do processo Electron.
+      // Se .env do VPS não tem MONGO_URI, vai null e o app fica em modo "só local".
+      mongoUri: process.env.MONGO_URI || null,
     });
   } catch(e) {
     res.json({ ok: false, erro: e.message });
@@ -452,12 +492,15 @@ expressApp.post('/auth/fallback-login', authLimiterAux, authLimiter, async (req,
       return res.json({ ok: false, erro: 'Usuário ou senha inválidos' });
     }
 
-    // Cria sessão fallback (role admin)
+    // Cria sessão fallback (role COMUM — não dá acesso a endpoints /admin/*)
+    // Isso protege o painel de auditoria, gestão de usuários etc. caso alguém
+    // descubra o site/dev. Pra ações admin precisa logar com renan/3003.
     const token = gerarTokenSessao();
     sessoes[token] = {
       usuario: fallbackUser,
-      role: 'admin',
+      role: 'comum',
       criadoEm: new Date(),
+      ultimoUso: Date.now(),
       fallback: true,
     };
     registrarAuditoria(fallbackUser, 'login-fallback', { motivo: 'usuario-nao-cadastrado' });
@@ -465,7 +508,7 @@ expressApp.post('/auth/fallback-login', authLimiterAux, authLimiter, async (req,
       ok: true,
       token,
       usuario: fallbackUser,
-      role: 'admin',
+      role: 'comum',
       fallback: true,
     });
   } catch(e) {
@@ -617,7 +660,7 @@ expressApp.post('/auth/excluir-usuario', async (req, res) => {
 /* POST /auth/trocar-senha
    Body: { token, senhaAtual, senhaNova }
    Permite o usuário logado trocar a própria senha. */
-expressApp.post('/auth/trocar-senha', async (req, res) => {
+expressApp.post('/auth/trocar-senha', authLimiterAux, authLimiter, async (req, res) => {
   try {
     const { token, senhaAtual, senhaNova } = req.body || {};
     const sessao = validarToken(token);

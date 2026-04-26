@@ -120,7 +120,9 @@ let db = null; // conexão MongoDB
 let io = null; // Socket.io global para usar no IPC
 
 const INPUTS_POR_PAGINA = 70;
-const MONGO_URI = 'mongodb+srv://renanalbanojr0_db_user:C6HBx39A4MkRBTfl@cluster0.h4o2rnn.mongodb.net/?appName=Cluster0';
+// MONGO_URI agora vem do VPS no payload do login (não fica no .exe).
+// Enquanto o usuário não logar, fica null e o app opera em "modo só local".
+let mongoUri = null;
 const DB_NAME   = 'faturas';
 const COL_NAME  = 'dados';
 
@@ -154,15 +156,25 @@ blindagem.inicializar({
 });
 
 /* ── MONGODB ─────────────────────────────────────────────────── */
-async function conectarMongo() {
+/* Conecta no MongoDB usando a URI recebida do VPS (via IPC após login).
+   Se a URI for null/inválida, fica em modo "só local" — db = null faz
+   carregarDoMongo/salvarNoMongo virarem no-ops automaticamente. */
+async function conectarMongo(uri) {
+  if(!uri) {
+    console.warn('⚠ Sem URI do Mongo — modo "só local" ativado');
+    db = null;
+    return false;
+  }
   try {
-    const client = new MongoClient(MONGO_URI);
+    const client = new MongoClient(uri);
     await client.connect();
     db = client.db(DB_NAME).collection(COL_NAME);
     console.log('✓ MongoDB conectado!');
+    return true;
   } catch(e) {
     console.warn('⚠ MongoDB offline — usando dados locais:', e.message);
     db = null;
+    return false;
   }
 }
 
@@ -372,17 +384,18 @@ async function createWindow() {
     console.warn('Não foi possível limpar cache:', e.message);
   }
 
-  // Conecta MongoDB e carrega dados
-  await conectarMongo();
-  const mongoData = await carregarDoMongo();
-  dados = mongoData || carregarDadosLocal();
+  // NÃO conecta no MongoDB no boot — espera o login enviar a URI via IPC.
+  // Enquanto isso, opera em modo "só local" (carregarDadosLocal).
+  // db = null aqui faz carregarDoMongo/salvarNoMongo virarem no-ops.
+  const mongoData = null;
+  dados = carregarDadosLocal();
 
   // Snapshot automático a cada 5 min (mantém 48h de histórico)
   blindagem.iniciarSnapshotAutomatico(5);
   blindagem.escreverJournal('app-start', {
     versao: app.getVersion(),
-    mongoConectado: !!db,
-    origem: mongoData ? 'mongo' : 'local',
+    mongoConectado: false,
+    origem: 'local',
   });
 
   // Backup inicial baixando do VPS + a cada 5 minutos
@@ -599,6 +612,39 @@ async function createWindow() {
 
   /* ── IPC: retorna versão do app ── */
   ipcMain.handle('get-version', () => app.getVersion());
+
+  /* ── IPC: recebe URI do Mongo do VPS após login ──
+     O frontend (index.html) chama isso depois de logar com sucesso,
+     passando a URI que veio no payload de /auth/login.
+     Conecta no Mongo só uma vez (ignora chamadas subsequentes com mesma URI).
+     Se conectar com sucesso, tenta puxar dados do Mongo pra mesclar com locais. */
+  ipcMain.handle('set-mongo-uri', async (event, uri) => {
+    if(!uri) return { ok: false, erro: 'URI vazia' };
+    // Se já está conectado com a mesma URI, ignora (evita reconectar a cada login)
+    if(mongoUri === uri && db) return { ok: true, jaConectado: true };
+    mongoUri = uri;
+    const conectou = await conectarMongo(uri);
+    if(conectou) {
+      // Tenta puxar dados mais recentes do Mongo pra sincronizar
+      try {
+        const mongoData = await carregarDoMongo();
+        if(mongoData && Array.isArray(mongoData.dados) && mongoData.dados.length > 0) {
+          dados = mongoData;
+          // Salva localmente pra ter cache atualizado
+          blindagem.tripleWrite(dados).catch(err => {
+            console.error('[Blindagem] Triple write após sync Mongo falhou:', err.message);
+          });
+          // Avisa todos os sockets conectados
+          if(io) io.emit('load-data', dados);
+          console.log('✓ Dados sincronizados do Mongo no login');
+        }
+      } catch(e) {
+        console.warn('[Mongo] Erro ao sincronizar após login:', e.message);
+      }
+      blindagem.escreverJournal('mongo-conectado', { origem: 'login' });
+    }
+    return { ok: conectou };
+  });
 
   /* ── IPC: salva cópia local da imagem no PC2 ── */
   ipcMain.handle('salvar-imagem-local', async (event, { numero, imgBase64 }) => {

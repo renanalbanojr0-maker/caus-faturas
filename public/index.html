@@ -2553,6 +2553,32 @@ input:focus, textarea:focus{
   </div>
 </div>
 
+<!-- Modal de confirmação customizado (substitui confirm() nativo pra não bugar foco no Electron) -->
+<div class="modal-overlay" id="modalConfirmacao" style="z-index:9999999;">
+  <div class="modal-box">
+    <h3 id="confirmacaoTitulo">Confirmar</h3>
+    <div id="confirmacaoMsg" style="font-size:13px;color:var(--c-text);text-align:left;margin:10px 0 18px;white-space:pre-line;line-height:1.5;"></div>
+    <div class="modal-btns" style="justify-content:center;gap:10px;">
+      <button class="modal-cancelar" style="min-width:120px;flex:0 0 auto;" id="btnCancelarConfirmacao" onclick="responderConfirmacao(false)">Cancelar</button>
+      <button class="modal-confirmar" style="min-width:120px;flex:0 0 auto;" id="btnOkConfirmacao" onclick="responderConfirmacao(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de prompt (entrada de senha/texto) — substitui prompt() nativo pra não bugar foco no Electron -->
+<div class="modal-overlay" id="modalPromptSenha" style="z-index:9999999;">
+  <div class="modal-box">
+    <h3 id="promptSenhaTitulo">Digite a senha</h3>
+    <div id="promptSenhaMsg" style="font-size:13px;color:var(--c-text);text-align:left;margin:10px 0 12px;white-space:pre-line;line-height:1.5;"></div>
+    <input type="password" id="promptSenhaInput" autocomplete="off"
+           style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:14px;margin-bottom:14px;border:1px solid #ccc;border-radius:6px;" />
+    <div class="modal-btns" style="justify-content:center;gap:10px;">
+      <button class="modal-cancelar" style="min-width:120px;flex:0 0 auto;" id="btnCancelarPromptSenha" onclick="responderPromptSenha(null)">Cancelar</button>
+      <button class="modal-confirmar" style="min-width:120px;flex:0 0 auto;" id="btnOkPromptSenha" onclick="responderPromptSenha(document.getElementById('promptSenhaInput').value)">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- Painel lateral de busca e filtro de faturas -->
 <div id="painelBusca" class="painel-busca-overlay">
   <div class="painel-busca">
@@ -3088,11 +3114,11 @@ let restoreEstado = {
 async function abrirModalRestore(){
     // Verificação de role
     if(!sessaoAtual || sessaoAtual.role !== "admin"){
-        alert("Só administradores podem restaurar backups.");
+        mostrarAviso("Atenção", "Só administradores podem restaurar backups.");
         return;
     }
     if(sessaoAtual.fallback){
-        alert("Você está em modo emergência (site/dev).\n\nPra restaurar backups, sai e entra com seu usuário (ex: renan).");
+        mostrarAviso("Atenção", "Você está em modo emergência (site/dev).\n\nPra restaurar backups, sai e entra com seu usuário (ex: renan).");
         return;
     }
 
@@ -3130,7 +3156,7 @@ async function carregarListaBackupsVPS(){
     // Pede senha pra acessar a lista
     let senha = restoreEstado.senhaTemp;
     if(!senha){
-        senha = prompt("Digite a senha de admin pra ver os backups:");
+        senha = await pedirSenha("Senha de admin", "Digite a senha de admin pra ver os backups:");
         if(!senha){
             container.innerHTML = '<div class="restore-lista-loading">Digite a senha pra carregar a lista.</div>';
             return;
@@ -3179,7 +3205,7 @@ async function carregarListaBackupsVPS(){
 async function selecionarBackupVPS(nome){
     const senha = restoreEstado.senhaTemp;
     if(!senha){
-        alert("Sessão expirou. Reabre o modal de restore.");
+        mostrarAviso("Atenção", "Sessão expirou. Reabre o modal de restore.");
         fecharModalRestore();
         return;
     }
@@ -3189,7 +3215,7 @@ async function selecionarBackupVPS(nome){
         const j = await resp.json();
 
         if(!j.ok){
-            alert("Erro ao ler backup: " + (j.erro || "desconhecido"));
+            mostrarAviso("Atenção", "Erro ao ler backup: " + (j.erro || "desconhecido"));
             return;
         }
 
@@ -3203,7 +3229,7 @@ async function selecionarBackupVPS(nome){
 
         abrirModalRestoreConfirmar();
     } catch(e) {
-        alert("Erro de conexão: " + e.message);
+        mostrarAviso("Atenção", "Erro de conexão: " + e.message);
     }
 }
 
@@ -3212,7 +3238,7 @@ function processarArquivoLocal(input){
     if(!file) return;
 
     if(!file.name.endsWith(".json")){
-        alert("Arquivo precisa ser .json");
+        mostrarAviso("Atenção", "Arquivo precisa ser .json");
         input.value = "";
         return;
     }
@@ -3254,7 +3280,7 @@ function processarArquivoLocal(input){
                 <button class="modal-confirmar modal-confirmar-perigo" style="margin-top:8px;" onclick="abrirModalRestoreConfirmar()">Continuar pra confirmação</button>
             `;
         } catch(err){
-            alert("Erro ao ler arquivo: " + err.message);
+            mostrarAviso("Atenção", "Erro ao ler arquivo: " + err.message);
             input.value = "";
         }
     };
@@ -3264,7 +3290,7 @@ function processarArquivoLocal(input){
 function abrirModalRestoreConfirmar(){
     const b = restoreEstado.backupSelecionado;
     if(!b){
-        alert("Nenhum backup selecionado.");
+        mostrarAviso("Atenção", "Nenhum backup selecionado.");
         return;
     }
 
@@ -3300,7 +3326,7 @@ async function confirmarRestore(){
 
     const b = restoreEstado.backupSelecionado;
     if(!b){
-        alert("Backup não encontrado. Reabre o modal.");
+        mostrarAviso("Atenção", "Backup não encontrado. Reabre o modal.");
         return;
     }
 
@@ -3332,7 +3358,7 @@ async function confirmarRestore(){
         // Sucesso
         fecharModalRestoreConfirmar();
         fecharModalRestore();
-        alert(`Backup restaurado.\n\nFaturas: ${j.faturas}\nFinalizadas: ${j.finalizadas}\n\nO sistema vai recarregar pra mostrar os dados.`);
+        mostrarAviso("Atenção", `Backup restaurado.\n\nFaturas: ${j.faturas}\nFinalizadas: ${j.finalizadas}\n\nO sistema vai recarregar pra mostrar os dados.`);
         // Aguarda load-data via socket; mas pra garantir, recarrega
         setTimeout(() => location.reload(), 800);
 
@@ -3349,7 +3375,7 @@ function abrirModalConferencia(){
     // Só permite conferir fatura finalizada
     const jaFinalizada = finalizadas.includes(faturaAtual);
     if(!jaFinalizada){
-        alert("Só dá pra conferir faturas finalizadas.\n\nFinaliza a fatura primeiro e volta aqui pra conferir.");
+        mostrarAviso("Atenção", "Só dá pra conferir faturas finalizadas.\n\nFinaliza a fatura primeiro e volta aqui pra conferir.");
         return;
     }
     // Verifica se já está conferida para mudar o texto do modal
@@ -3656,10 +3682,10 @@ function atualizarDadosViaClienteAtual(){
 }
 
 /* Toggle: liga/desliga o modo via de cliente pra fatura atual */
-function toggleViaCliente(){
+async function toggleViaCliente(){
     const page = pages[faturaAtual];
     if(!page){
-        alert("Nenhuma fatura selecionada.");
+        mostrarAviso("Atenção", "Nenhuma fatura selecionada.");
         return;
     }
     const jaAtivo = isViaClienteAtiva(faturaAtual);
@@ -3676,10 +3702,14 @@ function toggleViaCliente(){
                 atualizarDadosViaClienteAtual();
                 vc.arquivada = true; // marca que foi desativada mas é finalizada (mantém visual)
             }
-            alert("Essa fatura já foi finalizada. O modo Via de Cliente foi arquivado, mas os dados (Nº NF, Cód Cliente e OBS) continuam salvos e aparecem na impressão e na conferência.");
+            mostrarAviso("Atenção", "Essa fatura já foi finalizada. O modo Via de Cliente foi arquivado, mas os dados (Nº NF, Cód Cliente e OBS) continuam salvos e aparecem na impressão e na conferência.");
         } else {
             // Fatura não finalizada: comportamento antigo (apaga tudo)
-            if(!confirm("Desativar o modo Via de Cliente?\nOs valores de Nº NF, Cód Cliente e OBS serão apagados.\n\n(Se quiser preservar os dados, finalize a fatura antes de desativar.)")) return;
+            const okDesativar = await pedirConfirmacao(
+                "Desativar o modo Via de Cliente?",
+                "Os valores de Nº NF, Cód Cliente e OBS serão apagados.\n\n(Se quiser preservar os dados, finalize a fatura antes de desativar.)"
+            );
+            if(!okDesativar) return;
             viasCliente = viasCliente.filter(v => v.indice !== faturaAtual);
             aplicarViaClienteNaPagina(faturaAtual);
         }
@@ -3766,7 +3796,7 @@ function vincularViaClienteInputs(){
 
 /* Confirma o Cód Cliente da fatura arquivada — trava o campo após confirmação.
    Depois que clicar em ✓, só o botão Editar (com senha) libera de novo. */
-function confirmarCodCliente(btn){
+async function confirmarCodCliente(btn){
     const page = btn.closest(".page");
     if(!page) return;
     const indice = pages.indexOf(page);
@@ -3778,14 +3808,16 @@ function confirmarCodCliente(btn){
     const valorAtual = (inpCod?.value || "").trim();
 
     if(!valorAtual){
-        alert("Preenche o Cód Cliente antes de confirmar.");
+        mostrarAviso("Atenção", "Preenche o Cód Cliente antes de confirmar.");
         inpCod?.focus();
         return;
     }
 
-    if(!confirm(`Confirmar Cód Cliente "${valorAtual}"?\n\nApós confirmar, o campo ficará bloqueado. Só será possível destravar pelo botão Editar (com senha).`)){
-        return;
-    }
+    const okCod = await pedirConfirmacao(
+        `Confirmar Cód Cliente "${valorAtual}"?`,
+        `Após confirmar, o campo ficará bloqueado. Só será possível destravar pelo botão Editar (com senha).`
+    );
+    if(!okCod) return;
 
     // Grava o valor final e marca como confirmado
     vc.codCliente = valorAtual;
@@ -3799,16 +3831,16 @@ function confirmarCodCliente(btn){
 }
 
 /* ── INTEGRAÇÃO TINY ERP (puxar dados de NF) ─────────────────── */
-const TINY_TOKEN = "018e68d029d67390d34804439cf22815f369f37d";
+// Token NÃO é mais enviado pelo frontend — o servidor usa o TINY_TOKEN do .env
 const TINY_API_URL = "/tiny-api"; // proxy no VPS (já existe no server-vps.js)
 
-/* Helper: chama a API Tiny via proxy do VPS */
+/* Helper: chama a API Tiny via proxy do VPS (servidor injeta o token do .env) */
 async function chamarTinyAPI(action, params){
     try{
         const resp = await fetch(TINY_API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action, token: TINY_TOKEN, params })
+            body: JSON.stringify({ action, params })
         });
         if(!resp.ok) throw new Error("HTTP " + resp.status);
         return await resp.json();
@@ -3826,7 +3858,7 @@ async function buscarNFTiny(btn){
     const numero = (inpNF?.value || "").trim();
 
     if(!numero){
-        alert("Digita o número da NF antes de buscar.");
+        mostrarAviso("Atenção", "Digita o número da NF antes de buscar.");
         inpNF?.focus();
         return;
     }
@@ -3837,7 +3869,7 @@ async function buscarNFTiny(btn){
     const faturaDuplicada = buscarFaturaPorNumeroNF(numero, indiceAtual);
     if(faturaDuplicada >= 0){
         const numFaturaDup = String(faturaInicial + faturaDuplicada).padStart(6, "0");
-        alert("A NF " + numero + " já está cadastrada.\n\n" +
+        mostrarAviso("Atenção", "A NF " + numero + " já está cadastrada.\n\n" +
               "Essa NF já foi preenchida na Fatura " + numFaturaDup + ".\n\n" +
               "Não é permitido preencher a mesma NF em duas faturas diferentes.\n" +
               "Se precisar corrigir, vá até a Fatura " + numFaturaDup + " e use o botão Editar.");
@@ -3855,51 +3887,51 @@ async function buscarNFTiny(btn){
         // Passo 1: pesquisa a NF pelo número pra obter o ID
         const resp1 = await chamarTinyAPI("listar_nf", { numero });
         if(resp1.erro){
-            alert("Não consegui conectar no Tiny:\n" + resp1.erro);
+            mostrarAviso("Atenção", "Não consegui conectar no Tiny:\n" + resp1.erro);
             return;
         }
         const retorno1 = resp1.retorno || {};
         if(retorno1.status === "Erro"){
             const erros = (retorno1.erros || []).map(e => e.erro || e).join("\n");
-            alert("O Tiny retornou um erro:\n" + erros);
+            mostrarAviso("Atenção", "O Tiny retornou um erro:\n" + erros);
             return;
         }
         const notas = retorno1.notas_fiscais || [];
         if(notas.length === 0){
-            alert("Não achei a NF nº " + numero + " no Tiny.");
+            mostrarAviso("Atenção", "Não achei a NF nº " + numero + " no Tiny.");
             return;
         }
 
         // Pega a primeira NF da lista (geralmente é a correta)
         const idNF = notas[0].nota_fiscal?.id;
         if(!idNF){
-            alert("O Tiny não retornou o ID da NF.");
+            mostrarAviso("Atenção", "O Tiny não retornou o ID da NF.");
             return;
         }
 
         // Passo 2: obtém os detalhes completos da NF pelo ID
         const resp2 = await chamarTinyAPI("detalhe_nf", { id: idNF });
         if(resp2.erro){
-            alert("Não consegui pegar os detalhes da NF:\n" + resp2.erro);
+            mostrarAviso("Atenção", "Não consegui pegar os detalhes da NF:\n" + resp2.erro);
             return;
         }
         const retorno2 = resp2.retorno || {};
         if(retorno2.status === "Erro"){
             const erros = (retorno2.erros || []).map(e => e.erro || e).join("\n");
-            alert("Não consegui pegar a NF:\n" + erros);
+            mostrarAviso("Atenção", "Não consegui pegar a NF:\n" + erros);
             return;
         }
 
         const nf = retorno2.nota_fiscal;
         if(!nf){
-            alert("O Tiny não retornou os dados da NF.");
+            mostrarAviso("Atenção", "O Tiny não retornou os dados da NF.");
             return;
         }
 
         // Validação: limite de 14 itens (linhas da fatura)
         const itens = nf.itens || [];
         if(itens.length > 14){
-            alert("Essa NF tem " + itens.length + " produtos.\n" +
+            mostrarAviso("Atenção", "Essa NF tem " + itens.length + " produtos.\n" +
                   "A fatura suporta no máximo 14 itens.\n\n" +
                   "Nada foi preenchido. Edite manualmente ou divida a venda em duas faturas.");
             return;
@@ -3926,11 +3958,11 @@ async function buscarNFTiny(btn){
                  + skusNaoCad.join(", ")
                  + "\n\n(Foi usada a descrição do Tiny como fallback. Cadastre esses produtos no sistema pra padronizar.)";
         }
-        alert(msg);
+        mostrarAviso("Atenção", msg);
 
     }catch(e){
         console.error("[Buscar NF]", e);
-        alert("Algo deu errado:\n" + e.message);
+        mostrarAviso("Atenção", "Algo deu errado:\n" + e.message);
     }finally{
         btn.disabled = false;
         btn.textContent = labelOriginal;
@@ -3946,7 +3978,7 @@ async function debugNFTiny(btn){
     const numero = (inpNF?.value || "").trim();
 
     if(!numero){
-        alert("Digita o número da NF antes de usar o debug.");
+        mostrarAviso("Atenção", "Digita o número da NF antes de usar o debug.");
         inpNF?.focus();
         return;
     }
@@ -3993,13 +4025,13 @@ async function debugNFTiny(btn){
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        alert("Debug baixado.\n\n" +
+        mostrarAviso("Atenção", "Debug baixado.\n\n" +
               "Arquivo: debug-nf-" + numero + ".json\n\n" +
               "Agora você pode abrir esse arquivo e ver todos os campos que o Tiny retorna, " +
               "ou me enviar ele pra eu analisar e implementar o marketplace.");
     }catch(e){
         console.error("[Debug NF]", e);
-        alert(e.message);
+        mostrarAviso("Atenção", e.message);
     }finally{
         btn.disabled = false;
         btn.textContent = labelOriginal;
@@ -4641,11 +4673,11 @@ async function iniciarPrevia(){
     const dFim = document.getElementById("massivoDataFinal").value;
 
     if(!dIni || !dFim){
-        alert("Preenche as duas datas antes de continuar.");
+        mostrarAviso("Atenção", "Preenche as duas datas antes de continuar.");
         return;
     }
     if(dIni > dFim){
-        alert("A data inicial não pode ser depois da data final.");
+        mostrarAviso("Atenção", "A data inicial não pode ser depois da data final.");
         return;
     }
 
@@ -4702,7 +4734,7 @@ async function iniciarPrevia(){
 
             if(resp.erro){
                 clearInterval(timerInterval);
-                alert("Não consegui conectar no Tiny:\n" + resp.erro);
+                mostrarAviso("Atenção", "Não consegui conectar no Tiny:\n" + resp.erro);
                 return;
             }
             const retorno = resp.retorno || {};
@@ -4713,7 +4745,7 @@ async function iniciarPrevia(){
                     break;
                 }
                 clearInterval(timerInterval);
-                alert("O Tiny retornou um erro:\n" + erros);
+                mostrarAviso("Atenção", "O Tiny retornou um erro:\n" + erros);
                 return;
             }
 
@@ -4728,7 +4760,7 @@ async function iniciarPrevia(){
             if(pagina === 1 && totalPaginas > 10){
                 clearInterval(timerInterval);
                 const msg = `A API retornou ${totalPaginas} páginas (${totalPaginas * 100}+ NFs) — isso indica que o filtro de data não foi aceito pelo Tiny.\n\nPara períodos grandes, tente dividir em pedaços menores (ex: 1 semana por vez).\n\nSe o período já é pequeno e ainda veio muito, reporta esse erro — é um bug da integração.`;
-                alert(msg);
+                mostrarAviso("Atenção", msg);
                 console.error("[Massivo] FILTRO NÃO FUNCIONOU — " + totalPaginas + " páginas retornadas. Verifique os nomes dos parâmetros.");
                 return;
             }
@@ -4763,12 +4795,12 @@ async function iniciarPrevia(){
         console.log(`[Massivo] Busca completa em ${tempoTotal}s. ${totalAnalisadas} NFs analisadas, ${candidatasEcommerce.length} candidatas.`);
 
         if(totalAnalisadas === 0){
-            alert("Nenhuma NF de saída encontrada no período.");
+            mostrarAviso("Atenção", "Nenhuma NF de saída encontrada no período.");
             return;
         }
 
         if(candidatasEcommerce.length === 0){
-            alert(`Nenhuma NF de marketplace encontrada no período.\n\nAnalisei ${totalAnalisadas} NF(s) de saída — nenhuma tem indicadores de e-commerce (número de e-commerce ou email de marketplace).\n\nTempo: ${tempoTotal}s`);
+            mostrarAviso("Atenção", `Nenhuma NF de marketplace encontrada no período.\n\nAnalisei ${totalAnalisadas} NF(s) de saída — nenhuma tem indicadores de e-commerce (número de e-commerce ou email de marketplace).\n\nTempo: ${tempoTotal}s`);
             return;
         }
 
@@ -4807,7 +4839,7 @@ async function iniciarPrevia(){
 
     }catch(e){
         console.error("[Massivo Prévia]", e);
-        alert("Algo deu errado:\n" + e.message);
+        mostrarAviso("Atenção", "Algo deu errado:\n" + e.message);
     }finally{
         clearInterval(timerInterval);
         btn.disabled = false;
@@ -4818,12 +4850,16 @@ async function iniciarPrevia(){
 /* Etapa 3: executa o processamento real */
 async function executarMassivo(){
     if(_massivoNFs.length === 0){
-        alert("Não tem nada pra processar.");
+        mostrarAviso("Atenção", "Não tem nada pra processar.");
         return;
     }
 
     // Confirma antes
-    if(!confirm(`Confirmar processamento de ${_massivoNFs.length} NF(s)?\n\nCada NF vai:\n• Ativar modo Via de Cliente na próxima fatura em aberto\n• Preencher dados do cliente, itens, vendedor e total\n• Finalizar a fatura\n• Salvar imagem no servidor\n• Arquivar o modo VC\n\nProcesso não pode ser desfeito facilmente.`)) return;
+    const okMassivo = await pedirConfirmacao(
+        `Confirmar processamento de ${_massivoNFs.length} NF(s)?`,
+        `Cada NF vai:\n• Ativar modo Via de Cliente na próxima fatura em aberto\n• Preencher dados do cliente, itens, vendedor e total\n• Finalizar a fatura\n• Salvar imagem no servidor\n• Arquivar o modo VC\n\nProcesso não pode ser desfeito facilmente.`
+    );
+    if(!okMassivo) return;
 
     _massivoAbortar = false;
     document.getElementById("massivoEtapaPrevia").style.display = "none";
@@ -5205,8 +5241,14 @@ function carregar(){
 }
 
 /* ── LIMPAR DADOS ────────────────────────────────────────────── */
-function limparDados(confirmar = true){
-    if(confirmar && !confirm("Apagar todos os dados salvos e começar do zero?")) return;
+async function limparDados(confirmar = true){
+    if(confirmar){
+        const okZerar = await pedirConfirmacao(
+            "Apagar todos os dados?",
+            "Apagar todos os dados salvos e começar do zero?"
+        );
+        if(!okZerar) return;
+    }
     localStorage.removeItem("faturasDados");
     localStorage.removeItem("faturaAtual");
     localStorage.removeItem("faturasFinalizadas");
@@ -5467,6 +5509,107 @@ document.addEventListener("keydown", (e) => {
         if(e.key === "Enter" || e.key === "Escape"){
             e.preventDefault();
             fecharAviso();
+        }
+    }
+});
+
+/* ════════════════════════════════════════════════════════════════
+   pedirConfirmacao — substitui o confirm() nativo
+   ════════════════════════════════════════════════════════════════
+   No Electron 30+, o confirm() nativo trava o teclado depois de fechar.
+   Esta versão usa um modal HTML async-aware.
+
+   Uso:
+     const ok = await pedirConfirmacao("Sair?", "Tem certeza que deseja sair?");
+     if(!ok) return;
+
+   Retorna Promise<boolean>:
+     true  → usuário clicou OK / apertou Enter
+     false → usuário clicou Cancelar / apertou Escape / clicou fora
+   ════════════════════════════════════════════════════════════════ */
+let _confirmacaoResolver = null;
+
+function pedirConfirmacao(titulo, mensagem){
+    return new Promise((resolve) => {
+        document.getElementById("confirmacaoTitulo").textContent = titulo || "Confirmar";
+        document.getElementById("confirmacaoMsg").textContent = mensagem || "";
+        document.getElementById("modalConfirmacao").classList.add("ativo");
+        _confirmacaoResolver = resolve;
+        // Foca no botão OK pra poder apertar Enter
+        setTimeout(() => {
+            try { document.getElementById("btnOkConfirmacao").focus(); } catch(e){}
+        }, 100);
+    });
+}
+
+function responderConfirmacao(resposta){
+    document.getElementById("modalConfirmacao").classList.remove("ativo");
+    const r = _confirmacaoResolver;
+    _confirmacaoResolver = null;
+    if(typeof r === "function") r(!!resposta);
+}
+
+// Enter confirma, Escape cancela
+document.addEventListener("keydown", (e) => {
+    if(document.getElementById("modalConfirmacao").classList.contains("ativo")){
+        if(e.key === "Enter"){
+            e.preventDefault();
+            responderConfirmacao(true);
+        } else if(e.key === "Escape"){
+            e.preventDefault();
+            responderConfirmacao(false);
+        }
+    }
+});
+
+/* ════════════════════════════════════════════════════════════════
+   pedirSenha — substitui o prompt() nativo
+   ════════════════════════════════════════════════════════════════
+   No Electron 30+, o prompt() é bloqueado/quebra teclado.
+   Esta versão usa um modal HTML async-aware com input de senha.
+
+   Uso:
+     const senha = await pedirSenha("Senha admin", "Digite pra continuar:");
+     if(senha === null) return; // usuário cancelou
+     // senha contém a string digitada (pode ser "")
+
+   Retorna Promise<string|null>:
+     string → o que o usuário digitou (incluindo string vazia)
+     null   → usuário cancelou (Escape ou botão Cancelar)
+   ════════════════════════════════════════════════════════════════ */
+let _promptSenhaResolver = null;
+
+function pedirSenha(titulo, mensagem){
+    return new Promise((resolve) => {
+        document.getElementById("promptSenhaTitulo").textContent = titulo || "Digite a senha";
+        document.getElementById("promptSenhaMsg").textContent = mensagem || "";
+        document.getElementById("promptSenhaInput").value = "";
+        document.getElementById("modalPromptSenha").classList.add("ativo");
+        _promptSenhaResolver = resolve;
+        // Foca no input pra digitar direto
+        setTimeout(() => {
+            try { document.getElementById("promptSenhaInput").focus(); } catch(e){}
+        }, 100);
+    });
+}
+
+function responderPromptSenha(valor){
+    document.getElementById("modalPromptSenha").classList.remove("ativo");
+    document.getElementById("promptSenhaInput").value = "";
+    const r = _promptSenhaResolver;
+    _promptSenhaResolver = null;
+    if(typeof r === "function") r(valor);
+}
+
+// Enter confirma, Escape cancela no prompt de senha
+document.addEventListener("keydown", (e) => {
+    if(document.getElementById("modalPromptSenha").classList.contains("ativo")){
+        if(e.key === "Enter"){
+            e.preventDefault();
+            responderPromptSenha(document.getElementById("promptSenhaInput").value);
+        } else if(e.key === "Escape"){
+            e.preventDefault();
+            responderPromptSenha(null);
         }
     }
 });
@@ -6293,12 +6436,12 @@ function ativarEdicao(){
     const isBloqueadaSequencia = faturaAtual > 0 && !finalizadas.includes(faturaAtual - 1);
 
     if(isBloqueadaSequencia){
-        alert("Essa fatura ainda não pode ser editada — finalize as faturas anteriores primeiro.");
+        mostrarAviso("Atenção", "Essa fatura ainda não pode ser editada — finalize as faturas anteriores primeiro.");
         return;
     }
 
     if(!isFinalizada){
-        alert("Essa fatura está em aberto, pode editar à vontade.");
+        mostrarAviso("Atenção", "Essa fatura está em aberto, pode editar à vontade.");
         return;
     }
 
@@ -6570,6 +6713,7 @@ async function fazerLogin(){
     // Tenta login no servidor
     let loginOk = false;
     let sessaoNova = null;
+    let mongoUriRecebida = null;
 
     let rateLimited = false;
 
@@ -6591,6 +6735,8 @@ async function fazerLogin(){
             role: j.role,
             loginEm: new Date().toISOString(),
           };
+          // Captura URI do Mongo enviada pelo VPS (só pro app desktop)
+          if(j.mongoUri) mongoUriRecebida = j.mongoUri;
         }
       }
     } catch(e) {
@@ -6632,6 +6778,24 @@ async function fazerLogin(){
     if(loginOk && sessaoNova){
       salvarSessao(sessaoNova);
       sessionStorage.setItem("logado", "1"); // mantém compat
+
+      // Envia URI do Mongo pro processo Electron (se estiver rodando no .exe).
+      // Quando rodando direto pelo navegador (https://appcaus.com.br), essa
+      // chamada simplesmente falha silenciosamente (não tem ipcRenderer).
+      if(mongoUriRecebida){
+        try {
+          const { ipcRenderer } = require("electron");
+          ipcRenderer.invoke("set-mongo-uri", mongoUriRecebida)
+            .then(r => {
+              if(r?.ok) console.log("[Mongo] Conexão local estabelecida via login");
+              else if(r?.erro) console.warn("[Mongo] Falhou:", r.erro);
+            })
+            .catch(e => console.warn("[Mongo] Erro IPC:", e.message));
+        } catch(e) {
+          // Não está no Electron (browser puro) — ignora silenciosamente
+        }
+      }
+
       if(erro) erro.style.display = "none";
       entrarNoSistema();
     } else {
@@ -6657,7 +6821,7 @@ async function fazerLogin(){
 
 /* Faz logout: limpa sessão e volta pra tela de login */
 async function fazerLogout(){
-  if(!confirm("Tem certeza que deseja sair?")) return;
+  if(!await pedirConfirmacao("Sair do sistema", "Tem certeza que deseja sair?")) return;
   // Tenta avisar o servidor (opcional, não bloqueia se falhar)
   if(sessaoAtual?.token){
     try {
@@ -6734,12 +6898,12 @@ document.addEventListener("click", (e) => {
 async function abrirModalUsuarios(){
   // Bloqueia se não for admin
   if(!sessaoAtual || sessaoAtual.role !== "admin"){
-    alert("Só administradores podem gerenciar usuários.");
+    mostrarAviso("Atenção", "Só administradores podem gerenciar usuários.");
     return;
   }
   // Bloqueia se for sessão fallback (site/dev) — não tem token válido pra autenticar no servidor
   if(sessaoAtual.fallback || !sessaoAtual.token){
-    alert("Você está em modo emergência (site/dev).\n\nPra gerenciar usuários, sai e entra com seu usuário (ex: renan).");
+    mostrarAviso("Atenção", "Você está em modo emergência (site/dev).\n\nPra gerenciar usuários, sai e entra com seu usuário (ex: renan).");
     return;
   }
   document.getElementById("modalUsuarios").classList.add("ativo");
@@ -6877,7 +7041,11 @@ async function criarUsuario(){
 }
 
 async function excluirUsuario(usuario){
-  if(!confirm(`Excluir o usuário "${usuario}"?\n\nTodas as sessões ativas dele serão invalidadas.`)) return;
+  const okExcluir = await pedirConfirmacao(
+    `Excluir o usuário "${usuario}"?`,
+    `Todas as sessões ativas dele serão invalidadas.`
+  );
+  if(!okExcluir) return;
   try {
     const resp = await fetch("/auth/excluir-usuario", {
       method: "POST",
@@ -6889,12 +7057,12 @@ async function excluirUsuario(usuario){
     });
     const j = await resp.json();
     if(!j.ok){
-      alert(j.erro || "Algo deu errado");
+      mostrarAviso("Atenção", j.erro || "Algo deu errado");
       return;
     }
     await listarUsuarios();
   } catch(e) {
-    alert("Falha na conexão: " + e.message);
+    mostrarAviso("Atenção", "Falha na conexão: " + e.message);
   }
 }
 
