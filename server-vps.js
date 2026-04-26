@@ -604,6 +604,81 @@ expressApp.post('/salvar-pdf-nf', express.json({ limit: '20mb' }), (req, res) =>
   } catch(e) { res.json({ ok: false, erro: e.message }); }
 });
 
+/* ── RESTORE: restaura backup pro Mongo + propaga pra todos os PCs ──
+   Endpoint usado pra restaurar manualmente um backup local após desastre.
+   Protegido por senha simples (admin_password no body).
+   Body esperado:
+     {
+       senha: "...",
+       dados: { dados: [...], finalizadas: [...], conferidas: [...], ... }
+     }
+*/
+expressApp.post('/admin/restore', express.json({ limit: '50mb' }), async (req, res) => {
+  try {
+    const { senha, dados: payload, usuario } = req.body || {};
+
+    // Senha simples (mesma do reset/edição)
+    const SENHA_RESTORE = process.env.RESTORE_PASSWORD || '3003';
+    if (senha !== SENHA_RESTORE) {
+      return res.status(401).json({ ok: false, erro: 'Senha incorreta' });
+    }
+
+    // Valida estrutura mínima
+    if (!payload || typeof payload !== 'object') {
+      return res.status(400).json({ ok: false, erro: 'Payload inválido' });
+    }
+    if (!Array.isArray(payload.dados)) {
+      return res.status(400).json({ ok: false, erro: 'Campo "dados" deve ser array' });
+    }
+
+    // Conta o que está sendo restaurado
+    const qtdFaturas = payload.dados.filter(p => Array.isArray(p) && p.some(c => c)).length;
+    const qtdFinalizadas = (payload.finalizadas || []).filter(f => f).length;
+
+    // 1. Atualiza cache em memória
+    dadosCache = payload;
+
+    // 2. Salva no disco (saveFile)
+    fs.writeFileSync(saveFile, JSON.stringify(payload), 'utf8');
+
+    // 3. Cria backup do estado atual antes (caso queira desfazer)
+    fazerBackup('antes-do-restore');
+
+    // 4. Substitui no MongoDB
+    if (db) {
+      await db.replaceOne(
+        { _id: 'principal' },
+        { _id: 'principal', ...payload },
+        { upsert: true }
+      );
+    }
+
+    // 5. Propaga pra TODOS os PCs conectados via Socket.io
+    io.emit('load-data', payload);
+
+    // 6. Log de auditoria
+    const quem = usuario || 'admin-restore';
+    registrarAuditoria(quem, 'restore-backup', {
+      qtdFaturas,
+      qtdFinalizadas,
+      timestamp: new Date().toISOString()
+    });
+
+    console.log(`[Restore] Backup restaurado por "${quem}" — ${qtdFaturas} faturas, ${qtdFinalizadas} finalizadas`);
+
+    res.json({
+      ok: true,
+      mensagem: 'Backup restaurado com sucesso',
+      faturas: qtdFaturas,
+      finalizadas: qtdFinalizadas,
+      mongo: !!db,
+    });
+  } catch(e) {
+    console.error('[Restore] Erro:', e.message);
+    res.status(500).json({ ok: false, erro: e.message });
+  }
+});
+
 /* ── SOCKET.IO ── */
 // Cache em memória — resposta instantânea sem ler disco
 let dadosCache = null;
