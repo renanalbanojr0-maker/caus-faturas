@@ -218,21 +218,16 @@ function fazerBackup(motivo) {
 // Baixa dados atualizados do VPS e faz backup local
 async function backupDoVPS(motivo = 'auto') {
   try {
-    const https = require('https');
+    const http = require('http');
     const url = require('url');
-    const parsed = url.parse('https://appcaus.com.br/dados-atual');
+    const parsed = url.parse('http://187.124.93.190:3000/dados-atual');
     const data = await new Promise((resolve, reject) => {
-      const req = https.get({
+      const req = http.get({
         hostname: parsed.hostname,
-        port: parsed.port || 443,
+        port: parsed.port,
         path: parsed.path,
-        timeout: 15000,
-        headers: { 'User-Agent': 'CausFaturas-Backup' }
+        timeout: 10000
       }, res => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`HTTP ${res.statusCode}`));
-          return;
-        }
         let body = '';
         res.on('data', c => body += c);
         res.on('end', () => resolve(body));
@@ -240,25 +235,13 @@ async function backupDoVPS(motivo = 'auto') {
       req.on('error', reject);
       req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
     });
-    // Valida JSON
-    const dadosVps = JSON.parse(data); // lança erro se não for JSON válido
-
-    // 1. Salva backup datado em FaturasBackup (histórico)
+    // Valida JSON e salva
+    JSON.parse(data); // lança erro se não for JSON válido
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
     const nomeArquivo = `dados_${timestampAgora()}_${motivo}.json`;
     fs.writeFileSync(path.join(backupDir, nomeArquivo), data, 'utf8');
     console.log(`[Backup VPS] Criado: ${nomeArquivo}`);
-
-    // 2. Atualiza dados.json local + cópias do triple write
-    //    Isso mantém saveFile populado mesmo se o socket não receber update-data
-    //    (caso típico no PC de casa que abre raramente)
-    if (dadosValidos(dadosVps)) {
-      blindagem.tripleWrite(dadosVps).catch(err => {
-        console.error('[Backup VPS] Triple write falhou:', err.message);
-      });
-    }
-
-    // 3. Mantém só os 60 backups mais recentes
+    // Mantém só os 60 mais recentes
     const arquivos = fs.readdirSync(backupDir)
       .filter(f => f.startsWith('dados_') && f.endsWith('.json'))
       .sort();
