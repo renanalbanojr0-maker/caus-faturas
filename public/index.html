@@ -6229,27 +6229,26 @@ function criarAutocomplete(inp){
                 if(inpValor){
                     setTimeout(() => inpValor.focus(), 50);
                     // Auto-preenche valor de custo do Tiny (apenas pras faturas
-                    // NORMAIS — nas Vias de Cliente o valor já vem da NF)
-                    if(!inpValor.value.trim()){
-                        // Mostra um indicador discreto enquanto busca
-                        const placeholderOriginal = inpValor.placeholder || "";
-                        inpValor.placeholder = "buscando...";
-                        try{
-                            const custo = await obterPrecoCustoTiny(cod);
-                            // Só preenche se o usuário ainda não digitou nada
-                            if(custo != null && !inpValor.value.trim()){
-                                inpValor.value = custo.toLocaleString("pt-BR", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
-                                // Dispara input pra recalcular soma
-                                inpValor.dispatchEvent(new Event("input", { bubbles: true }));
-                            }
-                        }catch(err){
-                            // Falha silenciosa — usuário digita manualmente
-                        }finally{
-                            inpValor.placeholder = placeholderOriginal;
+                    // NORMAIS — nas Vias de Cliente o valor já vem da NF).
+                    // SEMPRE sobrescreve quando o usuário seleciona um produto
+                    // do autocomplete — se quiser dar desconto, edita o valor
+                    // depois (fluxo natural).
+                    const placeholderOriginal = inpValor.placeholder || "";
+                    inpValor.placeholder = "buscando...";
+                    try{
+                        const custo = await obterPrecoCustoTiny(cod);
+                        if(custo != null){
+                            inpValor.value = custo.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                            // Dispara input pra recalcular soma
+                            inpValor.dispatchEvent(new Event("input", { bubbles: true }));
                         }
+                    }catch(err){
+                        // Falha silenciosa — usuário digita manualmente
+                    }finally{
+                        inpValor.placeholder = placeholderOriginal;
                     }
                 }
             });
