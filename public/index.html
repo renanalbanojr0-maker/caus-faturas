@@ -781,6 +781,10 @@ overflow:hidden;
   background:var(--c-primary-soft);
   color:var(--c-primary);
 }
+.res-status.bloqueada{
+  background:#E5E7EB;
+  color:#6B7280;
+}
 .res-status.via-cliente{
   background:var(--c-neutral);
   color:var(--c-text-2);
@@ -5789,6 +5793,10 @@ function renderizarResultadosBusca(resultados){
         } else if(finalizadas.includes(r.indice)){
             statusClass = "finalizada";
             statusTxt = "Finalizada";
+        } else if(r.indice > 0 && !finalizadas.includes(r.indice - 1)){
+            // Bloqueada por sequência: a anterior ainda não foi finalizada
+            statusClass = "bloqueada";
+            statusTxt = "Bloqueada";
         }
         const dataStr = r.data ? r.data.toLocaleDateString("pt-BR") : "—";
 
