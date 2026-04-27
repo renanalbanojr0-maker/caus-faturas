@@ -281,18 +281,9 @@ overflow:hidden;
   background:#f0f7ff;
 }
 
-/* Na impressão física (@media print) o REF FAT não aparece.
-   O PDF é gerado via html2canvas, então fica visível no PDF normalmente. */
-@media print {
-  .ref-fat-wrap{
-    display:none !important;
-  }
-}
-/* Esconde REF FAT na impressão e na geração do PDF */
-@media print {
-  .ref-fat-wrap{ display:none !important; }
-}
-.gerando-pdf .ref-fat-wrap{ display:none !important; }
+/* REF FAT aparece tanto na tela quanto no PDF e na impressão.
+   (Removidas as regras antigas que escondiam em @media print e .gerando-pdf —
+   por requisito de negócio, REF FAT deve sair impresso pro cliente 396) */
 
 /* ── VIA DE CLIENTE (modo especial pra vendas do e-commerce/Tiny) ─── */
 /* Campo Nº NF no topo esquerdo (em vermelho) */
@@ -5849,8 +5840,14 @@ async function finalizarFatura(){
     // Registra na auditoria
     registrarAuditoriaFront("finalizar-fatura", { numero, indice: faturaAtual });
     // Se estiver em modo Via de Cliente, garante que os valores estão salvos
+    // E arquiva o modo VC (preserva dados, libera o botão ✓ pra preencher cód cliente).
+    // Mesmo comportamento do fluxo Massivo (linha ~5042) — sem isso, o botão verde
+    // de confirmar Cód Cliente não aparece após finalizar 1 por 1.
     if(isViaClienteAtiva(faturaAtual)){
         atualizarDadosViaClienteAtual();
+        const vcArquivar = viasCliente.find(v => v.indice === faturaAtual);
+        if(vcArquivar) vcArquivar.arquivada = true;
+        aplicarViaClienteNaPagina(faturaAtual);
     }
     // Força salvar imediatamente sem debounce ao finalizar
     clearTimeout(_salvarTimer);
