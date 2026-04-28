@@ -3823,6 +3823,16 @@ async function confirmarCodCliente(btn){
     btn.classList.add("confirmado");
 
     salvar();
+
+    // Regenera imagem salva com o cod cliente novo (corrige bug do massivo)
+    if(faturaAtual === indice){
+        const numero = String(faturaInicial + indice).padStart(6,"0");
+        try {
+            await gerarESalvarImagem(numero);
+        } catch(e) {
+            console.warn("[confirmarCodCliente] falha ao regenerar imagem:", e);
+        }
+    }
 }
 
 /* ── INTEGRAÇÃO TINY ERP (puxar dados de NF) ─────────────────── */
